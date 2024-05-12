@@ -8,7 +8,6 @@ import org.lwjgl.util.freetype.FT_Bitmap;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.HashMap;
 
 import static org.lwjgl.util.freetype.FreeType.FT_PIXEL_MODE_GRAY;
 import static org.lwjgl.util.freetype.FreeType.FT_PIXEL_MODE_MONO;

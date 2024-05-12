@@ -1,7 +1,6 @@
 package io.github.jmecn.font.freetype;
 
 import org.lwjgl.util.freetype.FT_BitmapGlyph;
-import org.lwjgl.util.freetype.FT_Vector;
 
 import static org.lwjgl.util.freetype.FreeType.nFT_Done_Glyph;
 
@@ -25,11 +24,11 @@ public class FtBitmapGlyph extends FtGlyph implements AutoCloseable {
         nFT_Done_Glyph(glyph.address());
     }
 
-    public long getTop() {
+    public int getTop() {
         return glyph.top();
     }
 
-    public long getLeft() {
+    public int getLeft() {
         return glyph.left();
     }
 

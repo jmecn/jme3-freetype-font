@@ -37,7 +37,6 @@ public class FtGlyphMetrics {
         return metrics.vertBearingY();
     }
 
-
     public long getVertAdvance() {
         return metrics.vertAdvance();
     }

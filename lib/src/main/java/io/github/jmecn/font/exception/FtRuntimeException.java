@@ -8,4 +8,7 @@ public class FtRuntimeException extends RuntimeException {
         super(message);
     }
 
+    public FtRuntimeException(String message, Throwable ex) {
+        super(message, ex);
+    }
 }

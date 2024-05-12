@@ -2,6 +2,7 @@ package io.github.jmecn.font.generator;
 
 import com.jme3.font.BitmapCharacter;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.texture.Image;
 import com.jme3.texture.image.ImageRaster;
 import io.github.jmecn.font.freetype.*;
@@ -37,18 +38,6 @@ public class FtFontGenerator implements AutoCloseable {
     private String name;
     private int pixelWidth;
     private int pixelHeight;
-
-    /** Returns the next power of two. Returns the specified value if the value is already a power of two. */
-    public static int nextPowerOfTwo(int value) {
-        if (value == 0) return 1;
-        value--;
-        value |= value >> 1;
-        value |= value >> 2;
-        value |= value >> 4;
-        value |= value >> 8;
-        value |= value >> 16;
-        return value + 1;
-    }
 
     public FtFontGenerator(File file, int faceIndex) {
         library = new FtLibrary();
@@ -160,7 +149,7 @@ public class FtFontGenerator implements AutoCloseable {
                 packStrategy = new BiTreePackStrategy();
             } else {
                 int maxGlyphHeight = (int)Math.ceil(data.lineHeight);
-                size = nextPowerOfTwo((int)Math.sqrt(maxGlyphHeight * maxGlyphHeight * charactersLength));
+                size = FastMath.nearestPowerOfTwo((int)Math.sqrt(maxGlyphHeight * maxGlyphHeight * charactersLength));
                 if (MAX_SIZE > 0) {
                     size = Math.min(size, MAX_SIZE);
                 }
@@ -195,7 +184,7 @@ public class FtFontGenerator implements AutoCloseable {
             heights[i] = height;
 
             if (c == '\0') {
-                BitmapCharacter missingGlyph = createGlyph('\0', data, parameter, stroker, baseLine, packer);
+                Glyph missingGlyph = createGlyph('\0', data, parameter, stroker, baseLine, packer);
                 if (missingGlyph != null && missingGlyph.getWidth() != 0 && missingGlyph.getHeight() != 0) {
                     data.setGlyph('\0', missingGlyph);
                     data.missingGlyph = missingGlyph;
@@ -216,7 +205,7 @@ public class FtFontGenerator implements AutoCloseable {
 
             char c = characters[best];
             if (data.getGlyph(c) == null) {
-                BitmapCharacter glyph = createGlyph(c, data, parameter, stroker, baseLine, packer);
+                Glyph glyph = createGlyph(c, data, parameter, stroker, baseLine, packer);
                 if (glyph != null) {
                     data.setGlyph(c, glyph);
                     if (incremental) data.glyphs.add(glyph);
@@ -271,9 +260,9 @@ public class FtFontGenerator implements AutoCloseable {
         }
 
         // Set space glyph.
-        BitmapCharacter spaceGlyph = data.getGlyph(' ');
+        Glyph spaceGlyph = data.getGlyph(' ');
         if (spaceGlyph == null) {
-            spaceGlyph = new BitmapCharacter();
+            spaceGlyph = new Glyph();
             spaceGlyph.setXAdvance( (int)data.spaceXadvance + parameter.spaceX );
             spaceGlyph.setChar(' ');
             data.setGlyph(' ', spaceGlyph);
@@ -286,7 +275,7 @@ public class FtFontGenerator implements AutoCloseable {
     }
 
     /** @return null if glyph was not found. */
-    protected BitmapCharacter createGlyph(char c,
+    protected Glyph createGlyph(char c,
                                           FtBitmapFontData data,
                                           FtFontParameter parameter,
                                           FtStroker stroker,
@@ -392,7 +381,7 @@ public class FtFontGenerator implements AutoCloseable {
         }
 
         FtGlyphMetrics metrics = slot.getMetrics();
-        BitmapCharacter glyph = new BitmapCharacter(c);
+        Glyph glyph = new Glyph(c);
         glyph.setWidth(mainPixmap.getWidth());
         glyph.setHeight(mainPixmap.getHeight());
         glyph.setXOffset(mainGlyph.getLeft());// FIXME should << 6 ?
@@ -403,6 +392,7 @@ public class FtFontGenerator implements AutoCloseable {
             glyph.setYOffset(-(glyph.getHeight() - mainGlyph.getTop()) - (int) baseLine);// FIXME should << 6 ?
         }
         glyph.setXAdvance( FtLibrary.toInt(metrics.getHoriAdvance()) + (int)parameter.borderWidth + parameter.spaceX );
+        glyph.setFixedWidth(face.isFixedWidth());
 
         if (bitmapped) {
             ImageRaster raster = ImageRaster.create(mainPixmap);

@@ -9,6 +9,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -51,9 +53,9 @@ public class BitmapFontData {
      * file, it needs to be set manually depending on how the glyphs are rendered on the backing textures. */
     public float cursorX;
 
-    public final BitmapCharacter[][] glyphs = new BitmapCharacter[PAGES][];
+    public final Glyph[][] glyphs = new Glyph[PAGES][];
     /** The glyph to display for characters not in the font. May be null. */
-    public BitmapCharacter missingGlyph;
+    public Glyph missingGlyph;
 
     /** The width of the space character. */
     public float spaceXadvance;
@@ -138,7 +140,7 @@ public class BitmapFontData {
                 if (!matcher.find()) throw new FtRuntimeException("Missing: file");
                 String fileName = matcher.group(1);
 
-                imagePaths[p] = fontFile.parent().child(fileName).path().replaceAll("\\\\", "/");
+                imagePaths[p] = (fontFile.getParent() + File.pathSeparator + fileName).replace("\\\\", "/");
             }
             descent = 0;
 
@@ -149,7 +151,7 @@ public class BitmapFontData {
                 if (line.startsWith("metrics ")) break; // Starting metrics block.
                 if (!line.startsWith("char ")) continue;
 
-                BitmapCharacter glyph = new BitmapCharacter();
+                Glyph glyph = new Glyph();
 
                 StringTokenizer tokens = new StringTokenizer(line, " =");
                 tokens.nextToken();
@@ -247,9 +249,9 @@ public class BitmapFontData {
                 overrideXHeight = Float.parseFloat(tokens.nextToken());
             }
 
-            BitmapCharacter spaceGlyph = getGlyph(' ');
+            Glyph spaceGlyph = getGlyph(' ');
             if (spaceGlyph == null) {
-                spaceGlyph = new BitmapCharacter();
+                spaceGlyph = new Glyph();
                 spaceGlyph.setChar(' ');
                 BitmapCharacter xadvanceGlyph = getGlyph('l');
                 if (xadvanceGlyph == null) xadvanceGlyph = getFirstGlyph();
@@ -309,7 +311,7 @@ public class BitmapFontData {
         }
     }
 
-    public void setGlyphRegion (BitmapCharacter glyph, TextureRegion region) {
+    public void setGlyphRegion (Glyph glyph, TextureRegion region) {
         Image texture = region.getTexture();
         float invTexWidth = 1.0f / texture.getWidth();
         float invTexHeight = 1.0f / texture.getHeight();
@@ -362,6 +364,7 @@ public class BitmapFontData {
             }
         }
 
+        // FIXME don't need to calculate it here.
         glyph.u = u + x * invTexWidth;
         glyph.u2 = u + x2 * invTexWidth;
         if (flipped) {
@@ -379,16 +382,16 @@ public class BitmapFontData {
         down = flipped ? lineHeight : -lineHeight;
     }
 
-    public void setGlyph (int ch, BitmapCharacter glyph) {
-        BitmapCharacter[] page = glyphs[ch / PAGE_SIZE];
-        if (page == null) glyphs[ch / PAGE_SIZE] = page = new BitmapCharacter[PAGE_SIZE];
+    public void setGlyph (int ch, Glyph glyph) {
+        Glyph[] page = glyphs[ch / PAGE_SIZE];
+        if (page == null) glyphs[ch / PAGE_SIZE] = page = new Glyph[PAGE_SIZE];
         page[ch & PAGE_SIZE - 1] = glyph;
     }
 
-    public BitmapCharacter getFirstGlyph () {
-        for (BitmapCharacter[] page : this.glyphs) {
+    public Glyph getFirstGlyph () {
+        for (Glyph[] page : this.glyphs) {
             if (page == null) continue;
-            for (BitmapCharacter glyph : page) {
+            for (Glyph glyph : page) {
                 if (glyph == null || glyph.getHeight() == 0 || glyph.getWidth() == 0) continue;
                 return glyph;
             }
@@ -405,8 +408,8 @@ public class BitmapFontData {
     /** Returns the glyph for the specified character, or null if no such glyph exists. Note that
      * {@link #getGlyphs(GlyphRun, CharSequence, int, int, BitmapCharacter)} should be be used to shape a string of characters into a list
      * of glyphs. */
-    public BitmapCharacter getGlyph (char ch) {
-        BitmapCharacter[] page = glyphs[ch / PAGE_SIZE];
+    public Glyph getGlyph (char ch) {
+        Glyph[] page = glyphs[ch / PAGE_SIZE];
         if (page != null) return page[ch & PAGE_SIZE - 1];
         return null;
     }
@@ -416,13 +419,13 @@ public class BitmapFontData {
      *           square bracket.
      * @param lastGlyph The glyph immediately before this run, or null if this is run is the first on a line of text. Used tp
      *           apply kerning between the specified glyph and the first glyph in this run. */
-    public void getGlyphs (GlyphRun run, CharSequence str, int start, int end, BitmapCharacter lastGlyph) {
+    public void getGlyphs (GlyphRun run, CharSequence str, int start, int end, Glyph lastGlyph) {
         int max = end - start;
         if (max == 0) return;
         boolean markupEnabled = this.markupEnabled;
         float scaleX = this.scaleX;
-        List<BitmapCharacter> glyphs = run.glyphs;
-        FloatArray xAdvances = run.xAdvances;
+        ArrayList<BitmapCharacter> glyphs = run.glyphs;
+        ArrayList<Float> xAdvances = run.xAdvances;
 
         // Guess at number of glyphs needed.
         glyphs.ensureCapacity(max);
@@ -431,23 +434,23 @@ public class BitmapFontData {
         do {
             char ch = str.charAt(start++);
             if (ch == '\r') continue; // Ignore.
-            BitmapCharacter glyph = getGlyph(ch);
+            Glyph glyph = getGlyph(ch);
             if (glyph == null) {
                 if (missingGlyph == null) continue;
                 glyph = missingGlyph;
             }
             glyphs.add(glyph);
             xAdvances.add(lastGlyph == null // First glyph on line, adjust the position so it isn't drawn left of 0.
-                    ? (glyph.fixedWidth ? 0 : -glyph.xoffset * scaleX - padLeft)
-                    : (lastGlyph.xadvance + lastGlyph.getKerning(ch)) * scaleX);
+                    ? (glyph.isFixedWidth() ? 0 : -glyph.getXOffset() * scaleX - padLeft)
+                    : (lastGlyph.getXAdvance() + lastGlyph.getKerning(ch)) * scaleX);
             lastGlyph = glyph;
 
             // "[[" is an escaped left square bracket, skip second character.
             if (markupEnabled && ch == '[' && start < end && str.charAt(start) == '[') start++;
         } while (start < end);
         if (lastGlyph != null) {
-            float lastGlyphWidth = lastGlyph.fixedWidth() ? lastGlyph.xadvance * scaleX
-                    : (lastGlyph.width + lastGlyph.xoffset) * scaleX - padRight;
+            float lastGlyphWidth = lastGlyph.isFixedWidth() ? lastGlyph.getXAdvance() * scaleX
+                    : (lastGlyph.getWidth() + lastGlyph.getXOffset()) * scaleX - padRight;
             xAdvances.add(lastGlyphWidth);
         }
     }

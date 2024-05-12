@@ -2,6 +2,7 @@ package io.github.jmecn.font.packer;
 
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
+import com.jme3.texture.Texture2D;
 import com.jme3.texture.image.ColorSpace;
 import com.jme3.texture.image.ImageRaster;
 import com.jme3.util.BufferUtils;
@@ -25,6 +26,8 @@ public class PackerPage {
     ImageRaster imageRaster;
 
     Image image;
+
+    Texture2D texture;
 
     boolean dirty;
 
@@ -52,19 +55,16 @@ public class PackerPage {
      * changed since this method was last called.
      * @return true if the texture was created or reuploaded. */
     public boolean updateTexture (Texture.MinFilter minFilter, Texture.MagFilter magFilter, boolean useMipMaps) {
-        if (image != null) {
-            if (!dirty) return false;
-            texture.load(texture.getTextureData());
+        if (texture != null) {
+            if (!dirty) {
+                return false;
+            }
         } else {
-            texture = new Texture(new PixmapTextureData(image, image.getFormat(), useMipMaps, false, true)) {
-                @Override
-                public void dispose () {
-                    super.dispose();
-                    image.dispose();
-                }
-            };
-            texture.setFilter(minFilter, magFilter);
+            texture = new Texture2D(image);
+            texture.setMinFilter(minFilter);
+            texture.setMagFilter(magFilter);
         }
+        image.setUpdateNeeded();
         dirty = false;
         return true;
     }

@@ -14,6 +14,7 @@ import java.util.List;
  * @author yanmaoyuan
  */
 public class Packer implements AutoCloseable {
+    boolean packToTexture;
     int pageWidth;
     int pageHeight;
     int padding;
@@ -222,5 +223,13 @@ public class Packer implements AutoCloseable {
     public synchronized void updatePageTextures (Texture.MinFilter minFilter, Texture.MagFilter magFilter, boolean useMipMaps) {
         for (PackerPage page : pages)
             page.updateTexture(minFilter, magFilter, useMipMaps);
+    }
+
+    public boolean isPackToTexture() {
+        return packToTexture;
+    }
+
+    public void setPackToTexture(boolean packToTexture) {
+        this.packToTexture = packToTexture;
     }
 }

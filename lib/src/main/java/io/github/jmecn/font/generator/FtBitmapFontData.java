@@ -25,12 +25,12 @@ public class FtBitmapFontData extends BitmapFontData implements AutoCloseable {
     FtFontParameter parameter;
     FtStroker stroker;
     Packer packer;
-    List<BitmapCharacter> glyphs;
+    List<Glyph> glyphs;
     private boolean dirty;
 
     @Override
-    public BitmapCharacter getGlyph(char ch) {
-        BitmapCharacter glyph = super.getGlyph(ch);
+    public Glyph getGlyph(char ch) {
+        Glyph glyph = super.getGlyph(ch);
         if (glyph == null && generator != null) {
             generator.setPixelSizes(0, parameter.size);
             float baseline = ((flipped ? -ascent : ascent) + capHeight) / scaleY;
@@ -60,7 +60,8 @@ public class FtBitmapFontData extends BitmapFontData implements AutoCloseable {
         return glyph;
     }
 
-    public void getGlyphs (GlyphRun run, CharSequence str, int start, int end, BitmapCharacter lastGlyph) {
+    @Override
+    public void getGlyphs (GlyphRun run, CharSequence str, int start, int end, Glyph lastGlyph) {
         if (packer != null) packer.setPackToTexture(true); // All glyphs added after this are packed directly to the texture.
         super.getGlyphs(run, str, start, end, lastGlyph);
         if (dirty) {
