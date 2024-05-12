@@ -28,7 +28,7 @@ public class FtFontParameter {
     /** Border width in pixels, 0 to disable */
     public float borderWidth = 0;
     /** Border color; only used if borderWidth > 0 */
-    public ColorRGBA borderColor = ColorRGBA.Black.clone();
+    public ColorRGBA borderColor = ColorRGBA.Black;
     /** true for straight (mitered), false for rounded borders */
     public boolean borderStraight = false;
     /** Values < 1 increase the border size. */

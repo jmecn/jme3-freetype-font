@@ -6,6 +6,9 @@ import com.jme3.texture.Texture2D;
 import com.jme3.texture.image.ColorSpace;
 import com.jme3.texture.image.ImageRaster;
 import com.jme3.util.BufferUtils;
+import io.github.jmecn.font.utils.ImageUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -19,6 +22,8 @@ import java.util.Map;
  * @author yanmaoyuan
  */
 public class PackerPage {
+    static Logger logger = LoggerFactory.getLogger(PackerPage.class);
+
     int index;
     private final Map<String, Rectangle> rectangles;
     private final List<String> names;
@@ -70,12 +75,13 @@ public class PackerPage {
     }
 
     public void drawImage(Image image, int x, int y) {
-        // TODO
-        drawImage(image, x, y, 0, 0, image.getWidth(), image.getHeight());
+        logger.info("draw image, {}, pos({},{})", image, x, y);
+        ImageUtils.drawImage(this.image, image, x, y);
     }
 
     public void drawImage(Image image, int x, int y, int srcx, int srcy, int srcWidth, int srcHeight) {
-        // TODO
+        logger.info("draw image, {}, pos({},{}), src.pos({}, {}) src.size({}, {})", image, x, y, srcx, srcy, srcWidth, srcHeight);
+        ImageUtils.drawImage(this.image, image, x, y);
     }
 
     public void drawImage(Image image, int srcx, int srcy, int srcWidth, int srcHeight, int dstx, int dsty, int dstWidth,
