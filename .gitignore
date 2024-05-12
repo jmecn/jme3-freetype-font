@@ -1,0 +1,21 @@
+/.gradle/
+/bin/
+/build/
+/target/
+/logs/
+/.settings/
+*.dll
+*.so
+.classpath
+.project
+/.idea/
+*.dylib
+/.run/
+*.log
+# Ignore Gradle project-specific cache directory
+.gradle
+.config
+
+# Ignore Gradle build output directory
+.DS_Store
+build

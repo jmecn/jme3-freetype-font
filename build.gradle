@@ -1,0 +1,10 @@
+allprojects {
+    group = 'io.github.jmecn'
+    version = '0.1.0'
+
+    tasks.withType(JavaCompile).tap {
+        configureEach {
+            options.encoding = 'UTF-8'
+        }
+    }
+}
