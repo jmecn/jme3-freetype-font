@@ -4,6 +4,24 @@
 - font: Fonts used for testing and demo
 - demo: Demo application for different use case.
 
+## framework
+
+| Library    | Usage                |
+|:-----------|:---------------------|
+| FreeType   | font raster library  |
+| Harfbuzz   | text shaping library |
+| Fontconfig | find best match font |
+
+## algorithms
+
+| Algorithm             | Usage                                                           |
+|:----------------------|:----------------------------------------------------------------|
+| rectangle bin packing | how to pack small font bitmap into large texture atlas          |
+| SDF | signed distance field font generation and shading               |
+| MSDF | multi-channel signed distance field font generation and shading |
+
+* https://github.com/juj/RectangleBinPack
+
 ## feature
 
 - Load TrueType, OpenType font with freetype.

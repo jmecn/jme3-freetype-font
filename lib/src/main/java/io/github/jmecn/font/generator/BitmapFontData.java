@@ -392,7 +392,7 @@ public class BitmapFontData {
                 return glyph;
             }
         }
-        throw new GdxRuntimeException("No glyphs found.");
+        throw new FtRuntimeException("No glyphs found.");
     }
 
     /** Returns true if the font has the glyph, or if the font has a {@link #missingGlyph}. */
