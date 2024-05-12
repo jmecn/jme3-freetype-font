@@ -327,7 +327,7 @@ public class FtFontGenerator implements AutoCloseable {
                 for (int i = 0, n = parameter.renderCount; i < n; i++)
                     borderPixmap.drawPixmap(mainPixmap, offsetX, offsetY);
 
-                mainPixmap.close();
+                mainPixmap.dispose();
                 mainGlyph.close();
                 mainPixmap = borderPixmap;
                 mainGlyph = borderGlyph;
@@ -340,7 +340,7 @@ public class FtFontGenerator implements AutoCloseable {
                 int shadowOffsetY = Math.max(parameter.shadowOffsetY, 0);
                 int shadowW = mainW + Math.abs(parameter.shadowOffsetX);
                 int shadowH = mainH + Math.abs(parameter.shadowOffsetY);
-                Pixmap shadowPixmap = new Pixmap(mainPixmap.getFormat(), shadowW, shadowH);
+                Image shadowPixmap = new Image(mainPixmap.getFormat(), shadowW, shadowH);
 
                 ColorRGBA shadowColor = parameter.shadowColor;
                 float a = shadowColor.a;

@@ -320,12 +320,12 @@ public class BitmapFontData {
         float v = region.v;
         float regionWidth = region.getRegionWidth();
         float regionHeight = region.getRegionHeight();
-        if (region instanceof AtlasRegion) {
-            // Compensate for whitespace stripped from left and top edges.
-            AtlasRegion atlasRegion = (AtlasRegion)region;
-            offsetX = atlasRegion.offsetX;
-            offsetY = atlasRegion.originalHeight - atlasRegion.packedHeight - atlasRegion.offsetY;
-        }
+//        if (region instanceof AtlasRegion) {
+//            // Compensate for whitespace stripped from left and top edges.
+//            AtlasRegion atlasRegion = (AtlasRegion)region;
+//            offsetX = atlasRegion.offsetX;
+//            offsetY = atlasRegion.originalHeight - atlasRegion.packedHeight - atlasRegion.offsetY;
+//        }
 
         float x = glyph.getX();
         float x2 = glyph.getX() + glyph.getWidth();

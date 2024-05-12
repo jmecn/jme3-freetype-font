@@ -8,6 +8,7 @@ import org.lwjgl.util.freetype.FT_Bitmap;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.HashMap;
 
 import static org.lwjgl.util.freetype.FreeType.FT_PIXEL_MODE_GRAY;
 import static org.lwjgl.util.freetype.FreeType.FT_PIXEL_MODE_MONO;
@@ -78,14 +79,16 @@ public class FtBitmap {
         int pixelMode = getPixelMode();
         int rowBytes = Math.abs(getPitch()); // We currently ignore negative pitch.
         if (color == ColorRGBA.White && pixelMode == FT_PIXEL_MODE_GRAY && rowBytes == width && gamma == 1) {
-            pixmap = new Image(Image.Format.Alpha8, width, rows, null, ColorSpace.Linear);
-            BufferUtils.copy(src, pixmap.getPixels(), pixmap.getPixels().capacity());
+            ByteBuffer data = BufferUtils.clone(src);
+            pixmap = new Image(Image.Format.Alpha8, width, rows, data, ColorSpace.Linear);
+
         } else {
-            pixmap = new Image(Image.Format.RGBA8, width, rows, null, ColorSpace.Linear);
+            ByteBuffer data = BufferUtils.createByteBuffer(width * rows * 4);
+            pixmap = new Image(Image.Format.RGBA8, width, rows, data, ColorSpace.Linear);
             int rgba = color.asIntRGBA();
             byte[] srcRow = new byte[rowBytes];
             int[] dstRow = new int[width];
-            IntBuffer dst = pixmap.getPixels().asIntBuffer();
+            IntBuffer dst = data.asIntBuffer();
             if (pixelMode == FT_PIXEL_MODE_MONO) {
                 // Use the specified color for each set bit.
                 for (int y = 0; y < rows; y++) {
@@ -126,12 +129,74 @@ public class FtBitmap {
 
         Image converted = pixmap;
         if (format != pixmap.getFormat()) {
-            converted = new Image(format, pixmap.getWidth(), pixmap.getHeight());
-            converted.setBlending(Blending.None);
-            converted.drawPixmap(pixmap, 0, 0);
-            converted.setBlending(Blending.SourceOver);
+            int capacity = pixmap.getWidth() *pixmap.getHeight() *format.getBitsPerPixel() / 8;
+            ByteBuffer buffer = ByteBuffer.allocateDirect(capacity);
+
+            converted = new Image(format, pixmap.getWidth(), pixmap.getHeight(), buffer, ColorSpace.Linear);
+            // Draw
+            drawImage(converted, pixmap, 0, 0);
             pixmap.dispose();
         }
         return converted;
+    }
+
+    private void drawImage(Image dest, Image source, int x, int y) {
+        int destWidth = dest.getWidth();
+        int destHeight = dest.getHeight();
+        int destSize = destWidth * destHeight * dest.getFormat().getBitsPerPixel() / 8;
+        byte[] image = new byte[destSize];
+
+        ByteBuffer sourceData = source.getData(0);
+        int height = source.getHeight();
+        int width = source.getWidth();
+        for (int yPos = 0; yPos < height; yPos++) {
+            for (int xPos = 0; xPos < width; xPos++) {
+                int i = ((xPos + x) + (yPos + y) * destWidth) * 4;
+                if (source.getFormat() == Image.Format.ABGR8) {
+                    int j = (xPos + yPos * width) * 4;
+                    image[i] = sourceData.get(j); //a
+                    image[i + 1] = sourceData.get(j + 1); //b
+                    image[i + 2] = sourceData.get(j + 2); //g
+                    image[i + 3] = sourceData.get(j + 3); //r
+                } else if (source.getFormat() == Image.Format.BGR8) {
+                    int j = (xPos + yPos * width) * 3;
+                    image[i] = 1; //a
+                    image[i + 1] = sourceData.get(j); //b
+                    image[i + 2] = sourceData.get(j + 1); //g
+                    image[i + 3] = sourceData.get(j + 2); //r
+                } else if (source.getFormat() == Image.Format.RGB8) {
+                    int j = (xPos + yPos * width) * 3;
+                    image[i] = 1; //a
+                    image[i + 1] = sourceData.get(j + 2); //b
+                    image[i + 2] = sourceData.get(j + 1); //g
+                    image[i + 3] = sourceData.get(j); //r
+                } else if (source.getFormat() == Image.Format.RGBA8) {
+                    int j = (xPos + yPos * width) * 4;
+                    image[i] = sourceData.get(j + 3); //a
+                    image[i + 1] = sourceData.get(j + 2); //b
+                    image[i + 2] = sourceData.get(j + 1); //g
+                    image[i + 3] = sourceData.get(j); //r
+                } else if (source.getFormat() == Image.Format.Luminance8) {
+                    int j = (xPos + yPos * width) * 1;
+                    image[i] = 1; //a
+                    image[i + 1] = sourceData.get(j); //b
+                    image[i + 2] = sourceData.get(j); //g
+                    image[i + 3] = sourceData.get(j); //r
+                } else if (source.getFormat() == Image.Format.Luminance8Alpha8) {
+                    int j = (xPos + yPos * width) * 2;
+                    image[i] = sourceData.get(j + 1); //a
+                    image[i + 1] = sourceData.get(j); //b
+                    image[i + 2] = sourceData.get(j); //g
+                    image[i + 3] = sourceData.get(j); //r
+                } else {
+                    throw new UnsupportedOperationException("Cannot draw textures with format " + source.getFormat());
+                }
+            }
+        }
+
+        ByteBuffer destData = dest.getData(0);
+        destData.put(image);
+        destData.flip();
+        dest.setUpdateNeeded();
     }
 }
