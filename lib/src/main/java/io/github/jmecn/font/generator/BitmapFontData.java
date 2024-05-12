@@ -2,7 +2,6 @@ package io.github.jmecn.font.generator;
 
 import com.jme3.font.BitmapCharacter;
 import com.jme3.texture.Image;
-import com.jme3.texture.Texture;
 import io.github.jmecn.font.exception.FtRuntimeException;
 import io.github.jmecn.font.packer.TextureRegion;
 
@@ -502,7 +501,7 @@ public class BitmapFontData {
 
     /** Scales the font by the specified amounts on both axes
      * <p>
-     * Note that smoother scaling can be achieved if the texture backing the BitmapFont is using {@link TextureFilter#Linear}.
+     * Note that smoother scaling can be achieved if the texture backing the BitmapFont is using {@link com.jme3.texture.Texture.MagFilter#Bilinear}.
      * The default is Nearest, so use a BitmapFont constructor that takes a {@link TextureRegion}.
      * @throws IllegalArgumentException if scaleX or scaleY is zero. */
     public void setScale (float scaleX, float scaleY) {

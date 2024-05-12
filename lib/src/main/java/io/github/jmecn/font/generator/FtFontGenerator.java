@@ -10,11 +10,11 @@ import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.Rectangle;
 import io.github.jmecn.font.packer.strategy.BiTreePackStrategy;
 import io.github.jmecn.font.packer.strategy.ScanlinePackStrategy;
+import io.github.jmecn.font.utils.ImageUtils;
 import org.lwjgl.util.freetype.FreeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -329,7 +329,7 @@ public class FtFontGenerator implements AutoCloseable {
 
                 // Draw main glyph on top of border.
                 for (int i = 0, n = parameter.renderCount; i < n; i++) {
-                    borderPixmap.drawPixmap(mainPixmap, offsetX, offsetY);
+                    ImageUtils.drawImage(borderPixmap, mainPixmap, (int) offsetX, (int) offsetY);
                 }
 
                 mainPixmap.dispose();
@@ -345,7 +345,7 @@ public class FtFontGenerator implements AutoCloseable {
                 int shadowOffsetY = Math.max(parameter.shadowOffsetY, 0);
                 int shadowW = mainW + Math.abs(parameter.shadowOffsetX);
                 int shadowH = mainH + Math.abs(parameter.shadowOffsetY);
-                Image shadowPixmap = new Image(mainPixmap.getFormat(), shadowW, shadowH);
+                Image shadowPixmap = ImageUtils.newImage(mainPixmap.getFormat(), shadowW, shadowH);
 
                 ColorRGBA shadowColor = parameter.shadowColor;
                 float a = shadowColor.a;
@@ -369,21 +369,22 @@ public class FtFontGenerator implements AutoCloseable {
                 }
 
                 // Draw main glyph (with any border) on top of shadow.
-                for (int i = 0, n = parameter.renderCount; i < n; i++)
-                    shadowPixmap.drawPixmap(mainPixmap, Math.max(-parameter.shadowOffsetX, 0), Math.max(-parameter.shadowOffsetY, 0));
+                for (int i = 0, n = parameter.renderCount; i < n; i++) {
+                    ImageUtils.drawImage(shadowPixmap, mainPixmap, Math.max(-parameter.shadowOffsetX, 0), Math.max(-parameter.shadowOffsetY, 0));
+                }
                 mainPixmap.dispose();
                 mainPixmap = shadowPixmap;
             } else if (parameter.borderWidth == 0) {
                 // No shadow and no border, draw glyph additional times.
-                for (int i = 0, n = parameter.renderCount - 1; i < n; i++)
-                    mainPixmap.drawPixmap(mainPixmap, 0, 0);
+                for (int i = 0, n = parameter.renderCount - 1; i < n; i++) {
+                    ImageUtils.drawImage(mainPixmap, mainPixmap, 0, 0);
+                }
             }
 
             if (parameter.padTop > 0 || parameter.padLeft > 0 || parameter.padBottom > 0 || parameter.padRight > 0) {
-                Image padPixmap = new Image(mainPixmap.getFormat(), mainPixmap.getWidth() + parameter.padLeft + parameter.padRight,
+                Image padPixmap = ImageUtils.newImage(mainPixmap.getFormat(), mainPixmap.getWidth() + parameter.padLeft + parameter.padRight,
                         mainPixmap.getHeight() + parameter.padTop + parameter.padBottom);
-                padPixmap.setBlending(Blending.None);
-                padPixmap.drawPixmap(mainPixmap, parameter.padLeft, parameter.padTop);
+                ImageUtils.drawImage(padPixmap, mainPixmap, parameter.padLeft, parameter.padTop);
                 mainPixmap.dispose();
                 mainPixmap = padPixmap;
             }
