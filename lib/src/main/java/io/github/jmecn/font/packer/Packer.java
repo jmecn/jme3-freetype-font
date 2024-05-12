@@ -2,6 +2,7 @@ package io.github.jmecn.font.packer;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
+import com.jme3.texture.Texture;
 import io.github.jmecn.font.packer.strategy.BiTreePackStrategy;
 
 import java.util.LinkedList;
@@ -206,5 +207,20 @@ public class Packer implements AutoCloseable {
     @Override
     public void close() {
         // nothing to do
+    }
+
+    /** Calls {@link PackerPage#updateTexture(Texture.MinFilter, Texture.MagFilter, boolean) updateTexture} for each page and adds a region to
+     * the specified array for each page texture. */
+    public synchronized void updateTextureRegions (List<TextureRegion> regions, Texture.MinFilter minFilter, Texture.MagFilter magFilter,
+                                                   boolean useMipMaps) {
+        updatePageTextures(minFilter, magFilter, useMipMaps);
+        while (regions.size() < pages.size())
+            regions.add(new TextureRegion(pages.get(regions.size()).image));
+    }
+
+    /** Calls {@link PackerPage#updateTexture(Texture.MinFilter, Texture.MagFilter, boolean) updateTexture} for each page. */
+    public synchronized void updatePageTextures (Texture.MinFilter minFilter, Texture.MagFilter magFilter, boolean useMipMaps) {
+        for (PackerPage page : pages)
+            page.updateTexture(minFilter, magFilter, useMipMaps);
     }
 }

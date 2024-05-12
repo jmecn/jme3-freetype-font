@@ -2,15 +2,11 @@ package io.github.jmecn.font.generator;
 
 import com.jme3.font.BitmapCharacter;
 import io.github.jmecn.font.freetype.FtFace;
-import io.github.jmecn.font.freetype.FtGlyph;
 import io.github.jmecn.font.freetype.FtLibrary;
 import io.github.jmecn.font.freetype.FtStroker;
 import io.github.jmecn.font.packer.Packer;
-import org.lwjgl.util.freetype.FreeType;
+import io.github.jmecn.font.packer.TextureRegion;
 
-import java.awt.*;
-import java.awt.font.GlyphMetrics;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import static org.lwjgl.util.freetype.FreeType.FT_KERNING_DEFAULT;
@@ -64,7 +60,7 @@ public class FtBitmapFontData extends BitmapFontData implements AutoCloseable {
         return glyph;
     }
 
-    public void getGlyphs (GlyphRun run, CharSequence str, int start, int end, Glyph lastGlyph) {
+    public void getGlyphs (GlyphRun run, CharSequence str, int start, int end, BitmapCharacter lastGlyph) {
         if (packer != null) packer.setPackToTexture(true); // All glyphs added after this are packed directly to the texture.
         super.getGlyphs(run, str, start, end, lastGlyph);
         if (dirty) {
