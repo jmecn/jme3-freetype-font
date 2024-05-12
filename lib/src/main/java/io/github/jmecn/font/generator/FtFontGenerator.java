@@ -285,8 +285,12 @@ public class FtFontGenerator implements AutoCloseable {
     }
 
     /** @return null if glyph was not found. */
-    protected BitmapCharacter createGlyph(char c, FtBitmapFontData data, FtFontParameter parameter, FtStroker stroker,
-                                       float baseLine, Packer packer) {
+    protected BitmapCharacter createGlyph(char c,
+                                          FtBitmapFontData data,
+                                          FtFontParameter parameter,
+                                          FtStroker stroker,
+                                          float baseLine,
+                                          Packer packer) {
 
         boolean missing = face.getCharIndex(c) == 0 && c != 0;
         if (missing) return null;
@@ -324,8 +328,9 @@ public class FtFontGenerator implements AutoCloseable {
                 Image borderPixmap = borderBitmap.getPixmap(Image.Format.RGBA8, parameter.borderColor, parameter.borderGamma);
 
                 // Draw main glyph on top of border.
-                for (int i = 0, n = parameter.renderCount; i < n; i++)
+                for (int i = 0, n = parameter.renderCount; i < n; i++) {
                     borderPixmap.drawPixmap(mainPixmap, offsetX, offsetY);
+                }
 
                 mainPixmap.dispose();
                 mainGlyph.close();
@@ -346,8 +351,8 @@ public class FtFontGenerator implements AutoCloseable {
                 float a = shadowColor.a;
                 if (a != 0) {
                     byte r = (byte)(shadowColor.r * 255), g = (byte)(shadowColor.g * 255), b = (byte)(shadowColor.b * 255);
-                    ByteBuffer mainPixels = mainPixmap.getPixels();
-                    ByteBuffer shadowPixels = shadowPixmap.getPixels();
+                    ByteBuffer mainPixels = mainPixmap.getData(0);
+                    ByteBuffer shadowPixels = shadowPixmap.getData(0);
                     for (int y = 0; y < mainH; y++) {
                         int shadowRow = shadowW * (y + shadowOffsetY) + shadowOffsetX;
                         for (int x = 0; x < mainW; x++) {
@@ -375,35 +380,35 @@ public class FtFontGenerator implements AutoCloseable {
             }
 
             if (parameter.padTop > 0 || parameter.padLeft > 0 || parameter.padBottom > 0 || parameter.padRight > 0) {
-                Pixmap padPixmap = new Pixmap(mainPixmap.getWidth() + parameter.padLeft + parameter.padRight,
-                        mainPixmap.getHeight() + parameter.padTop + parameter.padBottom, mainPixmap.getFormat());
+                Image padPixmap = new Image(mainPixmap.getFormat(), mainPixmap.getWidth() + parameter.padLeft + parameter.padRight,
+                        mainPixmap.getHeight() + parameter.padTop + parameter.padBottom);
                 padPixmap.setBlending(Blending.None);
                 padPixmap.drawPixmap(mainPixmap, parameter.padLeft, parameter.padTop);
-                mainPixmap.close();
+                mainPixmap.dispose();
                 mainPixmap = padPixmap;
             }
         }
 
         FtGlyphMetrics metrics = slot.getMetrics();
         BitmapCharacter glyph = new BitmapCharacter(c);
-        glyph.width = mainPixmap.getWidth();
-        glyph.height = mainPixmap.getHeight();
-        glyph.xoffset = mainGlyph.getLeft();
+        glyph.setWidth(mainPixmap.getWidth());
+        glyph.setHeight(mainPixmap.getHeight());
+        glyph.setXOffset(mainGlyph.getLeft());// FIXME should << 6 ?
         if (parameter.flip)
-            glyph.yoffset = -mainGlyph.getTop() + (int)baseLine;
+            glyph.setYOffset( -mainGlyph.getTop() + (int)baseLine );// FIXME should << 6 ?
         else
-            glyph.yoffset = -(glyph.height - mainGlyph.getTop()) - (int)baseLine;
-        glyph.xadvance = FreeType.toInt(metrics.getHoriAdvance()) + (int)parameter.borderWidth + parameter.spaceX;
+            glyph.setYOffset( -(glyph.getHeight() - mainGlyph.getTop()) - (int)baseLine);// FIXME should << 6 ?
+        glyph.setXAdvance( FtLibrary.toInt(metrics.getHoriAdvance()) + (int)parameter.borderWidth + parameter.spaceX );
 
         if (bitmapped) {
             mainPixmap.setColor(ColorRGBA.BlackNoAlpha);
             mainPixmap.fill();
             ByteBuffer buf = mainBitmap.getBuffer();
-            int whiteIntBits = Color.WHITE.toIntBits();
-            int clearIntBits = Color.CLEAR.toIntBits();
-            for (int h = 0; h < glyph.height; h++) {
+            int whiteIntBits = ColorRGBA.White.asIntRGBA();
+            int clearIntBits = ColorRGBA.BlackNoAlpha.asIntRGBA();
+            for (int h = 0; h < glyph.getHeight(); h++) {
                 int idx = h * mainBitmap.getPitch();
-                for (int w = 0; w < (glyph.width + glyph.xoffset); w++) {
+                for (int w = 0; w < (glyph.getWidth() + glyph.getXOffset()); w++) {
                     int bit = (buf.get(idx + (w / 8)) >>> (7 - (w % 8))) & 1;
                     mainPixmap.drawPixel(w, h, ((bit == 1) ? whiteIntBits : clearIntBits));
                 }
@@ -412,15 +417,16 @@ public class FtFontGenerator implements AutoCloseable {
 
         String pixmapName = glyph.hashCode() + "_" + glyph.getChar();
         Rectangle rect = packer.pack(pixmapName, mainPixmap);
-        glyph.page = packer.getPageIndex(pixmapName);
-        glyph.x = (int)rect.x;
-        glyph.y = (int)rect.y;
+        glyph.setPage(packer.getPageIndex(pixmapName));
+        glyph.setX(rect.getX());
+        glyph.setY(rect.getY());
 
         // If a page was added, create a new texture region for the incrementally added glyph.
-        if (parameter.incremental && data.regions != null && data.regions.size() <= glyph.getPage())
+        if (parameter.incremental && data.regions != null && data.regions.size() <= glyph.getPage()) {
             packer.updateTextureRegions(data.regions, parameter.minFilter, parameter.magFilter, parameter.genMipMaps);
+        }
 
-        mainPixmap.close();
+        mainPixmap.dispose();
         mainGlyph.close();
 
         return glyph;
