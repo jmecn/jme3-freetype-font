@@ -28,4 +28,24 @@ public class Glyph extends BitmapCharacter {
     public void setFixedWidth(boolean isFixedWidth) {
         this.isFixedWidth = isFixedWidth;
     }
+
+    @Override
+    public String toString() {
+        return "Glyph{" +
+                "char=" + getChar() +
+                ", isFixedWidth=" + isFixedWidth +
+                ", u=" + u +
+                ", v=" + v +
+                ", u2=" + u2 +
+                ", v2=" + v2 +
+                ", x=" + getX() +
+                ", y=" + getY() +
+                ", width=" + getWidth() +
+                ", height=" + getHeight() +
+                ", XOffset=" + getXOffset() +
+                ", YOffset=" + getYOffset() +
+                ", XAdvance=" + getXAdvance() +
+                ", page=" + getPage() +
+                '}';
+    }
 }
