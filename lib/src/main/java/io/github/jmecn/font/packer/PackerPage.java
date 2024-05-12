@@ -1,6 +1,7 @@
 package io.github.jmecn.font.packer;
 
 import com.jme3.texture.Image;
+import com.jme3.texture.Texture;
 import com.jme3.texture.image.ColorSpace;
 import com.jme3.texture.image.ImageRaster;
 import com.jme3.util.BufferUtils;
@@ -25,6 +26,8 @@ public class PackerPage {
 
     Image image;
 
+    boolean dirty;
+
     public PackerPage(Packer packer) {
         int size = packer.pageWidth * packer.pageHeight * packer.format.getBitsPerPixel();
         ByteBuffer buffer = BufferUtils.createByteBuffer(size);
@@ -42,6 +45,28 @@ public class PackerPage {
 
     public Rectangle get(String name) {
         return rectangles.get(name);
+    }
+
+
+    /** Creates the texture if it has not been created, else reuploads the entire page pixmap to the texture if the pixmap has
+     * changed since this method was last called.
+     * @return true if the texture was created or reuploaded. */
+    public boolean updateTexture (Texture.MinFilter minFilter, Texture.MagFilter magFilter, boolean useMipMaps) {
+        if (image != null) {
+            if (!dirty) return false;
+            texture.load(texture.getTextureData());
+        } else {
+            texture = new Texture(new PixmapTextureData(image, image.getFormat(), useMipMaps, false, true)) {
+                @Override
+                public void dispose () {
+                    super.dispose();
+                    image.dispose();
+                }
+            };
+            texture.setFilter(minFilter, magFilter);
+        }
+        dirty = false;
+        return true;
     }
 
     public void drawImage(Image image, int x, int y) {

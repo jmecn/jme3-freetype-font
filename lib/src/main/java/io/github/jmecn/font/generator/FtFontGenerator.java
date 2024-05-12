@@ -7,6 +7,7 @@ import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.exception.FtRuntimeException;
 import io.github.jmecn.font.packer.PackStrategy;
 import io.github.jmecn.font.packer.Packer;
+import io.github.jmecn.font.packer.Rectangle;
 import io.github.jmecn.font.packer.strategy.BiTreePackStrategy;
 import io.github.jmecn.font.packer.strategy.ScanlinePackStrategy;
 import org.lwjgl.util.freetype.FreeType;
@@ -303,7 +304,7 @@ public class FtFontGenerator implements AutoCloseable {
             return null;
         }
         FtBitmap mainBitmap = mainGlyph.getBitmap();
-        Pixmap mainPixmap = mainBitmap.getPixmap(Image.Format.RGBA8, parameter.color, parameter.gamma);
+        Image mainPixmap = mainBitmap.getPixmap(Image.Format.RGBA8, parameter.color, parameter.gamma);
 
         if (mainBitmap.getWidth() != 0 && mainBitmap.getRows() != 0) {
             long offsetX = 0;
@@ -320,7 +321,7 @@ public class FtFontGenerator implements AutoCloseable {
 
                 // Render border (pixmap is bigger than main).
                 FtBitmap borderBitmap = borderGlyph.getBitmap();
-                Pixmap borderPixmap = borderBitmap.getPixmap(Format.RGBA8888, parameter.borderColor, parameter.borderGamma);
+                Image borderPixmap = borderBitmap.getPixmap(Image.Format.RGBA8, parameter.borderColor, parameter.borderGamma);
 
                 // Draw main glyph on top of border.
                 for (int i = 0, n = parameter.renderCount; i < n; i++)

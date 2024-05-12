@@ -1,8 +1,10 @@
 package io.github.jmecn.font.generator;
 
 import com.jme3.font.BitmapCharacter;
+import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import io.github.jmecn.font.exception.FtRuntimeException;
+import io.github.jmecn.font.packer.TextureRegion;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -309,7 +311,7 @@ public class BitmapFontData {
     }
 
     public void setGlyphRegion (BitmapCharacter glyph, TextureRegion region) {
-        Texture texture = region.getTexture();
+        Image texture = region.getTexture();
         float invTexWidth = 1.0f / texture.getWidth();
         float invTexHeight = 1.0f / texture.getHeight();
 
