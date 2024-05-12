@@ -3,6 +3,7 @@ package io.github.jmecn.font.generator;
 import com.jme3.font.BitmapCharacter;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
+import com.jme3.texture.image.ImageRaster;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.exception.FtRuntimeException;
 import io.github.jmecn.font.packer.PackStrategy;
@@ -395,23 +396,22 @@ public class FtFontGenerator implements AutoCloseable {
         glyph.setWidth(mainPixmap.getWidth());
         glyph.setHeight(mainPixmap.getHeight());
         glyph.setXOffset(mainGlyph.getLeft());// FIXME should << 6 ?
-        if (parameter.flip)
-            glyph.setYOffset( -mainGlyph.getTop() + (int)baseLine );// FIXME should << 6 ?
-        else
-            glyph.setYOffset( -(glyph.getHeight() - mainGlyph.getTop()) - (int)baseLine);// FIXME should << 6 ?
+        if (parameter.flip) {
+            glyph.setYOffset(-mainGlyph.getTop() + (int) baseLine);// FIXME should << 6 ?
+        }
+        else {
+            glyph.setYOffset(-(glyph.getHeight() - mainGlyph.getTop()) - (int) baseLine);// FIXME should << 6 ?
+        }
         glyph.setXAdvance( FtLibrary.toInt(metrics.getHoriAdvance()) + (int)parameter.borderWidth + parameter.spaceX );
 
         if (bitmapped) {
-            mainPixmap.setColor(ColorRGBA.BlackNoAlpha);
-            mainPixmap.fill();
+            ImageRaster raster = ImageRaster.create(mainPixmap);
             ByteBuffer buf = mainBitmap.getBuffer();
-            int whiteIntBits = ColorRGBA.White.asIntRGBA();
-            int clearIntBits = ColorRGBA.BlackNoAlpha.asIntRGBA();
             for (int h = 0; h < glyph.getHeight(); h++) {
                 int idx = h * mainBitmap.getPitch();
                 for (int w = 0; w < (glyph.getWidth() + glyph.getXOffset()); w++) {
                     int bit = (buf.get(idx + (w / 8)) >>> (7 - (w % 8))) & 1;
-                    mainPixmap.drawPixel(w, h, ((bit == 1) ? whiteIntBits : clearIntBits));
+                    raster.setPixel(w, h, ((bit == 1) ? ColorRGBA.White : ColorRGBA.BlackNoAlpha));
                 }
             }
         }

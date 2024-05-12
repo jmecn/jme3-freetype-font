@@ -314,11 +314,11 @@ public class BitmapFontData {
         float invTexWidth = 1.0f / texture.getWidth();
         float invTexHeight = 1.0f / texture.getHeight();
 
-        float offsetX = 0, offsetY = 0;
+        int offsetX = 0, offsetY = 0;
         float u = region.u;
         float v = region.v;
-        float regionWidth = region.getRegionWidth();
-        float regionHeight = region.getRegionHeight();
+        int regionWidth = region.getRegionWidth();
+        int regionHeight = region.getRegionHeight();
 //        if (region instanceof AtlasRegion) {
 //            // Compensate for whitespace stripped from left and top edges.
 //            AtlasRegion atlasRegion = (AtlasRegion)region;
@@ -326,38 +326,38 @@ public class BitmapFontData {
 //            offsetY = atlasRegion.originalHeight - atlasRegion.packedHeight - atlasRegion.offsetY;
 //        }
 
-        float x = glyph.getX();
-        float x2 = glyph.getX() + glyph.getWidth();
-        float y = glyph.getY();
-        float y2 = glyph.getY() + glyph.getHeight();
+        int x = glyph.getX();
+        int x2 = glyph.getX() + glyph.getWidth();
+        int y = glyph.getY();
+        int y2 = glyph.getY() + glyph.getHeight();
 
         // Shift glyph for left and top edge stripped whitespace. Clip glyph for right and bottom edge stripped whitespace.
         // Note if the font region has padding, whitespace stripping must not be used.
         if (offsetX > 0) {
             x -= offsetX;
             if (x < 0) {
-                glyph.setWidth(glyph.getWidth() + (int) x);
-                glyph.setXOffset(glyph.getXOffset() - (int) x);
+                glyph.setWidth(glyph.getWidth() + x);
+                glyph.setXOffset(glyph.getXOffset() - x);
                 x = 0;
             }
             x2 -= offsetX;
             if (x2 > regionWidth) {
-                glyph.width -= x2 - regionWidth;
+                glyph.setWidth( glyph.getWidth() -(x2 - regionWidth) );
                 x2 = regionWidth;
             }
         }
         if (offsetY > 0) {
             y -= offsetY;
             if (y < 0) {
-                glyph.height += y;
-                if (glyph.height < 0) glyph.height = 0;
+                glyph.setHeight(glyph.getHeight() + y);
+                if (glyph.getHeight() < 0) glyph.setHeight(0);
                 y = 0;
             }
             y2 -= offsetY;
             if (y2 > regionHeight) {
-                float amount = y2 - regionHeight;
-                glyph.height -= amount;
-                glyph.yoffset += amount;
+                int amount = y2 - regionHeight;
+                glyph.setHeight(glyph.getHeight() - amount);
+                glyph.setYOffset(glyph.getYOffset() + amount);
                 y2 = regionHeight;
             }
         }
@@ -403,7 +403,7 @@ public class BitmapFontData {
     }
 
     /** Returns the glyph for the specified character, or null if no such glyph exists. Note that
-     * {@link #getGlyphs(GlyphRun, CharSequence, int, int, Glyph)} should be be used to shape a string of characters into a list
+     * {@link #getGlyphs(GlyphRun, CharSequence, int, int, BitmapCharacter)} should be be used to shape a string of characters into a list
      * of glyphs. */
     public BitmapCharacter getGlyph (char ch) {
         BitmapCharacter[] page = glyphs[ch / PAGE_SIZE];
@@ -446,7 +446,7 @@ public class BitmapFontData {
             if (markupEnabled && ch == '[' && start < end && str.charAt(start) == '[') start++;
         } while (start < end);
         if (lastGlyph != null) {
-            float lastGlyphWidth = lastGlyph.fixedWidth ? lastGlyph.xadvance * scaleX
+            float lastGlyphWidth = lastGlyph.fixedWidth() ? lastGlyph.xadvance * scaleX
                     : (lastGlyph.width + lastGlyph.xoffset) * scaleX - padRight;
             xAdvances.add(lastGlyphWidth);
         }
