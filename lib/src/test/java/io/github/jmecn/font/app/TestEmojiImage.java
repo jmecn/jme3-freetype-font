@@ -23,7 +23,7 @@ import static org.lwjgl.util.harfbuzz.OpenType.hb_ot_font_set_funcs;
 public class TestEmojiImage {
 
     static final String APPLE_EMOJI = "/System/Library/Fonts/Apple Color Emoji.ttc";
-    static final String TEXT = "Hello, 🙋👋🍰🐒";
+    static final String TEXT = "🙋👋🍰🐒";
 
     public static void main(String[] args) {
         List<Image> imageList = new ArrayList<>();

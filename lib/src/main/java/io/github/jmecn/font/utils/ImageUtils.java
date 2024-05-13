@@ -222,6 +222,9 @@ public final class ImageUtils {
         int destHeight = dest.getHeight();
         int destSize = destWidth * destHeight * dest.getFormat().getBitsPerPixel() / 8;
         byte[] image = new byte[destSize];
+        ByteBuffer destData = dest.getData(0);
+        destData.get(image);
+        destData.rewind();
 
         ByteBuffer sourceData = source.getData(0);
         int height = source.getHeight();
@@ -271,7 +274,6 @@ public final class ImageUtils {
             }
         }
 
-        ByteBuffer destData = dest.getData(0);
         destData.put(image);
         destData.flip();
         dest.setUpdateNeeded();

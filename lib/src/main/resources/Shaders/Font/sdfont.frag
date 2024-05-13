@@ -29,7 +29,7 @@ void main(void) {
     float alpha = smoothstep(glyph_center-smoothing, glyph_center+smoothing, dist);
 
     // Smooth
-    gl_FragColor = vec4(glyph_color, alpha);
+    // gl_FragColor = vec4(glyph_color, alpha);
 
     // Outline
     // float mu = smoothstep(outline_center-smoothing, outline_center+smoothing, dist);
@@ -37,9 +37,9 @@ void main(void) {
     // gl_FragColor = vec4(rgb, max(alpha,mu));
 
     // Glow
-    // vec3 rgb = mix(glow_color, glyph_color, alpha);
-    // float mu = smoothstep(glyph_center, glow_center, sqrt(dist));
-    // gl_FragColor = vec4(rgb, max(alpha,mu));
+    vec3 rgb = mix(glow_color, glyph_color, alpha);
+    float mu = smoothstep(glyph_center, glow_center, sqrt(dist));
+    gl_FragColor = vec4(rgb, max(alpha,mu));
 
     // Glow + outline
     // vec3 rgb = mix(glow_color, glyph_color, alpha);

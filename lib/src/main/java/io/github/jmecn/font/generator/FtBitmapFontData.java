@@ -82,12 +82,17 @@ public class FtBitmapFontData implements AutoCloseable {
     List<Glyph> glyphs;
     private boolean dirty;
 
+    public FtBitmapFontData() {
+        regions = new ArrayList<>();
+    }
+
     public void setGlyphRegion (Glyph glyph, TextureRegion region) {
         Image texture = region.getImage();
         float invTexWidth = 1.0f / texture.getWidth();
         float invTexHeight = 1.0f / texture.getHeight();
 
-        int offsetX = 0, offsetY = 0;
+        int offsetX = 0;
+        int offsetY = 0;
         float u = region.u;
         float v = region.v;
         int regionWidth = region.getRegionWidth();
