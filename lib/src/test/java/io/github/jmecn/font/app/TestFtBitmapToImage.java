@@ -23,9 +23,9 @@ public class TestFtBitmapToImage {
         try (FtLibrary library = new FtLibrary()) {
             FtFace face = library.newFace("font/Noto_Serif_SC/NotoSerifSC-Regular.otf", 0);
             // face.setPixelSize(0, 16);
-            face.setCharSize(0, 16 * 64, 300, 300);
+            face.setCharSize(0, 16 * 64, 72, 72);
 
-            String text = "你好世界";
+            String text = "界";
             List<Image> imageList = new ArrayList<>();
 
             for (int i = 0; i < text.length(); i++) {

@@ -5,6 +5,8 @@ import com.jme3.material.Material;
 import com.jme3.material.Materials;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
 import com.jme3.system.AppSettings;
@@ -34,6 +36,9 @@ public class TestDisplay extends SimpleApplication {
     @Override
     public void simpleInitApp() {
         viewPort.setBackgroundColor(ColorRGBA.DarkGray);
+
+        cam.setLocation(new Vector3f(7.2502255f, 8.049806f, 22.52177f));
+        cam.setRotation(new Quaternion(-1.7922641E-4f, 0.9989392f, -0.04588203f, -0.00390219f));
 
         if (flyCam != null) {
             flyCam.setMoveSpeed(10f);
