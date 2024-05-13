@@ -163,6 +163,8 @@ public class FtFontGenerator implements AutoCloseable {
                 packer.setTransparentColor(parameter.borderColor);
                 packer.getTransparentColor().a = 0;
             }
+
+            parameter.packer = packer;
         }
 
         if (incremental) data.glyphs = new ArrayList<>(charactersLength + 32);

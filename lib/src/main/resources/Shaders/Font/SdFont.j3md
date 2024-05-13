@@ -1,0 +1,28 @@
+MaterialDef Font {
+
+    MaterialParameters {
+        Texture2D ColorMap
+        Color Color
+    }
+
+    Technique {
+        VertexShader GLSL310 GLSL300 GLSL100 GLSL150:   Shaders/Font/font.vert
+        FragmentShader GLSL310 GLSL300 GLSL100 GLSL150: Shaders/Font/sdfont.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+
+        RenderState {
+            Blend Alpha
+        }
+
+        Defines {
+            HAS_COLOR_MAP : ColorMap
+            HAS_COLOR : Color
+        }
+    }
+
+}

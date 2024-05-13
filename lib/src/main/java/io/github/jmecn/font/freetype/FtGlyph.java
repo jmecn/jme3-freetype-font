@@ -71,7 +71,7 @@ public class FtGlyph implements AutoCloseable {
     }
 
     public FtBitmapGlyph toBitmap(int renderMode) {
-        return toBitmap(renderMode, null, false);
+        return toBitmap(renderMode, null, true);
     }
 
     /**

@@ -1,12 +1,77 @@
 package io.github.jmecn.font.utils;
 
+import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import com.jme3.texture.image.ColorSpace;
+import com.jme3.util.BufferUtils;
+import io.github.jmecn.font.freetype.FtBitmap;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+
+import static org.lwjgl.util.freetype.FreeType.FT_PIXEL_MODE_GRAY;
+import static org.lwjgl.util.freetype.FreeType.FT_PIXEL_MODE_MONO;
 
 public final class ImageUtils {
     private ImageUtils() {}
+
+    public static Image ftBitmapToImage(FtBitmap bitmap, ColorRGBA color, float gamma) {
+        int width = bitmap.getWidth();
+        int rows = bitmap.getRows();
+        ByteBuffer src = bitmap.getBuffer();
+        Image pixmap;
+        int pixelMode = bitmap.getPixelMode();
+        int rowBytes = Math.abs(bitmap.getPitch()); // We currently ignore negative pitch.
+        if (color == ColorRGBA.White && pixelMode == FT_PIXEL_MODE_GRAY && rowBytes == width && gamma == 1) {
+            ByteBuffer data = BufferUtils.clone(src);
+            pixmap = new Image(Image.Format.Luminance8, width, rows, data, ColorSpace.Linear);
+        } else {
+            ByteBuffer data = BufferUtils.createByteBuffer(width * rows * 4);
+            pixmap = new Image(Image.Format.RGBA8, width, rows, data, ColorSpace.Linear);
+            int rgba = color.asIntRGBA();
+            byte[] srcRow = new byte[rowBytes];
+            int[] dstRow = new int[width];
+            IntBuffer dst = data.asIntBuffer();
+            if (pixelMode == FT_PIXEL_MODE_MONO) {
+                // Use the specified color for each set bit.
+                for (int y = 0; y < rows; y++) {
+                    src.get(srcRow);
+                    for (int i = 0, x = 0; x < width; i++, x += 8) {
+                        byte b = srcRow[i];
+                        for (int ii = 0, n = Math.min(8, width - x); ii < n; ii++) {
+                            if ((b & (1 << (7 - ii))) != 0)
+                                dstRow[x + ii] = rgba;
+                            else
+                                dstRow[x + ii] = 0;
+                        }
+                    }
+                    dst.put(dstRow);
+                }
+            } else {
+                // Use the specified color for RGB, blend the FreeType bitmap with alpha.
+                int rgb = rgba & 0xffffff00;
+                int a = rgba & 0xff;
+                for (int y = 0; y < rows; y++) {
+                    src.get(srcRow);
+                    for (int x = 0; x < width; x++) {
+                        // Zero raised to any power is always zero.
+                        // 255 (=one) raised to any power is always one.
+                        // We only need Math.pow() when alpha is NOT zero and NOT one.
+                        int alpha = srcRow[x] & 0xff;
+                        if (alpha == 0)
+                            dstRow[x] = rgb;
+                        else if (alpha == 255)
+                            dstRow[x] = rgb | a;
+                        else
+                            dstRow[x] = rgb | (int)(a * (float)Math.pow(alpha / 255f, gamma)); // Inverse gamma.
+                    }
+                    dst.put(dstRow);
+                }
+            }
+        }
+
+        return pixmap;
+    }
 
     public static Image newImage(Image.Format format, int width, int height) {
         int capacity = format.getBitsPerPixel() * width * height / 8;

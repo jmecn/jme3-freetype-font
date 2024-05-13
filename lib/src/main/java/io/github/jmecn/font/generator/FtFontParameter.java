@@ -65,4 +65,8 @@ public class FtFontParameter {
      * modified after creating a font. If a PixmapPacker is not specified, the font glyph page textures will use
      * {@link FtFontGenerator#getMaxTextureSize()}. */
     public boolean incremental;
+
+    public Packer getPacker() {
+        return packer;
+    }
 }

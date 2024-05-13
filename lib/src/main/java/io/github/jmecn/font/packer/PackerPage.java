@@ -88,4 +88,8 @@ public class PackerPage {
                           int dstHeight) {
         // TODO
     }
+
+    public Image getImage() {
+        return image;
+    }
 }

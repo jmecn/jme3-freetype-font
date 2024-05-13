@@ -4,12 +4,15 @@ plugins {
 }
 
 dependencies {
-    // Core
-    api "org.jmonkeyengine:jme3-core:$jme3Version"
     api "org.lwjgl:lwjgl-freetype:$lwjglVersion"
+    api "org.lwjgl:lwjgl-harfbuzz:$lwjglVersion"
+    api "org.jmonkeyengine:jme3-core:$jme3Version"
     api 'org.slf4j:slf4j-api:1.7.36'
 
     testImplementation "org.lwjgl:lwjgl::$lwjglNatives"
     testImplementation "org.lwjgl:lwjgl-freetype::$lwjglNatives"
+    testImplementation "org.lwjgl:lwjgl-harfbuzz::$lwjglNatives"
+    testImplementation "org.jmonkeyengine:jme3-lwjgl3:$jme3Version"
+    testImplementation "org.jmonkeyengine:jme3-desktop:$jme3Version"
     testImplementation 'ch.qos.logback:logback-classic:1.2.13'
 }

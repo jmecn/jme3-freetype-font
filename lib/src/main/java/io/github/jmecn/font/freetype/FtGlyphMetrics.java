@@ -40,4 +40,8 @@ public class FtGlyphMetrics {
     public long getVertAdvance() {
         return metrics.vertAdvance();
     }
+
+    public long getAddress() {
+        return metrics.address();
+    }
 }

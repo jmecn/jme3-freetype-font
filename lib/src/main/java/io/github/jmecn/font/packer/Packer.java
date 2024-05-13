@@ -5,7 +5,7 @@ import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import io.github.jmecn.font.packer.strategy.BiTreePackStrategy;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,7 +23,7 @@ public class Packer implements AutoCloseable {
     boolean stripWhitespaceY;
     int alphaThreshold;
     private ColorRGBA transparentColor = new ColorRGBA(0, 0, 0, 0);
-    private final LinkedList<PackerPage> pages;
+    private final List<PackerPage> pages;
     Image.Format format;
     PackStrategy packStrategy;
 
@@ -38,7 +38,7 @@ public class Packer implements AutoCloseable {
         this.pageHeight = pageHeight;
         this.padding = padding;
         this.duplicateBorder = duplicateBorder;
-        this.pages = new LinkedList<>();
+        this.pages = new ArrayList<>();
         this.packStrategy = packStrategy;
     }
 
@@ -110,7 +110,10 @@ public class Packer implements AutoCloseable {
     }
 
     public PackerPage peek() {
-        return pages.peekLast();
+        if (pages.isEmpty()) {
+            return null;
+        }
+        return pages.get(pages.size() - 1);
     }
 
     public void addPage(PackerPage page) {

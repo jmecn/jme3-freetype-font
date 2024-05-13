@@ -148,7 +148,7 @@ public class FtFace implements AutoCloseable {
 
     public boolean loadChar(long codepoint, int loadFlags) {
         try {
-            ok( FT_Load_Char(face, codepoint, loadFlags));
+            ok(FT_Load_Char(face, codepoint, loadFlags));
             return true;
         } catch (FtRuntimeException e) {
             logger.error("load char failed, codepoint:{}", codepoint, e);
