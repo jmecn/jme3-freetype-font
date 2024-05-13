@@ -1,14 +1,17 @@
 package io.github.jmecn.font.packer;
 
 import com.jme3.texture.Image;
-import com.jme3.texture.Texture;
 
 public class TextureRegion {
     public Image image;
-    public float u, v;
-    public float u2, v2;
-    public int x, y;
-    public int regionWidth, regionHeight;
+    public float u;
+    public float v;
+    public float u2;
+    public float v2;
+    public int x;
+    public int y;
+    public int regionWidth;
+    public int regionHeight;
 
     public TextureRegion() {}
 
@@ -49,10 +52,10 @@ public class TextureRegion {
         setRegion(region, x, y, width, height);
     }
 
-    /** Sets the texture and sets the coordinates to the size of the specified texture. */
-    public void setRegion(Image texture) {
-        this.image = texture;
-        setRegion(0, 0, texture.getWidth(), texture.getHeight());
+    /** Sets the image and sets the coordinates to the size of the specified image. */
+    public void setRegion(Image image) {
+        this.image = image;
+        setRegion(0, 0, image.getWidth(), image.getHeight());
     }
 
     /** @param width The width of the texture region. May be negative to flip the sprite when drawn.
@@ -88,13 +91,13 @@ public class TextureRegion {
     }
 
     /** Sets the texture and coordinates to the specified region. */
-    public void setRegion (TextureRegion region) {
+    public void setRegion(TextureRegion region) {
         image = region.image;
         setRegion(region.u, region.v, region.u2, region.v2);
     }
 
     /** Sets the texture to that of the specified region and sets the coordinates relative to the specified region. */
-    public void setRegion (TextureRegion region, int x, int y, int width, int height) {
+    public void setRegion(TextureRegion region, int x, int y, int width, int height) {
         image = region.image;
         setRegion(region.getRegionX() + x, region.getRegionY() + y, width, height);
     }
@@ -108,64 +111,64 @@ public class TextureRegion {
     }
 
 
-    public float getU () {
+    public float getU() {
         return u;
     }
 
-    public void setU (float u) {
+    public void setU(float u) {
         this.u = u;
         regionWidth = Math.round(Math.abs(u2 - u) * image.getWidth());
     }
 
-    public float getV () {
+    public float getV() {
         return v;
     }
 
-    public void setV (float v) {
+    public void setV(float v) {
         this.v = v;
         regionHeight = Math.round(Math.abs(v2 - v) * image.getHeight());
     }
 
-    public float getU2 () {
+    public float getU2() {
         return u2;
     }
 
-    public void setU2 (float u2) {
+    public void setU2(float u2) {
         this.u2 = u2;
         regionWidth = Math.round(Math.abs(u2 - u) * image.getWidth());
     }
 
-    public float getV2 () {
+    public float getV2() {
         return v2;
     }
 
-    public void setV2 (float v2) {
+    public void setV2(float v2) {
         this.v2 = v2;
         regionHeight = Math.round(Math.abs(v2 - v) * image.getHeight());
     }
 
-    public int getRegionX () {
+    public int getRegionX() {
         return Math.round(u * image.getWidth());
     }
 
-    public void setRegionX (int x) {
+    public void setRegionX(int x) {
         setU(x / (float) image.getWidth());
     }
 
-    public int getRegionY () {
+    public int getRegionY() {
         return Math.round(v * image.getHeight());
     }
 
-    public void setRegionY (int y) {
+    public void setRegionY(int y) {
         setV(y / (float) image.getHeight());
     }
 
     /** Returns the region's width. */
-    public int getRegionWidth () {
+    public int getRegionWidth() {
         return regionWidth;
     }
 
-    public void setRegionWidth (int width) {
+    public void setRegionWidth(int width) {
         if (isFlipX()) {
             setU(u2 + width / (float) image.getWidth());
         } else {
@@ -174,11 +177,11 @@ public class TextureRegion {
     }
 
     /** Returns the region's height. */
-    public int getRegionHeight () {
+    public int getRegionHeight() {
         return regionHeight;
     }
 
-    public void setRegionHeight (int height) {
+    public void setRegionHeight(int height) {
         if (isFlipY()) {
             setV(v2 + height / (float) image.getHeight());
         } else {
@@ -186,7 +189,7 @@ public class TextureRegion {
         }
     }
 
-    public void flip (boolean x, boolean y) {
+    public void flip(boolean x, boolean y) {
         if (x) {
             float temp = u;
             u = u2;
@@ -199,11 +202,11 @@ public class TextureRegion {
         }
     }
 
-    public boolean isFlipX () {
+    public boolean isFlipX() {
         return u > u2;
     }
 
-    public boolean isFlipY () {
+    public boolean isFlipY() {
         return v > v2;
     }
 
@@ -211,7 +214,7 @@ public class TextureRegion {
      * the direction(s) it is scrolled.
      * @param xAmount The percentage to offset horizontally.
      * @param yAmount The percentage to offset vertically. This is done in texture space, so up is negative. */
-    public void scroll (float xAmount, float yAmount) {
+    public void scroll(float xAmount, float yAmount) {
         if (xAmount != 0) {
             float width = (u2 - u) * image.getWidth();
             u = (u + xAmount) % 1;
@@ -232,7 +235,7 @@ public class TextureRegion {
      * @param tileWidth a tile's width in pixels
      * @param tileHeight a tile's height in pixels
      * @return a 2D array of TextureRegions indexed by [row][column]. */
-    public TextureRegion[][] split (int tileWidth, int tileHeight) {
+    public TextureRegion[][] split(int tileWidth, int tileHeight) {
         int x = getRegionX();
         int y = getRegionY();
         int width = regionWidth;
@@ -253,7 +256,7 @@ public class TextureRegion {
         return tiles;
     }
 
-    /** Helper method to create tiles out of the given {@link Texture} starting from the top left corner going to the right and
+    /** Helper method to create tiles out of the given {@link Image} starting from the top left corner going to the right and
      * ending at the bottom right corner. Only complete tiles will be returned so if the texture's width or height are not a
      * multiple of the tile width and height not all of the texture will be used.
      *
@@ -261,7 +264,7 @@ public class TextureRegion {
      * @param tileWidth a tile's width in pixels
      * @param tileHeight a tile's height in pixels
      * @return a 2D array of TextureRegions indexed by [row][column]. */
-    public static TextureRegion[][] split (Image texture, int tileWidth, int tileHeight) {
+    public static TextureRegion[][] split(Image texture, int tileWidth, int tileHeight) {
         TextureRegion region = new TextureRegion(texture);
         return region.split(tileWidth, tileHeight);
     }
