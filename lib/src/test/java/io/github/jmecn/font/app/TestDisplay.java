@@ -44,7 +44,7 @@ public class TestDisplay extends SimpleApplication {
             flyCam.setMoveSpeed(10f);
         }
 
-        float size = 10;
+        float size = 2f;
         for (int i = 0; i < images.length; i++) {
             Texture2D texture2D = new Texture2D();
             texture2D.setImage(images[i]);
@@ -65,6 +65,7 @@ public class TestDisplay extends SimpleApplication {
     public static void run(String material, Image ... images) {
         AppSettings settings = new AppSettings(true);
         settings.setSamples(4);
+        settings.setGammaCorrection(false);
 
         TestDisplay app = new TestDisplay(material, images);
         app.setSettings(settings);

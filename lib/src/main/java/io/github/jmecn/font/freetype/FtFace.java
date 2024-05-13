@@ -1,7 +1,9 @@
 package io.github.jmecn.font.freetype;
 
 import io.github.jmecn.font.exception.FtRuntimeException;
+import org.lwjgl.CLongBuffer;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.util.freetype.FT_Bitmap_Size;
 import org.lwjgl.util.freetype.FT_Face;
 import org.lwjgl.util.freetype.FT_Matrix;
 import org.lwjgl.util.freetype.FT_Vector;
@@ -22,16 +24,14 @@ public class FtFace implements AutoCloseable {
 
     static Logger logger = LoggerFactory.getLogger(FtFace.class);
 
-    private final FtLibrary library;
     private final FT_Face face;
     private FtGlyphSlot glyph;
     private FtSize size;
     private boolean isClosed;
 
-    public FtFace(long address, FtLibrary library) {
+    public FtFace(long address) {
         this.face = FT_Face.create(address);
         this.glyph = new FtGlyphSlot(face.glyph());
-        this.library = library;
         this.isClosed = false;
     }
 
@@ -339,4 +339,39 @@ public class FtFace implements AutoCloseable {
         return (face.face_index() & 0x7FFF0000L) != 0L;
     }
 
+    //// for color font, eg: emoji ////
+    public boolean hasEmoji() {
+        int[] commonEmojiFont = new int[]{0x1F600, 0x1F64C, 0x1F64D, 0x1F64E, 0x1F64F, 0x1F680, 0x1F6C0, 0x1F6C1, 0x1F6C2, 0x1F6C3};
+        for (int emoji : commonEmojiFont) {
+            if (FT_Get_Char_Index(face, emoji) != 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void selectBestSize(int pixelSize) {
+        int count = face.num_fixed_sizes();
+        if (count == 0) {
+            logger.info("no fixed sizes");
+            return;
+        }
+
+        int bestMatch = 0;
+        FT_Bitmap_Size bitmapSize = face.available_sizes().get(0);
+        logger.info("first bitmapSize:{}, width:{}, height:{}, x_ppem:{}, y_ppem:{}", bitmapSize.size(), bitmapSize.width(), bitmapSize.height(), bitmapSize.x_ppem(), bitmapSize.y_ppem());
+        int diff = Math.abs(pixelSize - bitmapSize.width());
+        for (int i = 1; i < count; ++i) {
+            bitmapSize = face.available_sizes().get(i);
+
+            logger.info("first bitmapSize:{}, width:{}, height:{}, x_ppem:{}, y_ppem:{}", bitmapSize.size(), bitmapSize.width(), bitmapSize.height(), bitmapSize.x_ppem(), bitmapSize.y_ppem());
+
+            int ndiff = Math.abs(pixelSize - bitmapSize.width());
+            if (ndiff < diff) {
+                bestMatch = i;
+                diff = ndiff;
+            }
+        }
+        ok( FT_Select_Size(face, bestMatch) );
+    }
 }

@@ -3,10 +3,7 @@ package io.github.jmecn.font;
 import com.jme3.font.BitmapFont;
 
 /**
- * desc: FreeType font
- *
- * @author yanmaoyuan
+ * desc:
  */
-public class FtFont {
-
+public class FtBitmapFont extends BitmapFont {
 }

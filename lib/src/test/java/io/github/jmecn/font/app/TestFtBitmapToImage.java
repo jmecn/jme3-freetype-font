@@ -23,9 +23,9 @@ public class TestFtBitmapToImage {
         try (FtLibrary library = new FtLibrary()) {
             FtFace face = library.newFace("font/Noto_Serif_SC/NotoSerifSC-Regular.otf", 0);
             // face.setPixelSize(0, 16);
-            face.setCharSize(0, FtLibrary.int26D6(16), 72, 72);
+            face.setCharSize(0, FtLibrary.int26D6(16), 300, 300);
 
-            String text = "界";
+            String text = "你好世界";
             List<Image> imageList = new ArrayList<>();
 
             for (int i = 0; i < text.length(); i++) {
@@ -45,7 +45,7 @@ public class TestFtBitmapToImage {
                     FtGlyph glyph = slot.getGlyph();
                     FtBitmapGlyph bitmapGlyph = glyph.toBitmap(FT_RENDER_MODE_NORMAL);
                     FtBitmap bitmap = bitmapGlyph.getBitmap();
-                    DebugPrintUtils.print(bitmap);
+                    DebugPrintUtils.printBitmapInfo(bitmap);
                     Image image = ImageUtils.ftBitmapToImage(bitmap, ColorRGBA.White, 1f);
                     imageList.add(image);
                 }

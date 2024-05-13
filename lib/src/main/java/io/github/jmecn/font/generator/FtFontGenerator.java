@@ -198,7 +198,8 @@ public class FtFontGenerator implements AutoCloseable {
         }
         int heightsCount = heights.length;
         while (heightsCount > 0) {
-            int best = 0, maxHeight = heights[0];
+            int best = 0;
+            int maxHeight = heights[0];
             for (int i = 1; i < heightsCount; i++) {
                 int height = heights[i];
                 if (height > maxHeight) {
@@ -402,7 +403,7 @@ public class FtFontGenerator implements AutoCloseable {
             ImageRaster raster = ImageRaster.create(mainPixmap);
             ByteBuffer buf = mainBitmap.getBuffer();
             for (int h = 0; h < glyph.getHeight(); h++) {
-                int idx = h * mainBitmap.getPitch();
+                int idx = h * Math.abs(mainBitmap.getPitch());
                 for (int w = 0; w < (glyph.getWidth() + glyph.getXOffset()); w++) {
                     int bit = (buf.get(idx + (w / 8)) >>> (7 - (w % 8))) & 1;
                     raster.setPixel(w, h, ((bit == 1) ? ColorRGBA.White : ColorRGBA.BlackNoAlpha));

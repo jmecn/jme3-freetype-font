@@ -31,10 +31,14 @@ public class DebugPrintUtils {
                 FtLibrary.from26D6ToInt(vertBearingX), FtLibrary.from26D6ToInt(vertBearingY), FtLibrary.from26D6ToInt(vertAdvance));
     }
 
-    public static void print(FtBitmap bitmap) {
+    public static void printBitmapInfo(FtBitmap bitmap) {
         int pixelMode = bitmap.getPixelMode();
         FtPixelMode mode = FtPixelMode.getMode(pixelMode);
-        System.out.printf("PixelMode: %s\n", mode);
+        System.out.printf("pixel_mode: %s, width:%d, height:%d, pitch:%d, buffer_size:%d\n", mode, bitmap.getWidth(), bitmap.getRows(), bitmap.getPitch(), bitmap.getBufferSize());
+    }
+
+    public static void print(FtBitmap bitmap) {
+        int pixelMode = bitmap.getPixelMode();
         print(bitmap.getBuffer(), bitmap.getPitch(), bitmap.getRows(), pixelMode == FT_PIXEL_MODE_MONO);
     }
 
@@ -81,7 +85,6 @@ public class DebugPrintUtils {
                 }
             }
         }
-        sb.append("width=").append(width).append(", height=").append(height);
         System.out.println(sb);
     }
 }

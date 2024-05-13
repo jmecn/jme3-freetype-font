@@ -51,7 +51,7 @@ public class FtBitmap {
     }
 
     public int getBufferSize() {
-        return bitmap.rows() * bitmap.pitch();
+        return bitmap.rows() * Math.abs(bitmap.pitch());
     }
 
     public ByteBuffer getBuffer() {
@@ -60,7 +60,7 @@ public class FtBitmap {
             // empty glyph, such as whitespace ' '
             return BufferUtils.createByteBuffer(1);
         }
-        return bitmap.buffer(row * bitmap.pitch());
+        return bitmap.buffer(row * Math.abs(bitmap.pitch()));
     }
 
     public long address() {

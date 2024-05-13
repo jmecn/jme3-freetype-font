@@ -1,5 +1,6 @@
 package io.github.jmecn.font.app;
 
+import com.jme3.material.Materials;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import io.github.jmecn.font.freetype.*;
@@ -44,13 +45,12 @@ public class TestFtBitmapSdfFont {
                     FtGlyph glyph = slot.getGlyph();
                     FtBitmapGlyph bitmapGlyph = glyph.toBitmap(FT_RENDER_MODE_SDF);
                     FtBitmap bitmap = bitmapGlyph.getBitmap();
-                    DebugPrintUtils.print(bitmap);
+                    DebugPrintUtils.printBitmapInfo(bitmap);
                     Image image = ImageUtils.ftBitmapToImage(bitmap, ColorRGBA.White, 1f);
                     imageList.add(image);
                 }
             }
 
-            // TestDisplay.run(Materials.UNSHADED, image);
             TestDisplay.run("Shaders/Font/SdFont.j3md", imageList.toArray(new Image[0]));
         }
     }
