@@ -8,5 +8,5 @@ import java.util.List;
 public interface PackStrategy {
     void sort(List<Rectangle> images);
 
-    PackerPage pack(Packer packer, String name, Rectangle image);
+    Page pack(Packer packer, String name, Rectangle image);
 }

@@ -7,11 +7,11 @@ import com.jme3.texture.Image;
 import com.jme3.texture.image.ImageRaster;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.exception.FtRuntimeException;
-import io.github.jmecn.font.packer.PackStrategy;
 import io.github.jmecn.font.packer.Packer;
+import io.github.jmecn.font.packer.PackStrategy;
 import io.github.jmecn.font.packer.Rectangle;
-import io.github.jmecn.font.packer.strategy.BiTreePackStrategy;
-import io.github.jmecn.font.packer.strategy.ScanlinePackStrategy;
+import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
+import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 import io.github.jmecn.font.utils.ImageUtils;
 import org.lwjgl.util.freetype.FreeType;
 import org.slf4j.Logger;
@@ -148,14 +148,14 @@ public class FtFontGenerator implements AutoCloseable {
             PackStrategy packStrategy;
             if (incremental) {
                 size = MAX_SIZE;
-                packStrategy = new BiTreePackStrategy();
+                packStrategy = new GuillotineStrategy();
             } else {
                 int maxGlyphHeight = (int)Math.ceil(data.lineHeight);
                 size = FastMath.nearestPowerOfTwo((int)Math.sqrt(maxGlyphHeight * maxGlyphHeight * charactersLength));
                 if (MAX_SIZE > 0) {
                     size = Math.min(size, MAX_SIZE);
                 }
-                packStrategy = new ScanlinePackStrategy();
+                packStrategy = new SkylineStrategy();
             }
             ownsAtlas = true;
             packer = new Packer(Image.Format.RGBA8, size, size, 1, false, packStrategy);

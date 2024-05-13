@@ -65,7 +65,7 @@ public class BitmapFontData {
     }
 
     public void setGlyphRegion (Glyph glyph, TextureRegion region) {
-        Image texture = region.getTexture();
+        Image texture = region.getImage();
         float invTexWidth = 1.0f / texture.getWidth();
         float invTexHeight = 1.0f / texture.getHeight();
 

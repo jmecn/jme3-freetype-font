@@ -1,11 +1,9 @@
 package io.github.jmecn.font.app;
 
 import com.jme3.texture.Image;
-import io.github.jmecn.font.generator.FtBitmapFontData;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
-import io.github.jmecn.font.generator.Glyph;
-import io.github.jmecn.font.packer.PackerPage;
+import io.github.jmecn.font.packer.Page;
 
 import java.io.File;
 
@@ -22,7 +20,7 @@ public class TestGenerateImage {
             FtFontParameter parameter = new FtFontParameter();
             generator.generate(parameter);
             // show image
-            Image[] images = parameter.getPacker().getPages().stream().map(PackerPage::getImage).toArray(Image[]::new);
+            Image[] images = parameter.getPacker().getPages().stream().map(Page::getImage).toArray(Image[]::new);
             TestDisplay.run(null, images);
         }
     }

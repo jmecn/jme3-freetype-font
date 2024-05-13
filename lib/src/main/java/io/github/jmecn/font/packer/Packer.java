@@ -3,7 +3,7 @@ package io.github.jmecn.font.packer;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
-import io.github.jmecn.font.packer.strategy.BiTreePackStrategy;
+import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,13 +23,13 @@ public class Packer implements AutoCloseable {
     boolean stripWhitespaceY;
     int alphaThreshold;
     private ColorRGBA transparentColor = new ColorRGBA(0, 0, 0, 0);
-    private final List<PackerPage> pages;
+    private final List<Page> pages;
     Image.Format format;
     PackStrategy packStrategy;
 
     public Packer(Image.Format format, int pageWidth, int pageHeight, int padding, boolean duplicateBorder) {
-        // use ScanlinePackStrategy by default
-        this(format, pageWidth, pageHeight, padding, duplicateBorder, new BiTreePackStrategy());
+        // use SkylineStrategy by default
+        this(format, pageWidth, pageHeight, padding, duplicateBorder, new GuillotineStrategy());
     }
 
     public Packer(Image.Format format, int pageWidth, int pageHeight, int padding, boolean duplicateBorder, PackStrategy packStrategy) {
@@ -69,13 +69,13 @@ public class Packer implements AutoCloseable {
 
         if (rect.getWidth() > pageWidth || rect.getHeight() > pageHeight) {
             if (name == null)  {
-                throw new IllegalArgumentException("PackerPage size too small for page.");
+                throw new IllegalArgumentException("Page size too small for page.");
             } else {
-                throw new IllegalArgumentException("PackerPage size too small for page: " + name);
+                throw new IllegalArgumentException("Page size too small for page: " + name);
             }
         }
 
-        PackerPage page = packStrategy.pack(this, name, rect);
+        Page page = packStrategy.pack(this, name, rect);
         if (name != null) {
             page.put(name, rect);
         }
@@ -109,23 +109,23 @@ public class Packer implements AutoCloseable {
         return pages.isEmpty();
     }
 
-    public PackerPage peek() {
+    public Page peek() {
         if (pages.isEmpty()) {
             return null;
         }
         return pages.get(pages.size() - 1);
     }
 
-    public void addPage(PackerPage page) {
+    public void addPage(Page page) {
         page.index = pages.size();
         pages.add(page);
     }
 
     /**
-     * @return the {@link PackerPage} instances created so far. If multiple threads are accessing the packer,
+     * @return the {@link Page} instances created so far. If multiple threads are accessing the packer,
      * iterating over the pages must be done only after synchronizing on the packer.
      */
-    public List<PackerPage> getPages() {
+    public List<Page> getPages() {
         return pages;
     }
 
@@ -134,7 +134,7 @@ public class Packer implements AutoCloseable {
      * @return the rectangle for the image in the page it's stored in or null
      */
     public synchronized Rectangle getRect(String name) {
-        for (PackerPage page : pages) {
+        for (Page page : pages) {
             Rectangle rect = page.get(name);
             if (rect != null) return rect;
         }
@@ -145,8 +145,8 @@ public class Packer implements AutoCloseable {
      * @param name the name of the image
      * @return the page the image is stored in or null
      */
-    public synchronized PackerPage getPage(String name) {
-        for (PackerPage page : pages) {
+    public synchronized Page getPage(String name) {
+        for (Page page : pages) {
             Rectangle rect = page.get(name);
             if (rect != null) return page;
         }
@@ -213,7 +213,7 @@ public class Packer implements AutoCloseable {
         // nothing to do
     }
 
-    /** Calls {@link PackerPage#updateTexture(Texture.MinFilter, Texture.MagFilter, boolean) updateTexture} for each page and adds a region to
+    /** Calls {@link Page#updateTexture(Texture.MinFilter, Texture.MagFilter, boolean) updateTexture} for each page and adds a region to
      * the specified array for each page texture. */
     public synchronized void updateTextureRegions (List<TextureRegion> regions, Texture.MinFilter minFilter, Texture.MagFilter magFilter,
                                                    boolean useMipMaps) {
@@ -222,9 +222,9 @@ public class Packer implements AutoCloseable {
             regions.add(new TextureRegion(pages.get(regions.size()).image));
     }
 
-    /** Calls {@link PackerPage#updateTexture(Texture.MinFilter, Texture.MagFilter, boolean) updateTexture} for each page. */
+    /** Calls {@link Page#updateTexture(Texture.MinFilter, Texture.MagFilter, boolean) updateTexture} for each page. */
     public synchronized void updatePageTextures (Texture.MinFilter minFilter, Texture.MagFilter magFilter, boolean useMipMaps) {
-        for (PackerPage page : pages)
+        for (Page page : pages)
             page.updateTexture(minFilter, magFilter, useMipMaps);
     }
 

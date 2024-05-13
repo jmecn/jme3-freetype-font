@@ -1,19 +1,14 @@
 package io.github.jmecn.font;
 
-import com.jme3.texture.Image;
-import io.github.jmecn.font.app.TestDisplay;
 import io.github.jmecn.font.generator.FtBitmapFontData;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.generator.Glyph;
-import io.github.jmecn.font.packer.Packer;
-import io.github.jmecn.font.packer.PackerPage;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * desc:

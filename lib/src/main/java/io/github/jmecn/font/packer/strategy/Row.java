@@ -2,17 +2,12 @@ package io.github.jmecn.font.packer.strategy;
 
 import io.github.jmecn.font.packer.Rectangle;
 
-/**
- * desc:
- *
- * @author yanmaoyuan
- */
-public class Scanline {
+public class Row {
     protected int x;
     protected int y;
     protected int height;
 
-    public Scanline(int x, int y, int height) {
+    public Row(int x, int y, int height) {
         this.x = x;
         this.y = y;
         this.height = height;

@@ -6,7 +6,7 @@ import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.generator.Glyph;
 import io.github.jmecn.font.packer.Packer;
-import io.github.jmecn.font.packer.PackerPage;
+import io.github.jmecn.font.packer.Page;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +34,8 @@ public class TestImage {
             }
 
             Packer packer = parameter.getPacker();
-            List<PackerPage> pages = packer.getPages();
-            Image[] images = pages.stream().map(PackerPage::getImage).toArray(Image[]::new);
+            List<Page> pages = packer.getPages();
+            Image[] images = pages.stream().map(Page::getImage).toArray(Image[]::new);
             TestDisplay.run(null, images);
         }
     }

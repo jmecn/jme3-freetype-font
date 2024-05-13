@@ -21,8 +21,8 @@ import java.util.Map;
  *
  * @author yanmaoyuan
  */
-public class PackerPage {
-    static Logger logger = LoggerFactory.getLogger(PackerPage.class);
+public class Page {
+    static Logger logger = LoggerFactory.getLogger(Page.class);
 
     int index;
     private final Map<String, Rectangle> rectangles;
@@ -36,7 +36,7 @@ public class PackerPage {
 
     boolean dirty;
 
-    public PackerPage(Packer packer) {
+    public Page(Packer packer) {
         int size = packer.pageWidth * packer.pageHeight * packer.format.getBitsPerPixel();
         ByteBuffer buffer = BufferUtils.createByteBuffer(size);
         image = new Image(packer.format, packer.pageWidth, packer.pageHeight, buffer, ColorSpace.Linear);

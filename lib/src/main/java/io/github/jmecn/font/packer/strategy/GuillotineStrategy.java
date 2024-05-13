@@ -1,15 +1,14 @@
 package io.github.jmecn.font.packer.strategy;
 
-
-import io.github.jmecn.font.packer.PackStrategy;
 import io.github.jmecn.font.packer.Packer;
-import io.github.jmecn.font.packer.PackerPage;
+import io.github.jmecn.font.packer.PackStrategy;
+import io.github.jmecn.font.packer.Page;
 import io.github.jmecn.font.packer.Rectangle;
 
 import java.util.Comparator;
 import java.util.List;
 
-public class BiTreePackStrategy implements PackStrategy {
+public class GuillotineStrategy implements PackStrategy {
 	Comparator<Rectangle> comparator;
 
 	public void sort(List<Rectangle> images) {
@@ -19,15 +18,15 @@ public class BiTreePackStrategy implements PackStrategy {
 		images.sort(comparator);
 	}
 
-	public PackerPage pack(Packer packer, String name, Rectangle image) {
-		BiTreePage page;
+	public Page pack(Packer packer, String name, Rectangle image) {
+		GuillotinePage page;
 		if (packer.isEmpty()) {
 			// Add a page if empty.
-			page = new BiTreePage(packer);
+			page = new GuillotinePage(packer);
 			packer.addPage(page);
 		} else {
 			// Always try to pack into the last page.
-			page = (BiTreePage) packer.peek();
+			page = (GuillotinePage) packer.peek();
 		}
 
 		int padding = packer.getPadding();
@@ -36,7 +35,7 @@ public class BiTreePackStrategy implements PackStrategy {
 		Node node = page.insert(image);
 		if (node == null) {
 			// Didn't fit, pack into a new page.
-			page = new BiTreePage(packer);
+			page = new GuillotinePage(packer);
 			packer.addPage(page);
 			node = page.insert(image);
 		}

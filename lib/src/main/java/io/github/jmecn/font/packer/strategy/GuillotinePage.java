@@ -1,13 +1,13 @@
 package io.github.jmecn.font.packer.strategy;
 
 import io.github.jmecn.font.packer.Packer;
-import io.github.jmecn.font.packer.PackerPage;
+import io.github.jmecn.font.packer.Page;
 import io.github.jmecn.font.packer.Rectangle;
 
-class BiTreePage extends PackerPage {
+class GuillotinePage extends Page {
 	Node root;
 
-	public BiTreePage(Packer packer) {
+	public GuillotinePage(Packer packer) {
 		super(packer);
 		int x = packer.getPadding();
 		int y = packer.getPadding();
