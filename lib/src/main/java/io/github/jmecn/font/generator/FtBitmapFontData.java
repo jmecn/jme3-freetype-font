@@ -50,10 +50,10 @@ public class FtBitmapFontData extends BitmapFontData implements AutoCloseable {
                     int otherIndex = face.getCharIndex(other.getChar());
 
                     long kerning = face.getKerning(glyphIndex, otherIndex, FT_KERNING_DEFAULT);
-                    if (kerning != 0) glyph.addKerning(other.getChar(), FtLibrary.toInt(kerning));
+                    if (kerning != 0) glyph.addKerning(other.getChar(), FtLibrary.from26D6ToInt(kerning));
 
                     kerning = face.getKerning(otherIndex, glyphIndex, FT_KERNING_DEFAULT);
-                    if (kerning != 0) other.addKerning(ch, FtLibrary.toInt(kerning));
+                    if (kerning != 0) other.addKerning(ch, FtLibrary.from26D6ToInt(kerning));
                 }
             }
         }

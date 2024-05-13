@@ -83,23 +83,23 @@ public class FtFontGenerator implements AutoCloseable {
         char[] characters = parameter.characters.toCharArray();
         int charactersLength = characters.length;
         boolean incremental = parameter.incremental;
-        int flags = parameter.hinting.getLoadFlag();
+        int flags = parameter.hinting.getLoadFlags();
 
         setPixelSizes(0, parameter.size);
 
         // set general font data
         FtSizeMetrics fontMetrics = face.getSize().getMetrics();
         data.flipped = parameter.flip;
-        data.ascent = FtLibrary.toInt(fontMetrics.getAscender());
-        data.descent = FtLibrary.toInt(fontMetrics.getDescender());
-        data.lineHeight = FtLibrary.toInt(fontMetrics.getHeight());
+        data.ascent = FtLibrary.from26D6ToInt(fontMetrics.getAscender());
+        data.descent = FtLibrary.from26D6ToInt(fontMetrics.getDescender());
+        data.lineHeight = FtLibrary.from26D6ToInt(fontMetrics.getHeight());
         float baseLine = data.ascent;
 
         // if bitmapped
         if (bitmapped && (data.lineHeight == 0)) {
             for (int c = 32; c < (32 + face.getNumGlyphs()); c++) {
                 if (face.loadChar(c, flags)) {
-                    int lh = FtLibrary.toInt(face.getGlyph().getMetrics().getHeight());
+                    int lh = FtLibrary.from26D6ToInt(face.getGlyph().getMetrics().getHeight());
                     data.lineHeight = (lh > data.lineHeight) ? lh : data.lineHeight;
                 }
             }
@@ -108,24 +108,26 @@ public class FtFontGenerator implements AutoCloseable {
 
         // determine space width
         if (face.loadChar(' ', flags) || face.loadChar('l', flags)) {
-            data.spaceXadvance = FtLibrary.toInt(face.getGlyph().getMetrics().getHoriAdvance());
+            data.spaceXadvance = FtLibrary.from26D6ToInt(face.getGlyph().getMetrics().getHoriAdvance());
         } else {
             data.spaceXadvance = face.getMaxAdvanceWidth(); // Possibly very wrong.
         }
 
         // determine x-height
         for (char xChar : data.xChars) {
-            if (!face.loadChar(xChar, flags)) continue;
-            data.xHeight = FtLibrary.toInt(face.getGlyph().getMetrics().getHeight());
-            break;
+            if (face.loadChar(xChar, flags)) {
+                data.xHeight = FtLibrary.from26D6ToInt(face.getGlyph().getMetrics().getHeight());
+                break;
+            }
         }
         if (data.xHeight == 0) throw new FtRuntimeException("No x-height character found in font");
 
         // determine cap height
         for (char capChar : data.capChars) {
-            if (!face.loadChar(capChar, flags)) continue;
-            data.capHeight = FtLibrary.toInt(face.getGlyph().getMetrics().getHeight()) + Math.abs(parameter.shadowOffsetY);
-            break;
+            if (face.loadChar(capChar, flags)) {
+                data.capHeight = FtLibrary.from26D6ToInt(face.getGlyph().getMetrics().getHeight()) + Math.abs(parameter.shadowOffsetY);
+                break;
+            }
         }
         if (!bitmapped && data.capHeight == 1) throw new FtRuntimeException("No cap character found in font");
 
@@ -182,7 +184,7 @@ public class FtFontGenerator implements AutoCloseable {
         for (int i = 0; i < charactersLength; i++) {
             char c = characters[i];
 
-            int height = face.loadChar(c, flags) ? FtLibrary.toInt(face.getGlyph().getMetrics().getHeight()) : 0;
+            int height = face.loadChar(c, flags) ? FtLibrary.from26D6ToInt(face.getGlyph().getMetrics().getHeight()) : 0;
             heights[i] = height;
 
             if (c == '\0') {
@@ -247,10 +249,10 @@ public class FtFontGenerator implements AutoCloseable {
                     int secondIndex = face.getCharIndex(secondChar);
 
                     long kerning = face.getKerning(firstIndex, secondIndex, FT_KERNING_DEFAULT); // FT_KERNING_DEFAULT (scaled then rounded).
-                    if (kerning != 0) first.addKerning(secondChar, FtLibrary.toInt(kerning));
+                    if (kerning != 0) first.addKerning(secondChar, FtLibrary.from26D6ToInt(kerning));
 
                     kerning = face.getKerning(secondIndex, firstIndex, FT_KERNING_DEFAULT); // FT_KERNING_DEFAULT (scaled then rounded).
-                    if (kerning != 0) second.addKerning(firstChar, FtLibrary.toInt(kerning));
+                    if (kerning != 0) second.addKerning(firstChar, FtLibrary.from26D6ToInt(kerning));
                 }
             }
         }
@@ -287,7 +289,7 @@ public class FtFontGenerator implements AutoCloseable {
         boolean missing = face.getCharIndex(c) == 0 && c != 0;
         if (missing) return null;
 
-        if (!face.loadChar(c, parameter.hinting.getLoadFlag())) return null;
+        if (!face.loadChar(c, parameter.hinting.getLoadFlags())) return null;
 
         FtGlyphSlot slot = face.getGlyph();
         FtGlyph main = slot.getGlyph();
@@ -393,7 +395,7 @@ public class FtFontGenerator implements AutoCloseable {
         else {
             glyph.setYOffset(-(glyph.getHeight() - mainGlyph.getTop()) - (int) baseLine);// FIXME should << 6 ?
         }
-        glyph.setXAdvance( FtLibrary.toInt(metrics.getHoriAdvance()) + (int)parameter.borderWidth + parameter.spaceX );
+        glyph.setXAdvance( FtLibrary.from26D6ToInt(metrics.getHoriAdvance()) + (int)parameter.borderWidth + parameter.spaceX );
         glyph.setFixedWidth(face.isFixedWidth());
 
         if (bitmapped) {

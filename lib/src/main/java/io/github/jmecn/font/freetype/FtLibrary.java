@@ -2,7 +2,6 @@ package io.github.jmecn.font.freetype;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +44,11 @@ public class FtLibrary implements AutoCloseable {
         }
     }
 
-    public static int toInt (long value) {
+    public static int int26D6(int x) {
+        return x << 6;
+    }
+
+    public static int from26D6ToInt(long value) {
         return (int) (((value + 63) & -64) >> 6);
     }
 
