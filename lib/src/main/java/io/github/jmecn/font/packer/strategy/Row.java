@@ -13,8 +13,8 @@ public class Row {
         this.height = height;
     }
 
-    public void add(Rectangle rect) {
+    public void add(Rectangle rect, int padding) {
         rect.setLocation(x, y);
-        x += rect.getWidth();
+        x += rect.getWidth() + padding;
     }
 }

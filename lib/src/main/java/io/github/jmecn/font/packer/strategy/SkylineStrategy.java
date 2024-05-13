@@ -16,7 +16,7 @@ public class SkylineStrategy implements PackStrategy {
         if (comparator == null) {
             comparator = Comparator.comparingInt(Rectangle::getHeight);
         }
-        images.sort(comparator);
+        images.sort(comparator.reversed());
     }
 
     @Override
@@ -27,34 +27,36 @@ public class SkylineStrategy implements PackStrategy {
 
         int rectWidth = image.getWidth() + padding;
         int rectHeight = image.getHeight() + padding;
+
         for (int i = 0, n = packer.getPages().size(); i < n; i++) {
             SkylinePage page = (SkylinePage) packer.getPages().get(i);
-            Row bestLine = null;
-            // Fit in any line before the last.
-            for (int ii = 0, nn = page.lines.size() - 1; ii < nn; ii++) {
-                Row line = page.lines.get(ii);
-                if (line.x + rectWidth >= pageWidth || line.y + rectHeight >= pageHeight || rectHeight > line.height) {
+            Row bestRow = null;
+            int len = page.rows();
+            // Fit in any row before the last.
+            for (int ii = 0, nn = len - 1; ii < nn; ii++) {
+                Row row = page.get(ii);
+                if (row.x + rectWidth >= pageWidth || row.y + rectHeight >= pageHeight || rectHeight > row.height) {
                     continue;
                 }
-                if (bestLine == null || line.height < bestLine.height) {
-                    bestLine = line;
+                if (bestRow == null || row.height < bestRow.height) {
+                    bestRow = row;
                 }
             }
-            if (bestLine == null) {
-                // Fit in last line, increasing height.
-                Row line = page.lines.peek();
-                if (line.y + rectHeight >= pageHeight) continue;
-                if (line.x + rectWidth < pageWidth) {
-                    line.height = Math.max(line.height, rectHeight);
-                    bestLine = line;
-                } else if (line.y + line.height + rectHeight < pageHeight) {
-                    // Fit in new line.
-                    bestLine = new Row(padding, line.y + line.height, rectHeight);
-                    page.lines.add(bestLine);
+            if (bestRow == null) {
+                // Fit in last row, increasing height.
+                Row row = page.getLast();
+                if (row.y + rectHeight >= pageHeight) continue;
+                if (row.x + rectWidth < pageWidth) {
+                    row.height = Math.max(row.height, rectHeight);
+                    bestRow = row;
+                } else if (row.y + row.height + rectHeight < pageHeight) {
+                    // Fit in new row.
+                    bestRow = new Row(padding, row.y + row.height, rectHeight);
+                    page.add(bestRow);
                 }
             }
-            if (bestLine != null) {
-                bestLine.add(image);
+            if (bestRow != null) {
+                bestRow.add(image, padding);
                 return page;
             }
         }
@@ -62,9 +64,9 @@ public class SkylineStrategy implements PackStrategy {
         SkylinePage page = new SkylinePage(packer);
         packer.addPage(page);
 
-        Row line = new Row(padding, padding, rectHeight);
-        page.lines.add(line);
-        line.add(image);
+        Row row = new Row(padding, padding, rectHeight);
+        page.add(row);
+        row.add(image, padding);
         return page;
     }
 }

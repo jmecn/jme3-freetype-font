@@ -7,6 +7,7 @@ import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.Page;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
+import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 
 import java.io.File;
 
@@ -129,7 +130,7 @@ public class TestGenerateImage {
         try (FtFontGenerator generator = new FtFontGenerator(new File(FONT), 0)) {
 
             // use predefined packer
-            Packer packer = new Packer(Image.Format.RGBA8, 512, 512, 1, false, new GuillotineStrategy());
+            Packer packer = new Packer(Image.Format.RGBA8, 512, 512, 1, false, new SkylineStrategy());
 
             FtFontParameter parameter = new FtFontParameter();
             parameter.packer = packer;

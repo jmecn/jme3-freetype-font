@@ -11,6 +11,8 @@ public class Rectangle {
     int width;
     int height;
 
+    int page;
+
     public Rectangle(int width, int height) {
         this(0, 0, width, height);
     }
@@ -65,6 +67,13 @@ public class Rectangle {
         return height;
     }
 
+    public void setPage(int page) {
+        this.page = page;
+    }
+    public int getPage() {
+        return page;
+    }
+
     @Override
     public String toString() {
         return "Rectangle{" +
@@ -72,6 +81,7 @@ public class Rectangle {
                 ", y=" + y +
                 ", width=" + width +
                 ", height=" + height +
+                ", page=" + page +
                 '}';
     }
 }

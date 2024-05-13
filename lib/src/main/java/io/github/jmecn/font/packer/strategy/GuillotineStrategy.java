@@ -15,7 +15,7 @@ public class GuillotineStrategy implements PackStrategy {
 		if (comparator == null) {
 			comparator = Comparator.comparingInt(o -> Math.max(o.getWidth(), o.getHeight()));
 		}
-		images.sort(comparator);
+		images.sort(comparator.reversed());
 	}
 
 	public Page pack(Packer packer, String name, Rectangle image) {
