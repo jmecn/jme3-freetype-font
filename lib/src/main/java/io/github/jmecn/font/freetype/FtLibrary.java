@@ -24,6 +24,7 @@ public class FtLibrary implements AutoCloseable {
     static Logger logger = LoggerFactory.getLogger(FtLibrary.class);
 
     public static final int MIN_SPREAD = 2;
+    public static final int DEFAULT_SPREAD = 8;
     public static final int MAX_SPREAD = 32;
     public static final int SDF_UNIT_ONE = 256;
 
@@ -43,8 +44,9 @@ public class FtLibrary implements AutoCloseable {
 
             FT_Library_Version(address, major, minor, patch);
             version = String.format("%d.%d.%d", major.get(0), minor.get(0), patch.get(0));
-            logger.info("Loaded FreeType {}", version);
-
+            if (logger.isDebugEnabled()) {
+                logger.debug("Loaded FreeType {}", version);
+            }
             this.isClosed = false;
         }
     }
@@ -181,43 +183,54 @@ public class FtLibrary implements AutoCloseable {
     }
 
     public int getSdfSpread() {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
-        getProperty("sdf", "spread", buffer);
-        int spread = buffer.asIntBuffer().get(0);
-        return from16D16(spread) >> 8;
+        try (MemoryStack stack = stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            getProperty("sdf", "spread", buffer);
+            return buffer.getInt();
+        }
     }
 
     public void setSdfSpread(int spread) {
         if (spread < MIN_SPREAD || spread > MAX_SPREAD) {
             throw new IllegalArgumentException("spread must be between " + MIN_SPREAD + " and " + MAX_SPREAD);
         }
-        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
-        buffer.asIntBuffer().put(int16D16(spread << 8));
-        setProperty("sdf", "spread", buffer);
+        try (MemoryStack stack = stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            buffer.putInt(spread).flip();
+            setProperty("sdf", "spread", buffer);
+        }
     }
 
     public void setSdfFlipY(boolean flipY) {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
-        buffer.put(0, (byte) (flipY ? 1 : 0));
-        setProperty("sdf", "flip_y", buffer);
+        try (MemoryStack stack = stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            buffer.putInt(flipY ? 1 : 0).flip();
+            setProperty("sdf", "flip_y", buffer);
+        }
     }
 
     public boolean getSdfFlipY() {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
-        getProperty("sdf", "flip_y", buffer);
-        return buffer.get(0) != 0;
+        try (MemoryStack stack = stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            getProperty("sdf", "flip_y", buffer);
+            return buffer.get(0) != 0;
+        }
     }
 
     public void setSdfFlipSign(boolean flipSign) {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
-        buffer.put(0, (byte) (flipSign ? 1 : 0));
-        setProperty("sdf", "flip_sign", buffer);
+        try (MemoryStack stack = stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            buffer.putInt(flipSign ? 1 : 0).flip();
+            setProperty("sdf", "flip_sign", buffer);
+        }
     }
 
     public boolean getSdfFlipSign() {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
-        getProperty("sdf", "flip_sign", buffer);
-        return buffer.get(0) != 0;
+        try (MemoryStack stack = stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            getProperty("sdf", "flip_sign", buffer);
+            return buffer.get(0) != 0;
+        }
     }
 
 }

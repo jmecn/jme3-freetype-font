@@ -1,7 +1,9 @@
 package io.github.jmecn.font.freetype;
 
 import io.github.jmecn.font.exception.FtRuntimeException;
+import io.github.jmecn.font.utils.DebugPrintUtils;
 import org.junit.jupiter.api.Test;
+import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
 
@@ -14,102 +16,135 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class TestFreeTypeSdfProperties {
 
-    static final int DEFAULT_SPREAD = 8;
-    static final int MIN_SPREAD = 2;
-    static final int MAX_SPREAD = 32;
-
-    static final int UNIT_ONE = 256;
-
     @Test void testGetDefaultSpread() {
+        try (FtLibrary library = new FtLibrary(); MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer buf = stack.malloc(4);
+            library.getProperty("sdf", "spread", buf);
+            int spread = buf.getInt();
+            assertEquals(FtLibrary.DEFAULT_SPREAD, spread);
+        }
+    }
+
+    @Test void testGetDefaultSpread2() {
         try (FtLibrary library = new FtLibrary()) {
-            ByteBuffer spreadBuf = ByteBuffer.allocateDirect(4);
-            library.getProperty("sdf", "spread", spreadBuf);
-            int spread = FtLibrary.from16D16(spreadBuf.asIntBuffer().get(0)) / UNIT_ONE;
-            assertEquals(DEFAULT_SPREAD, spread);
+            assertEquals(FtLibrary.DEFAULT_SPREAD, library.getSdfSpread());
         }
     }
 
     @Test void testSetMaxSpread() {
-        try (FtLibrary library = new FtLibrary()) {
-            ByteBuffer spreadBuf = ByteBuffer.allocateDirect(4);
-            spreadBuf.asIntBuffer().put(FtLibrary.int16D16(MAX_SPREAD * UNIT_ONE));
-            assertDoesNotThrow(() -> library.setProperty("sdf", "spread", spreadBuf));
+        try (FtLibrary library = new FtLibrary(); MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            buffer.putInt(FtLibrary.MAX_SPREAD);
+            buffer.flip();
+            assertDoesNotThrow(() -> library.setProperty("sdf", "spread", buffer));
+            assertEquals(FtLibrary.MAX_SPREAD, library.getSdfSpread());
         }
     }
 
     @Test void testSetMinSpread() {
-        try (FtLibrary library = new FtLibrary()) {
-            int value = FtLibrary.int16D16(MIN_SPREAD * UNIT_ONE);
+        try (FtLibrary library = new FtLibrary(); MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            buffer.putInt(FtLibrary.MIN_SPREAD);
+            buffer.flip();
+            assertDoesNotThrow(() -> library.setProperty("sdf", "spread", buffer));
+            assertEquals(FtLibrary.MIN_SPREAD, library.getSdfSpread());
+        }
+    }
 
-            ByteBuffer spreadBuf = ByteBuffer.allocateDirect(4);
-            spreadBuf.asIntBuffer().put(value);
-            assertDoesNotThrow(() -> library.setProperty("sdf", "spread", spreadBuf));
+    @Test void testSetSpread() {
+        try (FtLibrary library = new FtLibrary()) {
+            assertDoesNotThrow(() -> library.setSdfSpread(4));
+            assertEquals(4, library.getSdfSpread());
         }
     }
 
     @Test void testIllegalSpread() {
-        try (FtLibrary library = new FtLibrary()) {
-            ByteBuffer spreadBuf = ByteBuffer.allocateDirect(4);
-            spreadBuf.asIntBuffer().put(FtLibrary.int16D16(33 * UNIT_ONE));
-            assertThrows(FtRuntimeException.class, () -> library.setProperty("sdf", "spread", spreadBuf));
+        try (FtLibrary library = new FtLibrary(); MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            buffer.putInt(FtLibrary.MAX_SPREAD + 1);
+            buffer.flip();
+            assertThrows(FtRuntimeException.class, () -> library.setProperty("sdf", "spread", buffer));
+            assertEquals(FtLibrary.DEFAULT_SPREAD, library.getSdfSpread());
         }
     }
 
     @Test void testIllegalSpread2() {
-        try (FtLibrary library = new FtLibrary()) {
-            ByteBuffer spreadBuf = ByteBuffer.allocateDirect(4);
-            spreadBuf.asIntBuffer().put(FtLibrary.int16D16(UNIT_ONE));
-            assertThrows(FtRuntimeException.class, () -> library.setProperty("sdf", "spread", spreadBuf));
+        try (FtLibrary library = new FtLibrary(); MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            buffer.putInt(FtLibrary.MIN_SPREAD - 1);
+            buffer.flip();
+            assertThrows(FtRuntimeException.class, () -> library.setProperty("sdf", "spread", buffer));
+            assertEquals(FtLibrary.DEFAULT_SPREAD, library.getSdfSpread());
         }
     }
 
     @Test void testGetFlipY() {
-        try (FtLibrary library = new FtLibrary()) {
-            ByteBuffer flipBuf = ByteBuffer.allocateDirect(4);
-            library.getProperty("sdf", "flip_y", flipBuf);
-            int flip = flipBuf.asIntBuffer().get(0);
+        try (FtLibrary library = new FtLibrary(); MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            library.getProperty("sdf", "flip_y", buffer);
+            int flip = buffer.getInt();
             assertEquals(0, flip);
+            assertFalse(library.getSdfFlipY());
         }
     }
 
     @Test void testSetFlipY() {
-        try (FtLibrary library = new FtLibrary()) {
-            ByteBuffer flipBuf = ByteBuffer.allocateDirect(4);
-            flipBuf.asIntBuffer().put(1);
-            assertDoesNotThrow(() -> library.setProperty("sdf", "flip_y", flipBuf));
+        try (FtLibrary library = new FtLibrary(); MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            buffer.putInt(1).flip();
+            assertDoesNotThrow(() -> library.setProperty("sdf", "flip_y", buffer));
+            assertTrue(library.getSdfFlipY());
         }
     }
 
     @Test void testSetNegativeFlipY() {
-        try (FtLibrary library = new FtLibrary()) {
-            ByteBuffer flipBuf = ByteBuffer.allocateDirect(4);
-            flipBuf.asIntBuffer().put(-1);
-            assertDoesNotThrow(() -> library.setProperty("sdf", "flip_y", flipBuf));
+        try (FtLibrary library = new FtLibrary(); MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            buffer.putInt(-1).flip();
+            assertDoesNotThrow(() -> library.setProperty("sdf", "flip_y", buffer));
+            assertTrue(library.getSdfFlipY());
         }
     }
 
     @Test void testGetFlipSign() {
-        try (FtLibrary library = new FtLibrary()) {
-            ByteBuffer flipBuf = ByteBuffer.allocateDirect(4);
-            library.getProperty("sdf", "flip_sign", flipBuf);
-            int flip = flipBuf.asIntBuffer().get(0);
+        try (FtLibrary library = new FtLibrary(); MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            library.getProperty("sdf", "flip_sign", buffer);
+            int flip = buffer.getInt();
             assertEquals(0, flip);
         }
     }
 
     @Test void testSetFlipSign() {
+        try (FtLibrary library = new FtLibrary(); MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            buffer.putInt(1).flip();
+            assertDoesNotThrow(() -> library.setProperty("sdf", "flip_sign", buffer));
+            assertTrue(library.getSdfFlipSign());
+        }
+    }
+    @Test void testSetFlipSignTrue() {
         try (FtLibrary library = new FtLibrary()) {
-            ByteBuffer flipBuf = ByteBuffer.allocateDirect(4);
-            flipBuf.asIntBuffer().put(1);
-            assertDoesNotThrow(() -> library.setProperty("sdf", "flip_sign", flipBuf));
+            assertDoesNotThrow(() -> library.setSdfFlipSign(true));
+            assertTrue(library.getSdfFlipSign());
+        }
+    }
+
+    @Test void testSetFlipSignFalse() {
+        try (FtLibrary library = new FtLibrary()) {
+            assertDoesNotThrow(() -> library.setSdfFlipSign(false));
+            assertFalse(library.getSdfFlipSign());
         }
     }
 
     @Test void testSetNegativeFlipSign() {
-        try (FtLibrary library = new FtLibrary()) {
-            ByteBuffer flipBuf = ByteBuffer.allocateDirect(4);
-            flipBuf.asIntBuffer().put(-1);
-            assertDoesNotThrow(() -> library.setProperty("sdf", "flip_sign", flipBuf));
+        try (FtLibrary library = new FtLibrary(); MemoryStack stack = MemoryStack.stackPush()) {
+            ByteBuffer buffer = stack.malloc(4);
+            buffer.putInt(-1).flip();
+            assertDoesNotThrow(() -> library.setProperty("sdf", "flip_sign", buffer));
+            assertTrue(library.getSdfFlipSign());
         }
     }
+
+
 }

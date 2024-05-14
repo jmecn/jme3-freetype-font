@@ -6,12 +6,9 @@ import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.utils.DebugPrintUtils;
 import io.github.jmecn.font.utils.ImageUtils;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.lwjgl.util.freetype.FreeType.*;
 
 /**
