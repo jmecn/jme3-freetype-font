@@ -130,20 +130,21 @@ public class TestGenerateImage {
         try (FtFontGenerator generator = new FtFontGenerator(new File(FONT))) {
 
             // use predefined packer
-            Packer packer = new Packer(Image.Format.RGBA8, 256, 256, 1, false, new SkylineStrategy());
+            Packer packer = new Packer(Image.Format.RGBA8, 512, 512, 1, false, new SkylineStrategy());
 
             FtFontParameter parameter = new FtFontParameter();
             parameter.setPacker(packer);
             parameter.setSize(24);
 
-            parameter.setPadding(2);
+            parameter.setColor(ColorRGBA.DarkGray);
+            parameter.setPadding(2, 2, 0, 0);
 
             parameter.setBorderWidth(2);
-            parameter.setBorderColor(ColorRGBA.Red);
+            parameter.setBorderColor(ColorRGBA.Yellow);
 
-//            parameter.setShadowOffsetX(4);
-//            parameter.setShadowOffsetY(4);
-//            parameter.setShadowColor(ColorRGBA.Blue);
+            parameter.setShadowOffsetX(2);
+            parameter.setShadowOffsetY(2);
+            parameter.setShadowColor(ColorRGBA.White);
 
             parameter.setCharacters(FtFontParameter.DEFAULT_CHARS + XIN);
             parameter.setIncremental(true);

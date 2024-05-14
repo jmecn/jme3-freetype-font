@@ -67,7 +67,7 @@ public class FtBitmap {
         return address;
     }
 
-    public Image getPixmap (Image.Format format, ColorRGBA color, float gamma) {
+    public Image getImage(Image.Format format, ColorRGBA color, float gamma) {
         Image pixmap = ImageUtils.ftBitmapToImage(this, color, gamma);
 
         Image converted = pixmap;
