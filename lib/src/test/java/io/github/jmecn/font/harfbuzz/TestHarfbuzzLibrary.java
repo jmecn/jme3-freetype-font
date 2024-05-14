@@ -1,13 +1,16 @@
 package io.github.jmecn.font.harfbuzz;
 
+import io.github.jmecn.font.freetype.FtFace;
+import io.github.jmecn.font.freetype.FtLibrary;
 import org.junit.jupiter.api.Test;
+import org.lwjgl.system.Configuration;
+import org.lwjgl.util.freetype.FreeType;
 import org.lwjgl.util.harfbuzz.hb_glyph_info_t;
 import org.lwjgl.util.harfbuzz.hb_glyph_position_t;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.lwjgl.util.harfbuzz.HarfBuzz.*;
-import static org.lwjgl.util.harfbuzz.OpenType.hb_ot_font_set_funcs;
 
 /**
  * desc:
@@ -30,17 +33,36 @@ class TestHarfbuzzLibrary {
         }
     }
 
-    @Test void testHarfbuzzGlyphIndex() {
-        long hb_blob_t;
+    /**
+     * <h3>FreeType interop</h3>
+     *
+     * <p>The default LWJGL HarfBuzz build does not include FreeType support and the {@code hb_ft_*} functions will not be available. However, LWJGL's FreeType
+     * build includes HarfBuzz and exports its full API. When working with both HarfBuzz and FreeType, the HarfBuzz bindings can be made to use FreeType's
+     * shared library, with one of the following ways:</p>
+     *
+     * <ul>
+     * <li>launch the JVM with {@code -Dorg.lwjgl.harfbuzz.libname=freetype}</li>
+     * <li>run {@code Configuration.HARFBUZZ_LIBRARY_NAME.set("freetype")}</li>
+     * <li>run {@code Configuration.HARFBUZZ_LIBRARY_NAME.set(FreeType.getLibrary())} - recommended</li>
+     * </ul>
+     *
+     * <p>The {@code org.lwjgl.harfbuzz.natives} module is not necessary when enabling the above.</p>
+     */
+    @Test void testHarfbuzzWithFreeType() {
+        // init lwjgl3 harfbuzz with freetype
+        Configuration.HARFBUZZ_LIBRARY_NAME.set(FreeType.getLibrary());
+
+        FtLibrary library = new FtLibrary();
+        FtFace face = library.newFace("../font/Noto_Serif_SC/NotoSerifSC-Regular.otf");
+        face.setPixelSize(0, 16);
+
         long hb_face_t;
         long hb_ft_font;
 
-        // For Harfbuzz, load using OpenType (HarfBuzz FT does not support bitmap font)
-        hb_blob_t = hb_blob_create_from_file("../font/Noto_Serif_SC/NotoSerifSC-Regular.otf");
-        hb_face_t = hb_face_create (hb_blob_t, 0);
+        hb_face_t = hb_ft_face_create_referenced(face.address());
         hb_ft_font = hb_font_create (hb_face_t);
 
-        hb_ot_font_set_funcs(hb_ft_font);
+        hb_ft_font_set_funcs(hb_ft_font);
         hb_font_set_scale(hb_ft_font, FONT_SIZE << 6, FONT_SIZE << 6);
 
         // Create  HarfBuzz buffer
@@ -75,6 +97,8 @@ class TestHarfbuzzLibrary {
         hb_buffer_destroy(buf);
         hb_font_destroy(hb_ft_font);
         hb_face_destroy(hb_face_t);
-        hb_blob_destroy(hb_blob_t);
+
+        face.close();
+        library.close();
     }
 }

@@ -11,7 +11,8 @@ dependencies {
 
     testImplementation "org.lwjgl:lwjgl::$lwjglNatives"
     testImplementation "org.lwjgl:lwjgl-freetype::$lwjglNatives"
-    testImplementation "org.lwjgl:lwjgl-harfbuzz::$lwjglNatives"
+    // harfbuzz native is not needed when integrated with freetype
+    // testImplementation "org.lwjgl:lwjgl-harfbuzz::$lwjglNatives"
     testImplementation "org.jmonkeyengine:jme3-lwjgl3:$jme3Version"
     testImplementation "org.jmonkeyengine:jme3-desktop:$jme3Version"
     testImplementation 'ch.qos.logback:logback-classic:1.2.13'

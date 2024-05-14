@@ -6,6 +6,8 @@ import com.jme3.texture.Image;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.utils.DebugPrintUtils;
 import io.github.jmecn.font.utils.ImageUtils;
+import org.lwjgl.system.Configuration;
+import org.lwjgl.util.freetype.FreeType;
 import org.lwjgl.util.harfbuzz.hb_glyph_info_t;
 
 import java.util.ArrayList;
@@ -26,6 +28,9 @@ public class TestEmojiImage {
     static final String TEXT = "🙋👋🍰🐒";
 
     public static void main(String[] args) {
+        // init lwjgl3 harfbuzz with freetype
+        Configuration.HARFBUZZ_LIBRARY_NAME.set(FreeType.getLibrary());
+
         List<Image> imageList = new ArrayList<>();
 
         try (FtLibrary library = new FtLibrary()) {
@@ -34,15 +39,13 @@ public class TestEmojiImage {
             // face.setCharSize(0, FtLibrary.int26D6(32), 300, 300);
 
             System.out.printf("has emoji:%b\n", face.hasEmoji());
-            face.selectBestSize(64);
+            face.selectBestPixelSize(64);
 
-            long hb_blob_t;
             long hb_face_t;
             long hb_ft_font;
 
             // For Harfbuzz, load using OpenType (HarfBuzz FT does not support bitmap font)
-            hb_blob_t = hb_blob_create_from_file(APPLE_EMOJI);
-            hb_face_t = hb_face_create (hb_blob_t, 0);
+            hb_face_t = hb_ft_face_create_referenced(face.address());
             hb_ft_font = hb_font_create (hb_face_t);
 
             hb_ot_font_set_funcs(hb_ft_font);
@@ -74,14 +77,16 @@ public class TestEmojiImage {
                     System.out.printf("char found, codepoint:0x%X, glyphIndex:%d\n", codepoint, glyphIndex);
                 }
                 // load glyph
-                if (face.loadGlyph(glyphIndex, FT_LOAD_DEFAULT | FT_LOAD_COLOR | FT_LOAD_RENDER)) {
+                if (face.loadGlyph(glyphIndex, FT_LOAD_DEFAULT | FT_LOAD_COLOR)) {
                     // get glyph
                     FtGlyphSlot slot = face.getGlyph();
                     FtGlyphMetrics metrics = slot.getMetrics();
                     DebugPrintUtils.print(metrics);
 
                     // render glyph
-                    FtBitmap bitmap = slot.getBitmap();
+                    FtGlyph glyph = slot.getGlyph();
+                    FtBitmapGlyph bitmapGlyph = glyph.toBitmap(FT_RENDER_MODE_NORMAL);
+                    FtBitmap bitmap = bitmapGlyph.getBitmap();
                     DebugPrintUtils.printBitmapInfo(bitmap);
                     if (bitmap.getBufferSize() == 0) {
                         System.out.println("size is empty");
@@ -95,7 +100,6 @@ public class TestEmojiImage {
             hb_buffer_destroy(buf);
             hb_font_destroy(hb_ft_font);
             hb_face_destroy(hb_face_t);
-            hb_blob_destroy(hb_blob_t);
         }
         TestDisplay.run(Materials.UNSHADED, imageList.toArray(new Image[0]));
     }

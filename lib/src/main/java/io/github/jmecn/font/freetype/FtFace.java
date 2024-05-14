@@ -1,7 +1,6 @@
 package io.github.jmecn.font.freetype;
 
 import io.github.jmecn.font.exception.FtRuntimeException;
-import org.lwjgl.CLongBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.freetype.FT_Bitmap_Size;
 import org.lwjgl.util.freetype.FT_Face;
@@ -33,6 +32,10 @@ public class FtFace implements AutoCloseable {
         this.face = FT_Face.create(address);
         this.glyph = new FtGlyphSlot(face.glyph());
         this.isClosed = false;
+    }
+
+    public long address() {
+        return face.address();
     }
 
     @Override
@@ -350,21 +353,19 @@ public class FtFace implements AutoCloseable {
         return false;
     }
 
-    public void selectBestSize(int pixelSize) {
+    public void selectBestPixelSize(int pixelSize) {
         int count = face.num_fixed_sizes();
         if (count == 0) {
             logger.info("no fixed sizes");
             return;
         }
 
-        int bestMatch = 0;
-        FT_Bitmap_Size bitmapSize = face.available_sizes().get(0);
-        logger.info("first bitmapSize:{}, width:{}, height:{}, x_ppem:{}, y_ppem:{}", bitmapSize.size(), bitmapSize.width(), bitmapSize.height(), bitmapSize.x_ppem(), bitmapSize.y_ppem());
-        int diff = Math.abs(pixelSize - bitmapSize.width());
-        for (int i = 1; i < count; ++i) {
-            bitmapSize = face.available_sizes().get(i);
+        int bestMatch = -1;
+        int diff = Integer.MAX_VALUE;
+        for (int i = 0; i < count; ++i) {
+            FT_Bitmap_Size bitmapSize = face.available_sizes().get(i);
 
-            logger.info("first bitmapSize:{}, width:{}, height:{}, x_ppem:{}, y_ppem:{}", bitmapSize.size(), bitmapSize.width(), bitmapSize.height(), bitmapSize.x_ppem(), bitmapSize.y_ppem());
+            logger.info("bitmapSize:{}, width:{}, height:{}, x_ppem:{}, y_ppem:{}", bitmapSize.size(), bitmapSize.width(), bitmapSize.height(), bitmapSize.x_ppem(), bitmapSize.y_ppem());
 
             int ndiff = Math.abs(pixelSize - bitmapSize.width());
             if (ndiff < diff) {
@@ -374,4 +375,5 @@ public class FtFace implements AutoCloseable {
         }
         ok( FT_Select_Size(face, bestMatch) );
     }
+
 }

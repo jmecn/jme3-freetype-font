@@ -22,7 +22,7 @@ public class FtLibrary implements AutoCloseable {
 
     static Logger logger = LoggerFactory.getLogger(FtLibrary.class);
 
-    private long library;
+    private long address;
     private final String version;
     private boolean isClosed;
 
@@ -30,13 +30,13 @@ public class FtLibrary implements AutoCloseable {
         try (MemoryStack stack = stackPush()) {
             PointerBuffer ptr = stack.mallocPointer(1);
             ok(FT_Init_FreeType(ptr));
-            library = ptr.get(0);
+            address = ptr.get(0);
 
             IntBuffer major = stack.mallocInt(1);
             IntBuffer minor = stack.mallocInt(1);
             IntBuffer patch = stack.mallocInt(1);
 
-            FT_Library_Version(library, major, minor, patch);
+            FT_Library_Version(address, major, minor, patch);
             version = String.format("%d.%d.%d", major.get(0), minor.get(0), patch.get(0));
             logger.info("Loaded FreeType {}", version);
 
@@ -56,11 +56,15 @@ public class FtLibrary implements AutoCloseable {
         return version;
     }
 
+    public long address() {
+        return address;
+    }
+
     @Override
     public void close() {
         if (!isClosed) {
-            FT_Done_FreeType(library);
-            library = 0L;
+            FT_Done_FreeType(address);
+            address = 0L;
             isClosed = true;
         }
     }
@@ -80,7 +84,7 @@ public class FtLibrary implements AutoCloseable {
 
         try (MemoryStack stack = stackPush()) {
             PointerBuffer ptr = stack.mallocPointer(1);
-            ok(FT_New_Face(library, file.getPath(), faceIndex, ptr));
+            ok(FT_New_Face(address, file.getPath(), faceIndex, ptr));
             return new FtFace(ptr.get(0));
         }
     }
@@ -122,7 +126,7 @@ public class FtLibrary implements AutoCloseable {
         }
         try (MemoryStack stack = stackPush()) {
             PointerBuffer ptr = stack.mallocPointer(1);
-            ok(FT_New_Memory_Face(library, buffer, faceIndex, ptr));
+            ok(FT_New_Memory_Face(address, buffer, faceIndex, ptr));
             return new FtFace(ptr.get(0));
         }
     }
@@ -130,7 +134,7 @@ public class FtLibrary implements AutoCloseable {
     public FtStroker newStroker() {
         try (MemoryStack stack = stackPush()){
             PointerBuffer ptr = stack.mallocPointer(1);
-            ok(FT_Stroker_New(library, ptr));
+            ok(FT_Stroker_New(address, ptr));
             return new FtStroker(ptr.get(0));
         }
     }
