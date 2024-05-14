@@ -1,9 +1,6 @@
 package io.github.jmecn.font.generator;
 
-import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapCharacter;
-import com.jme3.font.BitmapFont;
-import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.texture.Image;
@@ -24,8 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.lwjgl.util.freetype.FreeType.*;
 
@@ -100,7 +95,7 @@ public class FtFontGenerator implements AutoCloseable {
             throw new FtRuntimeException("Unable to create a font with no images.");
         }
 
-        FtBitmapFont font = newBitmapFont(data, data.regions, true);
+        FtBitmapFont font = newBitmapFont(data, true);
         font.setOwnsTexture(parameter.getPacker() == null);
 
         // create origin bitmap font
@@ -116,8 +111,8 @@ public class FtFontGenerator implements AutoCloseable {
         return font;
     }
 
-    protected FtBitmapFont newBitmapFont(FtBitmapCharacterSet data, List<TextureRegion> pageRegions, boolean ownsTexture) {
-        return new FtBitmapFont(data, pageRegions, ownsTexture);
+    protected FtBitmapFont newBitmapFont(FtBitmapCharacterSet data, boolean ownsTexture) {
+        return new FtBitmapFont(data, ownsTexture);
     }
 
     public FtBitmapCharacterSet generateData(int size) {

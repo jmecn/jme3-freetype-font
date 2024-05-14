@@ -1,6 +1,5 @@
 package io.github.jmecn.font;
 
-import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapCharacter;
 import com.jme3.font.BitmapCharacterSet;
 import com.jme3.material.Material;
@@ -81,7 +80,7 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
     ///////////////
 
 
-    public List<TextureRegion> regions;
+    public List<Image> images;
 
     // Fields for incremental glyph generation.
     FtFontGenerator generator;
@@ -92,7 +91,7 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
     private boolean dirty;
 
     public FtBitmapCharacterSet() {
-        regions = new ArrayList<>();
+        images = new ArrayList<>();
         characters = new IntMap<>();
         materials = new IntMap<>();
         glyphs = new ArrayList<>(128);// all ascii chars
@@ -486,5 +485,13 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
 
     public int getPageSize() {
         return materials.size();
+    }
+
+    public void addImage(Image image) {
+        images.add(image);
+    }
+
+    public Image getImage(int page) {
+        return images.get(page);
     }
 }

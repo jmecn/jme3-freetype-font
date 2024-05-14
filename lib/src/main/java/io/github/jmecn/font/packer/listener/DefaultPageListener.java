@@ -31,12 +31,14 @@ public class DefaultPageListener implements PageListener {
     @Override
     public void onPageAdded(Packer packer, PackStrategy strategy, Page page) {
         logger.debug("New page detected: {}", page);
+        Image image = page.getImage();
+        data.addImage(image);
+
         if (parameter.getMatDef() == null) {
             logger.warn("Material define is null");
             return;
         }
 
-        Image image = page.getImage();
         Texture2D texture2D = new Texture2D(image);
         texture2D.setMinFilter(parameter.getMinFilter());
         texture2D.setMagFilter(parameter.getMagFilter());

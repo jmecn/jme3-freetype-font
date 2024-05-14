@@ -104,9 +104,7 @@ public class DebugPrintUtils {
 
             ImageRaster raster = rasterMap.get(glyph.getPage());
             if (raster == null) {
-                Material material = data.getMaterial(glyph.getPage());
-                Texture texture = material.getTextureParam("ColorMap").getTextureValue();
-                Image image = texture.getImage();
+                Image image = data.getImage(glyph.getPage());
                 raster = ImageRaster.create(image);
                 rasterMap.put(glyph.getPage(), raster);
             }
@@ -114,7 +112,8 @@ public class DebugPrintUtils {
             // draw rect but not fill it
             for (int y = 0; y < glyph.getHeight(); y++) {
                 for (int x = 0; x < glyph.getWidth(); x++) {
-                    if (x == 0 || x == glyph.getWidth() - 1 || y == 0 || y == glyph.getHeight() - 1) {
+                    if (x == 0 || x == glyph.getWidth() - 1 || y == 0 || y == glyph.getHeight() - 1
+                            || x == glyph.getXOffset() || y == glyph.getYOffset()) {
                         raster.setPixel(glyph.getX() + x, glyph.getY() + y, color);
                     }
                 }

@@ -8,6 +8,7 @@ import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.Page;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
+import io.github.jmecn.font.utils.DebugPrintUtils;
 
 import java.io.File;
 
@@ -156,6 +157,9 @@ public class TestGenerateImage {
             for (char ch : chars) {
                 data.getCharacter(ch);
             }
+
+            // draw glyph rect
+            DebugPrintUtils.drawGlyphRect(data);
 
             // show image
             Image[] images = parameter.getPacker().getPages().stream().map(Page::getImage).toArray(Image[]::new);

@@ -5,9 +5,10 @@ import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapFont;
 import com.jme3.material.Material;
 import com.jme3.material.MaterialDef;
+import com.jme3.texture.Image;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
-import io.github.jmecn.font.packer.TextureRegion;
+import io.github.jmecn.font.packer.Page;
 
 import java.io.File;
 import java.util.List;
@@ -18,7 +19,6 @@ import java.util.List;
 public class FtBitmapFont extends BitmapFont {
 
     private FtBitmapCharacterSet charSet;
-    private List<TextureRegion> regions;
     private boolean flipped;
     private boolean integer;
     private boolean ownsTexture;
@@ -33,12 +33,11 @@ public class FtBitmapFont extends BitmapFont {
         super.setCharSet(charSet);
     }
 
-    public FtBitmapFont(FtBitmapCharacterSet charSet, List<TextureRegion> pageRegions, boolean integer) {
+    public FtBitmapFont(FtBitmapCharacterSet charSet, boolean integer) {
         this.flipped = charSet.flip;
         this.charSet = charSet;
         this.integer = integer;
 
-        regions = pageRegions;
         ownsTexture = false;
 
         // init super
