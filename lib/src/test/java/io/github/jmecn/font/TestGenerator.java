@@ -23,7 +23,7 @@ public class TestGenerator {
     @Test void main() throws Exception {
         try (FtFontGenerator generator = new FtFontGenerator(new File(FONT), 0)) {
             FtFontParameter parameter = new FtFontParameter();
-            generator.generate(parameter);
+            generator.generateData(parameter);
         }
     }
 
@@ -31,7 +31,7 @@ public class TestGenerator {
         try (FtFontGenerator generator = new FtFontGenerator(new File(FONT), 0)) {
             FtFontParameter parameter = new FtFontParameter();
             parameter.incremental = true;
-            FtBitmapFontData data = generator.generate(parameter);
+            FtBitmapFontData data = generator.generateData(parameter);
             String str = "你好世界!";
             for( int i = 0; i < str.length(); i++) {
                 Glyph glyph = data.getGlyph(str.charAt(i));

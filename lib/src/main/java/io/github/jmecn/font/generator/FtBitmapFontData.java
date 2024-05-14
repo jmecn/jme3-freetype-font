@@ -271,6 +271,11 @@ public class FtBitmapFontData implements AutoCloseable {
         }
     }
 
+    public List<Glyph> getGlyphs() {
+        // FIXME remove this method after change the implementation of FtBitmapFontData to BitmapCharacterSet
+        return glyphs;
+    }
+
     /** Returns the first valid glyph index to use to wrap to the next line, starting at the specified start index and
      * (typically) moving toward the beginning of the glyphs array. */
     public int getWrapIndex (List<BitmapCharacter> glyphs, int start) {

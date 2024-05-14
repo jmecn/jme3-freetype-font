@@ -1,15 +1,18 @@
 package io.github.jmecn.font.generator;
 
 import com.jme3.font.BitmapCharacter;
+import com.jme3.font.BitmapFont;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.texture.Image;
 import com.jme3.texture.image.ImageRaster;
+import io.github.jmecn.font.FtBitmapFont;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.exception.FtRuntimeException;
 import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.PackStrategy;
 import io.github.jmecn.font.packer.Rectangle;
+import io.github.jmecn.font.packer.TextureRegion;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 import io.github.jmecn.font.utils.ImageUtils;
@@ -20,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.lwjgl.util.freetype.FreeType.FT_KERNING_DEFAULT;
 
@@ -38,6 +42,10 @@ public class FtFontGenerator implements AutoCloseable {
     private String name;
     private int pixelWidth;
     private int pixelHeight;
+
+    public FtFontGenerator(File file) {
+        this(file, 0);
+    }
 
     public FtFontGenerator(File file, int faceIndex) {
         library = new FtLibrary();
@@ -74,11 +82,40 @@ public class FtFontGenerator implements AutoCloseable {
         }
     }
 
-    public FtBitmapFontData generate(FtFontParameter parameter) {
-        return generate(parameter, new FtBitmapFontData());
+    public FtBitmapFont generateFont(FtFontParameter parameter) {
+        return generateFont(parameter, new FtBitmapFontData());
     }
 
-    public FtBitmapFontData generate(FtFontParameter parameter, FtBitmapFontData data) {
+    public FtBitmapFont generateFont(FtFontParameter parameter, FtBitmapFontData data) {
+        boolean updateTextureRegions = data.regions == null && parameter.packer != null;
+        if (updateTextureRegions) {
+            data.regions = new ArrayList<>();
+        }
+
+        generateData(parameter, data);
+        if (updateTextureRegions)
+            parameter.packer.updateTextureRegions(data.regions, parameter.minFilter, parameter.magFilter, parameter.genMipMaps);
+        if (data.regions.isEmpty()) throw new FtRuntimeException("Unable to create a font with no texture regions.");
+        FtBitmapFont font = newBitmapFont(data, data.regions, true);
+        font.setOwnsTexture(parameter.packer == null);
+        return font;
+    }
+
+    protected FtBitmapFont newBitmapFont(FtBitmapFontData data, List<TextureRegion> pageRegions, boolean ownsTexture) {
+        return new FtBitmapFont(data, pageRegions, ownsTexture);
+    }
+
+    public FtBitmapFontData generateData(int size) {
+        FtFontParameter parameter = new FtFontParameter();
+        parameter.size = size;
+        return generateData(parameter);
+    }
+
+    public FtBitmapFontData generateData(FtFontParameter parameter) {
+        return generateData(parameter, new FtBitmapFontData());
+    }
+
+    public FtBitmapFontData generateData(FtFontParameter parameter, FtBitmapFontData data) {
         data.name = name + "-" + parameter.size;
         char[] characters = parameter.characters.toCharArray();
         int charactersLength = characters.length;

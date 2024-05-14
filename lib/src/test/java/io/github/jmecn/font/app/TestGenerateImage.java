@@ -6,7 +6,6 @@ import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.Page;
-import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 
 import java.io.File;
@@ -138,7 +137,7 @@ public class TestGenerateImage {
             parameter.characters = FtFontParameter.DEFAULT_CHARS + XIN;
             parameter.incremental = true;
 
-            FtBitmapFontData data = generator.generate(parameter);
+            FtBitmapFontData data = generator.generateData(parameter);
 
             // add incremental font
             char[] chars = DASHIZHI.toCharArray();
