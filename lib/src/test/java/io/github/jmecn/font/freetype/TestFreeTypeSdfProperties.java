@@ -39,8 +39,10 @@ class TestFreeTypeSdfProperties {
 
     @Test void testSetMinSpread() {
         try (FtLibrary library = new FtLibrary()) {
+            int value = FtLibrary.int16D16(MIN_SPREAD * UNIT_ONE);
+
             ByteBuffer spreadBuf = ByteBuffer.allocateDirect(4);
-            spreadBuf.asIntBuffer().put(FtLibrary.int16D16(MIN_SPREAD * UNIT_ONE));
+            spreadBuf.asIntBuffer().put(value);
             assertDoesNotThrow(() -> library.setProperty("sdf", "spread", spreadBuf));
         }
     }

@@ -2,6 +2,7 @@ package io.github.jmecn.font.freetype;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,10 @@ import static io.github.jmecn.font.freetype.FtErrors.ok;
 public class FtLibrary implements AutoCloseable {
 
     static Logger logger = LoggerFactory.getLogger(FtLibrary.class);
+
+    public static final int MIN_SPREAD = 2;
+    public static final int MAX_SPREAD = 32;
+    public static final int SDF_UNIT_ONE = 256;
 
     private long address;
     private final String version;
@@ -174,4 +179,45 @@ public class FtLibrary implements AutoCloseable {
         }
         ok(FT_Property_Set(address, module, name, buffer));
     }
+
+    public int getSdfSpread() {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
+        getProperty("sdf", "spread", buffer);
+        int spread = buffer.asIntBuffer().get(0);
+        return from16D16(spread) >> 8;
+    }
+
+    public void setSdfSpread(int spread) {
+        if (spread < MIN_SPREAD || spread > MAX_SPREAD) {
+            throw new IllegalArgumentException("spread must be between " + MIN_SPREAD + " and " + MAX_SPREAD);
+        }
+        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
+        buffer.asIntBuffer().put(int16D16(spread << 8));
+        setProperty("sdf", "spread", buffer);
+    }
+
+    public void setSdfFlipY(boolean flipY) {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
+        buffer.put(0, (byte) (flipY ? 1 : 0));
+        setProperty("sdf", "flip_y", buffer);
+    }
+
+    public boolean getSdfFlipY() {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
+        getProperty("sdf", "flip_y", buffer);
+        return buffer.get(0) != 0;
+    }
+
+    public void setSdfFlipSign(boolean flipSign) {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
+        buffer.put(0, (byte) (flipSign ? 1 : 0));
+        setProperty("sdf", "flip_sign", buffer);
+    }
+
+    public boolean getSdfFlipSign() {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
+        getProperty("sdf", "flip_sign", buffer);
+        return buffer.get(0) != 0;
+    }
+
 }

@@ -27,10 +27,9 @@ public class TestFtBitmapSdfFont {
             // face.setPixelSize(0, 16);
             face.setCharSize(0, FtLibrary.int26D6(16), 300, 300);
 
-            // set spread = 4
-            ByteBuffer spreadBuf = ByteBuffer.allocateDirect(4);
-            spreadBuf.asIntBuffer().put(FtLibrary.int16D16(4 << 8));
-            library.setProperty("sdf", "spread", spreadBuf);
+            // set sdf properties
+            library.setSdfSpread(4);
+            library.setSdfFlipSign(true);
 
             String text = "你好世界";
             List<Image> imageList = new ArrayList<>();
