@@ -1,20 +1,18 @@
 package io.github.jmecn.font;
 
 import org.junit.jupiter.api.Test;
-import sun.awt.FontConfiguration;
 
 import java.awt.*;
 
-public class GetAllFonts {
+import static org.junit.jupiter.api.Assertions.*;
+
+class TestAwtFont {
     @Test void testGetAllFonts() {
         GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
         Font[] fonts = env.getAllFonts();
-        for (int i = 0; i < fonts.length; i++) {
-            System.out.println(fonts[i]);
-        }
-    }
-
-    @Test void testFontConfig() {
-        FontConfiguration fontConfig;
+//        for (Font font : fonts) {
+//            System.out.println(font);
+//        }
+        assertTrue(0 < fonts.length);
     }
 }

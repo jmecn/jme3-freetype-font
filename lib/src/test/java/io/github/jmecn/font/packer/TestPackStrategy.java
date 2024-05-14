@@ -1,11 +1,7 @@
 package io.github.jmecn.font.packer;
 
-import com.jme3.math.FastMath;
 import com.jme3.texture.Image;
 import com.jme3.util.IntMap;
-import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
-import io.github.jmecn.font.packer.strategy.SkylineStrategy;
-import org.junit.jupiter.api.Test;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,11 +10,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class TestPackStrategy {
+class TestPackStrategy {
 
     static final int PAGE_SIZE = 512;
     static final int RECT_COUNT = 3000;
     static final int CHAR_SIZE = 32;
+
+    private PackStrategy packStrategy;
+
+    TestPackStrategy(PackStrategy packStrategy) {
+        this.packStrategy = packStrategy;
+    }
 
     /**
      * 随机生成一些矩形，用来模拟英文、汉字字符的大小。
@@ -28,7 +30,7 @@ public class TestPackStrategy {
      * @param size
      * @return
      */
-    static List<Rectangle> randomRectangles(int count, int size) {
+    List<Rectangle> randomRectangles(int count, int size) {
         List<Rectangle> rectangles = new ArrayList<>();
 
         Random rand = new Random();
@@ -57,46 +59,10 @@ public class TestPackStrategy {
             rectangles.add(new Rectangle(width, height));
         }
 
-        // random english characters
-
-
-
         return rectangles;
     }
 
-    @Test void testSkylineStrategy() {
-
-        List<Rectangle> list = randomRectangles(RECT_COUNT, CHAR_SIZE);
-
-        Packer packer = new Packer(Image.Format.RGBA8, PAGE_SIZE, PAGE_SIZE, 1, true);
-        SkylineStrategy skylineStrategy = new SkylineStrategy();
-        skylineStrategy.sort(list);
-        for (Rectangle rect : list) {
-            Page page = skylineStrategy.pack(packer, null, rect);
-            rect.setPage(page.index);
-            System.out.printf("%s, page:%d\n", rect, page.index);
-        }
-
-        showResult("Skyline", list);
-    }
-
-    @Test void testGuillotineStrategy() {
-
-        List<Rectangle> list = randomRectangles(RECT_COUNT, CHAR_SIZE);
-
-        Packer packer = new Packer(Image.Format.RGBA8, PAGE_SIZE, PAGE_SIZE, 1, true);
-        GuillotineStrategy guillotineStrategy = new GuillotineStrategy();
-        guillotineStrategy.sort(list);
-        for (Rectangle rect : list) {
-            Page page = guillotineStrategy.pack(packer, null, rect);
-            rect.setPage(page.index);
-            System.out.printf("%s, page:%d\n", rect, page.index);
-        }
-
-        showResult("Guillotine", list);
-    }
-
-    static void showResult(String strategy, List<Rectangle> list) {
+    void showResult(String strategy, List<Rectangle> list) {
         IntMap<BufferedImage> images = new IntMap<>();
         IntMap<Graphics2D> g2ds = new IntMap<>();
         for (Rectangle rect : list) {
@@ -143,5 +109,19 @@ public class TestPackStrategy {
         frame.setContentPane(panel);
         frame.pack();
         frame.setVisible(true);
+    }
+
+    public void run() {
+        List<Rectangle> list = randomRectangles(RECT_COUNT, CHAR_SIZE);
+
+        Packer packer = new Packer(Image.Format.RGBA8, PAGE_SIZE, PAGE_SIZE, 1, true);
+        packStrategy.sort(list);
+        for (Rectangle rect : list) {
+            Page page = packStrategy.pack(packer, null, rect);
+            rect.setPage(page.index);
+            System.out.printf("%s, page:%d\n", rect, page.index);
+        }
+
+        showResult(packStrategy.getClass().getSimpleName(), list);
     }
 }
