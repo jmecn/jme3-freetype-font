@@ -215,17 +215,19 @@ public class Packer implements AutoCloseable {
 
     /** Calls {@link Page#updateTexture(Texture.MinFilter, Texture.MagFilter, boolean) updateTexture} for each page and adds a region to
      * the specified array for each page texture. */
-    public synchronized void updateTextureRegions (List<TextureRegion> regions, Texture.MinFilter minFilter, Texture.MagFilter magFilter,
+    public synchronized void updateTextureRegions(List<TextureRegion> regions, Texture.MinFilter minFilter, Texture.MagFilter magFilter,
                                                    boolean useMipMaps) {
         updatePageTextures(minFilter, magFilter, useMipMaps);
-        while (regions.size() < pages.size())
+        while (regions.size() < pages.size()) {
             regions.add(new TextureRegion(pages.get(regions.size()).image));
+        }
     }
 
     /** Calls {@link Page#updateTexture(Texture.MinFilter, Texture.MagFilter, boolean) updateTexture} for each page. */
     public synchronized void updatePageTextures (Texture.MinFilter minFilter, Texture.MagFilter magFilter, boolean useMipMaps) {
-        for (Page page : pages)
+        for (Page page : pages) {
             page.updateTexture(minFilter, magFilter, useMipMaps);
+        }
     }
 
     public boolean isPackToTexture() {

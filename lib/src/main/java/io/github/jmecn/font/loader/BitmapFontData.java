@@ -2,7 +2,7 @@ package io.github.jmecn.font.loader;
 
 import com.jme3.font.BitmapCharacter;
 import io.github.jmecn.font.exception.FtRuntimeException;
-import io.github.jmecn.font.generator.Glyph;
+import io.github.jmecn.font.Glyph;
 import io.github.jmecn.font.generator.GlyphRun;
 import io.github.jmecn.font.packer.TextureRegion;
 
@@ -88,107 +88,10 @@ public class BitmapFontData {
         throw new FtRuntimeException("No glyphs found.");
     }
 
-    /** Returns true if the font has the glyph, or if the font has a {@link #missingGlyph}. */
-    public boolean hasGlyph (char ch) {
-        if (missingGlyph != null) return true;
-        return getGlyph(ch) != null;
-    }
-
-    /** Returns the glyph for the specified character, or null if no such glyph exists. Note that
-     * {@link #getGlyphs(GlyphRun, CharSequence, int, int, Glyph)} should be be used to shape a string of characters into a list
-     * of glyphs. */
     public Glyph getGlyph (char ch) {
         Glyph[] page = glyphs[ch / PAGE_SIZE];
         if (page != null) return page[ch & PAGE_SIZE - 1];
         return null;
-    }
-
-    /** Using the specified string, populates the glyphs and positions of the specified glyph run.
-     * @param str Characters to convert to glyphs. Will not contain newline or color tags. May contain "[[" for an escaped left
-     *           square bracket.
-     * @param lastGlyph The glyph immediately before this run, or null if this is run is the first on a line of text. Used tp
-     *           apply kerning between the specified glyph and the first glyph in this run. */
-    public void getGlyphs (GlyphRun run, CharSequence str, int start, int end, Glyph lastGlyph) {
-        int max = end - start;
-        if (max == 0) return;
-        boolean markupEnabled = this.markupEnabled;
-        float scaleX = this.scaleX;
-        ArrayList<BitmapCharacter> glyphs = run.glyphs;
-        ArrayList<Float> xAdvances = run.xAdvances;
-
-        // Guess at number of glyphs needed.
-        glyphs.ensureCapacity(max);
-        run.xAdvances.ensureCapacity(max + 1);
-
-        do {
-            char ch = str.charAt(start++);
-            if (ch == '\r') continue; // Ignore.
-            Glyph glyph = getGlyph(ch);
-            if (glyph == null) {
-                if (missingGlyph == null) continue;
-                glyph = missingGlyph;
-            }
-            glyphs.add(glyph);
-            xAdvances.add(lastGlyph == null // First glyph on line, adjust the position so it isn't drawn left of 0.
-                    ? (glyph.isFixedWidth() ? 0 : -glyph.getXOffset() * scaleX - padLeft)
-                    : (lastGlyph.getXAdvance() + lastGlyph.getKerning(ch)) * scaleX);
-            lastGlyph = glyph;
-
-            // "[[" is an escaped left square bracket, skip second character.
-            if (markupEnabled && ch == '[' && start < end && str.charAt(start) == '[') start++;
-        } while (start < end);
-        if (lastGlyph != null) {
-            float lastGlyphWidth = lastGlyph.isFixedWidth() ? lastGlyph.getXAdvance() * scaleX
-                    : (lastGlyph.getWidth() + lastGlyph.getXOffset()) * scaleX - padRight;
-            xAdvances.add(lastGlyphWidth);
-        }
-    }
-
-    /** Returns the first valid glyph index to use to wrap to the next line, starting at the specified start index and
-     * (typically) moving toward the beginning of the glyphs array. */
-    public int getWrapIndex (List<BitmapCharacter> glyphs, int start) {
-        int i = start - 1;
-        Object[] glyphsItems = glyphs.toArray();
-        char ch = ((BitmapCharacter)glyphsItems[i]).getChar();
-        if (isWhitespace(ch)) return i;
-        if (isBreakChar(ch)) i--;
-        for (; i > 0; i--) {
-            ch = ((BitmapCharacter)glyphsItems[i]).getChar();
-            if (isWhitespace(ch) || isBreakChar(ch)) return i + 1;
-        }
-        return 0;
-    }
-
-    public boolean isBreakChar (char c) {
-        if (breakChars == null) return false;
-        for (char br : breakChars)
-            if (c == br) return true;
-        return false;
-    }
-
-    public boolean isWhitespace (char c) {
-        switch (c) {
-            case '\n':
-            case '\r':
-            case '\t':
-            case ' ':
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    /** Returns the image path for the texture page at the given index (the "id" in the BMFont file). */
-    public String getImagePath (int index) {
-        return imagePaths[index];
-    }
-
-    public String[] getImagePaths () {
-        return imagePaths;
-    }
-
-    public File getFontFile () {
-        return fontFile;
     }
 
     /** Scales the font by the specified amounts on both axes

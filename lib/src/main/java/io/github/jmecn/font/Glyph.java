@@ -1,4 +1,4 @@
-package io.github.jmecn.font.generator;
+package io.github.jmecn.font;
 
 import com.jme3.font.BitmapCharacter;
 

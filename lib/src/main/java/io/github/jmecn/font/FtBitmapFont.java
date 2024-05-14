@@ -3,8 +3,6 @@ package io.github.jmecn.font;
 import com.jme3.font.BitmapFont;
 import com.jme3.material.Material;
 import com.jme3.util.IntMap;
-import io.github.jmecn.font.generator.FtBitmapCharacterSet;
-import io.github.jmecn.font.generator.Glyph;
 import io.github.jmecn.font.packer.TextureRegion;
 
 import java.util.List;

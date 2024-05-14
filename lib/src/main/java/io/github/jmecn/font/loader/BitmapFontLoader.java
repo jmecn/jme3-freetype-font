@@ -2,7 +2,7 @@ package io.github.jmecn.font.loader;
 
 import com.jme3.font.BitmapCharacter;
 import io.github.jmecn.font.exception.FtRuntimeException;
-import io.github.jmecn.font.generator.Glyph;
+import io.github.jmecn.font.Glyph;
 
 import java.io.BufferedReader;
 import java.io.File;

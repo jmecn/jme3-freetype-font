@@ -7,13 +7,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class GlyphRun {
-	public ArrayList<BitmapCharacter> glyphs = new ArrayList<>();
+	public List<BitmapCharacter> glyphs = new ArrayList<>();
 
 	/** Contains glyphs.size+1 entries:<br>
 	 * The first entry is the X offset relative to the drawing position.<br>
 	 * Subsequent entries are the X advance relative to previous glyph position.<br>
 	 * The last entry is the width of the last glyph. */
-	public ArrayList<Float> xAdvances = new ArrayList<>();
+	public List<Float> xAdvances = new ArrayList<>();
 
 	public float x, y, width;
 
