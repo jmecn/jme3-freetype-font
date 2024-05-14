@@ -75,12 +75,10 @@ public class Page {
     }
 
     public void drawImage(Image image, int x, int y) {
-        logger.info("draw image, {}, pos({},{})", image, x, y);
         ImageUtils.drawImage(this.image, image, x, y);
     }
 
     public void drawImage(Image image, int x, int y, int srcx, int srcy, int srcWidth, int srcHeight) {
-        logger.info("draw image, {}, pos({},{}), src.pos({}, {}) src.size({}, {})", image, x, y, srcx, srcy, srcWidth, srcHeight);
         ImageUtils.drawImage(this.image, image, x, y);
     }
 

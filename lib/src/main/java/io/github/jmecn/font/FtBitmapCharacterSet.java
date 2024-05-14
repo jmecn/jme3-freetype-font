@@ -151,14 +151,16 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
     /** Returns the glyph for the specified character, or null if no such glyph exists. Note that
      * {@link #getGlyphs(GlyphRun, CharSequence, int, int, Glyph)} should be be used to shape a string of characters into a list
      * of glyphs. */
-    public Glyph getCharacter(char ch) {
+    @Override
+    public Glyph getCharacter(int ch) {
         return getCharacter(ch, 0);
     }
 
     /** Returns the glyph for the specified character, or null if no such glyph exists. Note that
      * {@link #getGlyphs(GlyphRun, CharSequence, int, int, Glyph)} should be be used to shape a string of characters into a list
      * of glyphs. */
-    public Glyph getCharacter(char ch, int style) {
+    @Override
+    public Glyph getCharacter(int ch, int style) {
         // get cached character
         IntMap<Glyph> charset = getCharacterSet(style);
         Glyph glyph = charset.get(ch);
@@ -166,7 +168,7 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         if (glyph == null && generator != null) {
             generator.setPixelSizes(0, parameter.getSize());
             float baseline = ((flip ? -ascent : ascent) + capHeight) / scaleY;
-            glyph = generator.createGlyph(ch, this, parameter, stroker, baseline, packer);
+            glyph = generator.createGlyph((char) ch, this, parameter, stroker, baseline, packer);
             if (glyph == null) {
                 return missingGlyph;
             }

@@ -5,7 +5,6 @@ import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapFont;
 import com.jme3.material.Material;
 import com.jme3.material.MaterialDef;
-import com.jme3.util.IntMap;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.packer.TextureRegion;
@@ -82,6 +81,7 @@ public class FtBitmapFont extends BitmapFont {
         return charSet.getMaterial(page);
     }
 
+    @Override
     public int getPageSize() {
         return charSet.getPageSize();
     }

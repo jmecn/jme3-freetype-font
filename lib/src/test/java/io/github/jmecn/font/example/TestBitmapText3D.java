@@ -42,7 +42,6 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
-import io.github.jmecn.font.FtBitmapFont;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 
@@ -60,6 +59,8 @@ public class TestBitmapText3D extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        viewPort.setBackgroundColor(ColorRGBA.DarkGray);
+
         Quad q = new Quad(6, 3);
         Geometry g = new Geometry("quad", q);
         g.setLocalTranslation(0, -3, -0.0001f);

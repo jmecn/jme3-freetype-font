@@ -2,6 +2,8 @@ package io.github.jmecn.font.generator;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapCharacter;
+import com.jme3.font.BitmapFont;
+import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.texture.Image;
@@ -90,11 +92,11 @@ public class FtFontGenerator implements AutoCloseable {
         }
     }
 
-    public FtBitmapFont generateFont(FtFontParameter parameter) {
+    public BitmapFont generateFont(FtFontParameter parameter) {
         return generateFont(parameter, new FtBitmapCharacterSet());
     }
 
-    public FtBitmapFont generateFont(FtFontParameter parameter, FtBitmapCharacterSet data) {
+    public BitmapFont generateFont(FtFontParameter parameter, FtBitmapCharacterSet data) {
         boolean updateTextureRegions = data.regions == null && parameter.getPacker() != null;
         if (updateTextureRegions) {
             data.regions = new ArrayList<>();
@@ -105,8 +107,20 @@ public class FtFontGenerator implements AutoCloseable {
             parameter.getPacker().updateTextureRegions(data.regions, parameter.getMinFilter(), parameter.getMagFilter(), parameter.isGenMipMaps());
         }
         if (data.regions.isEmpty()) throw new FtRuntimeException("Unable to create a font with no texture regions.");
+
         FtBitmapFont font = newBitmapFont(data, data.regions, true);
         font.setOwnsTexture(parameter.getPacker() == null);
+
+        // create origin bitmap font
+//        int pageSize = data.getPageSize();
+//        Material[] pages = new Material[pageSize];
+//        for (int i = 0; i < pageSize; i++) {
+//            pages[i] = data.getMaterial(i);
+//        }
+//        BitmapFont font = new BitmapFont();
+//        font.setCharSet(data);
+//        font.setPages(pages);
+
         return font;
     }
 
