@@ -1,15 +1,17 @@
 package io.github.jmecn.font.app;
 
-import com.jme3.material.Materials;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.utils.DebugPrintUtils;
 import io.github.jmecn.font.utils.ImageUtils;
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.lwjgl.util.freetype.FreeType.*;
 
 /**
@@ -24,6 +26,11 @@ public class TestFtBitmapSdfFont {
             FtFace face = library.newFace("font/Noto_Serif_SC/NotoSerifSC-Regular.otf", 0);
             // face.setPixelSize(0, 16);
             face.setCharSize(0, FtLibrary.int26D6(16), 300, 300);
+
+            // set spread = 4
+            ByteBuffer spreadBuf = ByteBuffer.allocateDirect(4);
+            spreadBuf.asIntBuffer().put(FtLibrary.int16D16(4 << 8));
+            library.setProperty("sdf", "spread", spreadBuf);
 
             String text = "你好世界";
             List<Image> imageList = new ArrayList<>();

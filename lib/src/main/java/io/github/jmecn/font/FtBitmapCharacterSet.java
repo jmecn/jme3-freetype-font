@@ -176,10 +176,10 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
                     int otherIndex = face.getCharIndex(other.getChar());
 
                     long kerning = face.getKerning(glyphIndex, otherIndex, FT_KERNING_DEFAULT);
-                    if (kerning != 0) glyph.addKerning(other.getChar(), FtLibrary.from26D6ToInt(kerning));
+                    if (kerning != 0) glyph.addKerning(other.getChar(), FtLibrary.from26D6(kerning));
 
                     kerning = face.getKerning(otherIndex, glyphIndex, FT_KERNING_DEFAULT);
-                    if (kerning != 0) other.addKerning(ch, FtLibrary.from26D6ToInt(kerning));
+                    if (kerning != 0) other.addKerning(ch, FtLibrary.from26D6(kerning));
                 }
             }
         }

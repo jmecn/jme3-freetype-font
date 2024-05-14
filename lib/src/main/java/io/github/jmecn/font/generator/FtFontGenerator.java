@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.lwjgl.util.freetype.FreeType.FT_KERNING_DEFAULT;
+import static org.lwjgl.util.freetype.FreeType.*;
 
 /**
  * FreeType font generator
@@ -127,31 +127,33 @@ public class FtFontGenerator implements AutoCloseable {
         char[] characters = parameter.getCharacters().toCharArray();
         int charactersLength = characters.length;
         boolean incremental = parameter.isIncremental();
-        int flags = parameter.getHinting().getLoadFlags();
+        int flags = parameter.getLoadFlags();
 
         setPixelSizes(0, parameter.getSize());
 
         boolean ownsAtlas = false;
+        Packer packer;
         if (parameter.getPacker() == null) {
-            newPacker(parameter, data, charactersLength);
+            packer = newPacker(parameter, data, charactersLength);
             ownsAtlas = true;
+        } else {
+            packer = parameter.getPacker();
         }
-        Packer packer = parameter.getPacker();
 
         // set general font data
         FtSizeMetrics fontMetrics = face.getSize().getMetrics();
         data.setRenderedSize(parameter.getSize());
         data.setFlip(parameter.isFlip());
-        data.setAscent(FtLibrary.from26D6ToInt(fontMetrics.getAscender()));
-        data.setDescent(FtLibrary.from26D6ToInt(fontMetrics.getDescender()));
-        data.setLineHeight(FtLibrary.from26D6ToInt(fontMetrics.getHeight()));
+        data.setAscent(FtLibrary.from26D6(fontMetrics.getAscender()));
+        data.setDescent(FtLibrary.from26D6(fontMetrics.getDescender()));
+        data.setLineHeight(FtLibrary.from26D6(fontMetrics.getHeight()));
         float baseLine = data.getAscent();
 
         // if bitmapped
         if (bitmapped && (data.getLineHeight() == 0)) {
             for (int c = 32; c < (32 + face.getNumGlyphs()); c++) {
                 if (face.loadChar(c, flags)) {
-                    int lh = FtLibrary.from26D6ToInt(face.getGlyph().getMetrics().getHeight());
+                    int lh = FtLibrary.from26D6(face.getGlyph().getMetrics().getHeight());
                     if (lh > data.getLineHeight()) {
                         data.setLineHeight(lh);
                     }
@@ -162,7 +164,7 @@ public class FtFontGenerator implements AutoCloseable {
 
         // determine space width
         if (face.loadChar(' ', flags) || face.loadChar('l', flags)) {
-            data.spaceXadvance = FtLibrary.from26D6ToInt(face.getGlyph().getMetrics().getHoriAdvance());
+            data.spaceXadvance = FtLibrary.from26D6(face.getGlyph().getMetrics().getHoriAdvance());
         } else {
             data.spaceXadvance = face.getMaxAdvanceWidth(); // Possibly very wrong.
         }
@@ -170,7 +172,7 @@ public class FtFontGenerator implements AutoCloseable {
         // determine x-height
         for (char xChar : data.xChars) {
             if (face.loadChar(xChar, flags)) {
-                data.xHeight = FtLibrary.from26D6ToInt(face.getGlyph().getMetrics().getHeight());
+                data.xHeight = FtLibrary.from26D6(face.getGlyph().getMetrics().getHeight());
                 break;
             }
         }
@@ -179,7 +181,7 @@ public class FtFontGenerator implements AutoCloseable {
         // determine cap height
         for (char capChar : data.capChars) {
             if (face.loadChar(capChar, flags)) {
-                data.capHeight = FtLibrary.from26D6ToInt(face.getGlyph().getMetrics().getHeight()) + Math.abs(parameter.getShadowOffsetY());
+                data.capHeight = FtLibrary.from26D6(face.getGlyph().getMetrics().getHeight()) + Math.abs(parameter.getShadowOffsetY());
                 break;
             }
         }
@@ -206,7 +208,7 @@ public class FtFontGenerator implements AutoCloseable {
         for (int i = 0; i < charactersLength; i++) {
             char c = characters[i];
 
-            int height = face.loadChar(c, flags) ? FtLibrary.from26D6ToInt(face.getGlyph().getMetrics().getHeight()) : 0;
+            int height = face.loadChar(c, flags) ? FtLibrary.from26D6(face.getGlyph().getMetrics().getHeight()) : 0;
             heights[i] = height;
 
             if (c == '\0') {
@@ -287,7 +289,7 @@ public class FtFontGenerator implements AutoCloseable {
     }
 
     // Create a packer.
-    private void newPacker(FtFontParameter parameter, FtBitmapCharacterSet data, int charactersLength) {
+    private Packer newPacker(FtFontParameter parameter, FtBitmapCharacterSet data, int charactersLength) {
         int size;
         PackStrategy packStrategy;
         if (parameter.isIncremental()) {
@@ -309,7 +311,7 @@ public class FtFontGenerator implements AutoCloseable {
             packer.getTransparentColor().a = 0;
         }
 
-        parameter.setPacker(packer);
+        return packer;
     }
 
     public void generateKerning(FtFontParameter parameter, FtBitmapCharacterSet data, char[] characters, int charactersLength) {
@@ -326,33 +328,33 @@ public class FtFontGenerator implements AutoCloseable {
                     int secondIndex = face.getCharIndex(secondChar);
 
                     long kerning = face.getKerning(firstIndex, secondIndex, FT_KERNING_DEFAULT); // FT_KERNING_DEFAULT (scaled then rounded).
-                    if (kerning != 0) first.addKerning(secondChar, FtLibrary.from26D6ToInt(kerning));
+                    if (kerning != 0) first.addKerning(secondChar, FtLibrary.from26D6(kerning));
 
                     kerning = face.getKerning(secondIndex, firstIndex, FT_KERNING_DEFAULT); // FT_KERNING_DEFAULT (scaled then rounded).
-                    if (kerning != 0) second.addKerning(firstChar, FtLibrary.from26D6ToInt(kerning));
+                    if (kerning != 0) second.addKerning(firstChar, FtLibrary.from26D6(kerning));
                 }
             }
         }
     }
 
     /** @return null if glyph was not found. */
-    public Glyph createGlyph(char c,
-                             FtBitmapCharacterSet data,
-                             FtFontParameter parameter,
-                             FtStroker stroker,
-                             float baseLine,
-                             Packer packer) {
+    public Glyph createGlyph(char c, FtBitmapCharacterSet data, FtFontParameter parameter, FtStroker stroker,
+                             float baseLine, Packer packer) {
 
         boolean missing = face.getCharIndex(c) == 0 && c != 0;
-        if (missing) return null;
+        if (missing) {
+            return null;
+        }
 
-        if (!face.loadChar(c, parameter.getHinting().getLoadFlags())) return null;
+        if (!face.loadChar(c, parameter.getLoadFlags())) {
+            return null;
+        }
 
         FtGlyphSlot slot = face.getGlyph();
         FtGlyph main = slot.getGlyph();
         FtBitmapGlyph mainGlyph;
         try {
-            mainGlyph = main.toBitmap(parameter.isMono() ? FreeType.FT_RENDER_MODE_MONO : FreeType.FT_RENDER_MODE_NORMAL);
+            mainGlyph = main.toBitmap(parameter.getRenderMode());
         } catch (FtRuntimeException e) {
             main.close();
             logger.error("Couldn't render char: {}", c, e);
@@ -370,7 +372,7 @@ public class FtFontGenerator implements AutoCloseable {
                 long left = mainGlyph.getLeft();
                 FtGlyph border = slot.getGlyph();
                 border = border.strokeBorder(stroker, false, true);
-                FtBitmapGlyph borderGlyph = border.toBitmap(parameter.isMono() ? FreeType.FT_RENDER_MODE_MONO : FreeType.FT_RENDER_MODE_NORMAL);
+                FtBitmapGlyph borderGlyph = border.toBitmap(parameter.getRenderMode());
                 offsetX = left - borderGlyph.getLeft();
                 offsetY = -(top - borderGlyph.getTop());
 
@@ -454,7 +456,7 @@ public class FtFontGenerator implements AutoCloseable {
         else {
             glyph.setYOffset(-(glyph.getHeight() - mainGlyph.getTop()) - (int) baseLine);
         }
-        glyph.setXAdvance( FtLibrary.from26D6ToInt(metrics.getHoriAdvance()) + (int)parameter.getBorderWidth() + parameter.getSpaceX() );
+        glyph.setXAdvance( FtLibrary.from26D6(metrics.getHoriAdvance()) + (int)parameter.getBorderWidth() + parameter.getSpaceX() );
         glyph.setFixedWidth(face.isFixedWidth());
 
         if (bitmapped) {

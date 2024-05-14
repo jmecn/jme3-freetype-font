@@ -26,9 +26,9 @@ public class DebugPrintUtils {
         long vertBearingY = metrics.getVertBearingY();
         long vertAdvance = metrics.getVertAdvance();
         System.out.printf("FtGlyphMetrics[0x%X], width=%d, height=%d, horiBearingX=%d, horiBearingY=%d, horiAdvance=%d, vertBearingX=%d, vertBearingY=%d, vertAdvance=%d\n",
-                metrics.getAddress(), FtLibrary.from26D6ToInt(width), FtLibrary.from26D6ToInt(height),
-                FtLibrary.from26D6ToInt(horiBearingX), FtLibrary.from26D6ToInt(horiBearingY), FtLibrary.from26D6ToInt(horiAdvance),
-                FtLibrary.from26D6ToInt(vertBearingX), FtLibrary.from26D6ToInt(vertBearingY), FtLibrary.from26D6ToInt(vertAdvance));
+                metrics.getAddress(), FtLibrary.from26D6(width), FtLibrary.from26D6(height),
+                FtLibrary.from26D6(horiBearingX), FtLibrary.from26D6(horiBearingY), FtLibrary.from26D6(horiAdvance),
+                FtLibrary.from26D6(vertBearingX), FtLibrary.from26D6(vertBearingY), FtLibrary.from26D6(vertAdvance));
     }
 
     public static void printBitmapInfo(FtBitmap bitmap) {

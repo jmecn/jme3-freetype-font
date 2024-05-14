@@ -44,12 +44,31 @@ public class FtLibrary implements AutoCloseable {
         }
     }
 
+    /**
+     * convert int to 26.6 fixed-point
+     * @param x int
+     * @return 26.6 fixed-point value
+     */
     public static int int26D6(int x) {
         return x << 6;
     }
 
-    public static int from26D6ToInt(long value) {
-        return (int) (((value + 63) & -64) >> 6);
+    /**
+     * convert int to 16.16 fixed-point
+     * @param x int
+     * @return 16.16 fixed-point value
+     */
+    public static int int16D16(int x) {
+        return x << 16;
+    }
+
+
+    public static int from26D6(long value) {
+        return (int) (value >> 6);
+    }
+
+    public static int from16D16(long value) {
+        return (int) (value >> 16);
     }
 
     public String getVersion() {
@@ -137,5 +156,22 @@ public class FtLibrary implements AutoCloseable {
             ok(FT_Stroker_New(address, ptr));
             return new FtStroker(ptr.get(0));
         }
+    }
+
+    public void getProperty(String module, String name, ByteBuffer buffer) {
+        if (!buffer.isDirect()) {
+            throw new IllegalArgumentException("Only support DirectByteBuffer");
+        }
+        if (buffer.isReadOnly()) {
+            throw new IllegalArgumentException("Only support writable ByteBuffer");
+        }
+        ok(FT_Property_Get(address, module, name, buffer));
+    }
+
+    public void setProperty(String module, String name, ByteBuffer buffer) {
+        if (!buffer.isDirect()) {
+            throw new IllegalArgumentException("Only support DirectByteBuffer");
+        }
+        ok(FT_Property_Set(address, module, name, buffer));
     }
 }
