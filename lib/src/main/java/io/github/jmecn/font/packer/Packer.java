@@ -110,6 +110,7 @@ public class Packer implements AutoCloseable {
         }
 
         Page page = packStrategy.pack(this, name, rect);
+        rect.setPage(page.index);
         if (name != null) {
             page.put(name, rect);
         }
@@ -250,23 +251,6 @@ public class Packer implements AutoCloseable {
     @Override
     public void close() {
         // nothing to do
-    }
-
-    /** Calls {@link Page#updateTexture(Texture.MinFilter, Texture.MagFilter, boolean) updateTexture} for each page and adds a region to
-     * the specified array for each page texture. */
-    public synchronized void updateTextureRegions(List<TextureRegion> regions, Texture.MinFilter minFilter, Texture.MagFilter magFilter,
-                                                   boolean useMipMaps) {
-        updatePageTextures(minFilter, magFilter, useMipMaps);
-        while (regions.size() < pages.size()) {
-            regions.add(new TextureRegion(pages.get(regions.size()).image));
-        }
-    }
-
-    /** Calls {@link Page#updateTexture(Texture.MinFilter, Texture.MagFilter, boolean) updateTexture} for each page. */
-    public synchronized void updatePageTextures (Texture.MinFilter minFilter, Texture.MagFilter magFilter, boolean useMipMaps) {
-        for (Page page : pages) {
-            page.updateTexture(minFilter, magFilter, useMipMaps);
-        }
     }
 
     public boolean isPackToTexture() {

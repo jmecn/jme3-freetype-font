@@ -1,5 +1,13 @@
 package io.github.jmecn.font.utils;
 
+import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
+import com.jme3.texture.Image;
+import com.jme3.texture.Texture;
+import com.jme3.texture.image.ImageRaster;
+import com.jme3.util.IntMap;
+import io.github.jmecn.font.FtBitmapCharacterSet;
+import io.github.jmecn.font.Glyph;
 import io.github.jmecn.font.freetype.FtBitmap;
 import io.github.jmecn.font.freetype.FtGlyphMetrics;
 import io.github.jmecn.font.freetype.FtLibrary;
@@ -86,5 +94,31 @@ public class DebugPrintUtils {
             }
         }
         System.out.println(sb);
+    }
+
+    public static void drawGlyphRect(FtBitmapCharacterSet data) {
+        IntMap<ImageRaster> rasterMap = new IntMap<>();
+
+        for (Glyph glyph : data.getGlyphs()) {
+            ColorRGBA color = ColorRGBA.randomColor();
+
+            ImageRaster raster = rasterMap.get(glyph.getPage());
+            if (raster == null) {
+                Material material = data.getMaterial(glyph.getPage());
+                Texture texture = material.getTextureParam("ColorMap").getTextureValue();
+                Image image = texture.getImage();
+                raster = ImageRaster.create(image);
+                rasterMap.put(glyph.getPage(), raster);
+            }
+
+            // draw rect but not fill it
+            for (int y = 0; y < glyph.getHeight(); y++) {
+                for (int x = 0; x < glyph.getWidth(); x++) {
+                    if (x == 0 || x == glyph.getWidth() - 1 || y == 0 || y == glyph.getHeight() - 1) {
+                        raster.setPixel(glyph.getX() + x, glyph.getY() + y, color);
+                    }
+                }
+            }
+        }
     }
 }

@@ -11,9 +11,6 @@ public class Glyph extends BitmapCharacter {
 
     private boolean isFixedWidth;
 
-    float u, v;
-    float u2, v2;
-
     public Glyph() {
         super();
     }
@@ -33,11 +30,6 @@ public class Glyph extends BitmapCharacter {
     public String toString() {
         return "Glyph{" +
                 "char=" + getChar() +
-                ", isFixedWidth=" + isFixedWidth +
-                ", u=" + u +
-                ", v=" + v +
-                ", u2=" + u2 +
-                ", v2=" + v2 +
                 ", x=" + getX() +
                 ", y=" + getY() +
                 ", width=" + getWidth() +
@@ -46,6 +38,7 @@ public class Glyph extends BitmapCharacter {
                 ", YOffset=" + getYOffset() +
                 ", XAdvance=" + getXAdvance() +
                 ", page=" + getPage() +
+                ", isFixedWidth=" + isFixedWidth +
                 '}';
     }
 }

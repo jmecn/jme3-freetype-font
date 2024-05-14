@@ -43,19 +43,6 @@ public class FtBitmapFont extends BitmapFont {
 
         // init super
         super.setCharSet(charSet);
-        // load(charSet);
-    }
-
-    protected void load (FtBitmapCharacterSet data) {
-        for (Glyph glyph : data.getGlyphs()) {
-            if (glyph != null) {
-                data.setGlyphRegion(glyph, regions.get(glyph.getPage()));
-            }
-        }
-
-        if (data.missingGlyph != null) {
-            data.setGlyphRegion(data.missingGlyph, regions.get(data.missingGlyph.getPage()));
-        }
     }
 
     /** @return whether the texture is owned by the font, font disposes the texture itself if true */

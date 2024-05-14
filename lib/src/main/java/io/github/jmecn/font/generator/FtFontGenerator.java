@@ -38,9 +38,7 @@ public class FtFontGenerator implements AutoCloseable {
     static Logger logger = LoggerFactory.getLogger(FtFontGenerator.class);
 
     public static final int MAX_SIZE = 1024;
-    public static final int MIN_SIZE = 256;
-
-    private AssetManager assetManager;
+    public static final int MIN_SIZE = 64;
 
     FtLibrary library;
     FtFace face;
@@ -92,21 +90,15 @@ public class FtFontGenerator implements AutoCloseable {
         }
     }
 
-    public BitmapFont generateFont(FtFontParameter parameter) {
+    public FtBitmapFont generateFont(FtFontParameter parameter) {
         return generateFont(parameter, new FtBitmapCharacterSet());
     }
 
-    public BitmapFont generateFont(FtFontParameter parameter, FtBitmapCharacterSet data) {
-        boolean updateTextureRegions = data.regions == null && parameter.getPacker() != null;
-        if (updateTextureRegions) {
-            data.regions = new ArrayList<>();
-        }
-
+    public FtBitmapFont generateFont(FtFontParameter parameter, FtBitmapCharacterSet data) {
         generateData(parameter, data);
-        if (updateTextureRegions) {
-            parameter.getPacker().updateTextureRegions(data.regions, parameter.getMinFilter(), parameter.getMagFilter(), parameter.isGenMipMaps());
+        if (data.getPageSize() == 0) {
+            throw new FtRuntimeException("Unable to create a font with no images.");
         }
-        if (data.regions.isEmpty()) throw new FtRuntimeException("Unable to create a font with no texture regions.");
 
         FtBitmapFont font = newBitmapFont(data, data.regions, true);
         font.setOwnsTexture(parameter.getPacker() == null);
@@ -155,6 +147,7 @@ public class FtFontGenerator implements AutoCloseable {
         data.setDescent(FtLibrary.from26D6(fontMetrics.getDescender()));
         data.setLineHeight(FtLibrary.from26D6(fontMetrics.getHeight()));
         float baseLine = data.getAscent();
+        data.setBase((int) baseLine);
 
         boolean ownsAtlas = false;
         Packer packer;
@@ -238,9 +231,7 @@ public class FtFontGenerator implements AutoCloseable {
                 if (missingGlyph != null && missingGlyph.getWidth() != 0 && missingGlyph.getHeight() != 0) {
                     data.addCharacter('\0', missingGlyph);
                     data.missingGlyph = missingGlyph;
-                    if (incremental) {
-                        data.getGlyphs().add(missingGlyph);
-                    }
+                    data.getGlyphs().add(missingGlyph);
                 }
             }
         }
@@ -261,9 +252,7 @@ public class FtFontGenerator implements AutoCloseable {
                 Glyph glyph = createGlyph(c, data, parameter, stroker, baseLine, packer);
                 if (glyph != null) {
                     data.addCharacter(c, glyph);
-                    if (incremental) {
-                        data.getGlyphs().add(glyph);
-                    }
+                    data.getGlyphs().add(glyph);
                 }
             }
 
@@ -288,12 +277,6 @@ public class FtFontGenerator implements AutoCloseable {
         // Generate kerning.
         parameter.setKerning(parameter.isKerning() & face.hasKerning());
         generateKerning(parameter, data, characters, charactersLength);
-
-        // Generate texture regions.
-        if (ownsAtlas) {
-            data.regions = new ArrayList<>();
-            packer.updateTextureRegions(data.regions, parameter.getMinFilter(), parameter.getMagFilter(), parameter.isGenMipMaps());
-        }
 
         // Set space glyph.
         Glyph spaceGlyph = data.getCharacter(' ');
@@ -498,11 +481,6 @@ public class FtFontGenerator implements AutoCloseable {
         glyph.setPage(packer.getPageIndex(pixmapName));
         glyph.setX(rect.getX());
         glyph.setY(rect.getY());
-
-        // If a page was added, create a new texture region for the incrementally added glyph.
-        if (parameter.isIncremental() && data.regions != null && data.regions.size() <= glyph.getPage()) {
-            packer.updateTextureRegions(data.regions, parameter.getMinFilter(), parameter.getMagFilter(), parameter.isGenMipMaps());
-        }
 
         mainImage.dispose();
         mainGlyph.close();

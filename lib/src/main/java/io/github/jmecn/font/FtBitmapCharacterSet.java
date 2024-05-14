@@ -14,6 +14,8 @@ import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.generator.GlyphRun;
 import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.TextureRegion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,8 @@ import static org.lwjgl.util.freetype.FreeType.FT_KERNING_DEFAULT;
  * @author yanmaoyuan
  */
 public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoCloseable {
+
+    static Logger logger = LoggerFactory.getLogger(FtBitmapCharacterSet.class);
 
     /** The name of the font, or null. */
     public String name;
@@ -94,28 +98,6 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         glyphs = new ArrayList<>(128);// all ascii chars
     }
 
-    public void setGlyphRegion(Glyph glyph, TextureRegion region) {
-        Image texture = region.getImage();
-        float invTexWidth = 1.0f / texture.getWidth();
-        float invTexHeight = 1.0f / texture.getHeight();
-
-        int x = glyph.getX();
-        int x2 = glyph.getX() + glyph.getWidth();
-        int y = glyph.getY();
-        int y2 = glyph.getY() + glyph.getHeight();
-
-        // FIXME don't need to calculate it here.
-        glyph.u = x * invTexWidth;
-        glyph.u2 = x2 * invTexWidth;
-        if (flip) {
-            glyph.v = y * invTexHeight;
-            glyph.v2 = y2 * invTexHeight;
-        } else {
-            glyph.v2 = y * invTexHeight;
-            glyph.v = y2 * invTexHeight;
-        }
-    }
-
     public void addCharacter(int ch, Glyph glyph) {
         getCharacterSet(0).put(ch, glyph);
     }
@@ -173,7 +155,6 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
                 return missingGlyph;
             }
 
-            setGlyphRegion(glyph, regions.get(glyph.getPage()));
             charset.put(ch, glyph);
             glyphs.add(glyph);
             dirty = true;
@@ -244,7 +225,7 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         internalGetGlyphs(run, str, start, end, lastGlyph);
         if (dirty) {
             dirty = false;
-            packer.updateTextureRegions(regions, parameter.getMinFilter(), parameter.getMagFilter(), parameter.isGenMipMaps());
+            logger.info("new glyphs are added");
         }
     }
 

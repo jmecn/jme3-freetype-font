@@ -42,8 +42,11 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
+import com.jme3.texture.Texture;
+import io.github.jmecn.font.FtBitmapFont;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
+import io.github.jmecn.font.utils.DebugPrintUtils;
 
 import java.io.File;
 
@@ -73,8 +76,11 @@ public class TestBitmapText3D extends SimpleApplication {
         parameter.setSize(24);
         parameter.setMatDef(matDef);
         parameter.setIncremental(true);
+        parameter.setMagFilter(Texture.MagFilter.Nearest);
 
-        BitmapFont fnt = generator.generateFont(parameter);
+        FtBitmapFont fnt = generator.generateFont(parameter);
+
+        DebugPrintUtils.drawGlyphRect(fnt.getCharSet());
 
         // BitmapFont fnt = assetManager.loadFont("Interface/Fonts/Default.fnt");
         BitmapText txt = new BitmapText(fnt, false);

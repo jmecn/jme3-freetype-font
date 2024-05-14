@@ -42,6 +42,7 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.event.*;
 import io.github.jmecn.font.FtBitmapFont;
+import io.github.jmecn.font.utils.DebugPrintUtils;
 
 import java.io.File;
 
@@ -64,6 +65,8 @@ public class TestBitmapFont extends SimpleApplication {
         inputManager.addRawInputListener(textListener);
 
         FtBitmapFont fnt = new FtBitmapFont(assetManager, new File("font/Noto_Serif_SC/NotoSerifSC-Regular.otf"), 16);
+        DebugPrintUtils.drawGlyphRect(fnt.getCharSet());
+
         txt = new BitmapText(fnt);
         txt.setBox(new Rectangle(0, 0, settings.getWidth(), settings.getHeight()));
         txt.setSize(fnt.getPreferredSize() * 2f);
