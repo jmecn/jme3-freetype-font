@@ -1,5 +1,6 @@
 package io.github.jmecn.font.generator;
 
+import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapCharacter;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -10,10 +11,8 @@ import io.github.jmecn.font.FtBitmapFont;
 import io.github.jmecn.font.Glyph;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.exception.FtRuntimeException;
-import io.github.jmecn.font.packer.Packer;
-import io.github.jmecn.font.packer.PackStrategy;
-import io.github.jmecn.font.packer.Rectangle;
-import io.github.jmecn.font.packer.TextureRegion;
+import io.github.jmecn.font.packer.*;
+import io.github.jmecn.font.packer.listener.DefaultPageListener;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 import io.github.jmecn.font.utils.ImageUtils;
@@ -37,6 +36,9 @@ public class FtFontGenerator implements AutoCloseable {
     static Logger logger = LoggerFactory.getLogger(FtFontGenerator.class);
 
     public static final int MAX_SIZE = 1024;
+    public static final int MIN_SIZE = 256;
+
+    private AssetManager assetManager;
 
     FtLibrary library;
     FtFace face;
@@ -131,15 +133,6 @@ public class FtFontGenerator implements AutoCloseable {
 
         setPixelSizes(0, parameter.getSize());
 
-        boolean ownsAtlas = false;
-        Packer packer;
-        if (parameter.getPacker() == null) {
-            packer = newPacker(parameter, data, charactersLength);
-            ownsAtlas = true;
-        } else {
-            packer = parameter.getPacker();
-        }
-
         // set general font data
         FtSizeMetrics fontMetrics = face.getSize().getMetrics();
         data.setRenderedSize(parameter.getSize());
@@ -148,6 +141,21 @@ public class FtFontGenerator implements AutoCloseable {
         data.setDescent(FtLibrary.from26D6(fontMetrics.getDescender()));
         data.setLineHeight(FtLibrary.from26D6(fontMetrics.getHeight()));
         float baseLine = data.getAscent();
+
+        boolean ownsAtlas = false;
+        Packer packer;
+        if (parameter.getPacker() == null) {
+            packer = newPacker(parameter, data, charactersLength);
+            ownsAtlas = true;
+        } else {
+            packer = parameter.getPacker();
+        }
+        data.setWidth(packer.getPageWidth());
+        data.setHeight(packer.getPageHeight());
+
+        // add listener, create Material when new page is added
+        packer.addListener(new DefaultPageListener(parameter, data));
+
 
         // if bitmapped
         if (bitmapped && (data.getLineHeight() == 0)) {
@@ -299,7 +307,7 @@ public class FtFontGenerator implements AutoCloseable {
             int maxGlyphHeight = data.getLineHeight();
             size = FastMath.nearestPowerOfTwo((int)Math.sqrt(maxGlyphHeight * maxGlyphHeight * (double) charactersLength));
             if (MAX_SIZE > 0) {
-                size = Math.min(size, MAX_SIZE);
+                size = (int) FastMath.clamp(size, MIN_SIZE, MAX_SIZE);
             }
             packStrategy = new SkylineStrategy();
         }
@@ -487,4 +495,5 @@ public class FtFontGenerator implements AutoCloseable {
 
         return glyph;
     }
+
 }

@@ -7,7 +7,6 @@ import com.jme3.texture.image.ImageRaster;
 import com.jme3.util.BufferUtils;
 import io.github.jmecn.font.freetype.FtBitmap;
 
-import java.awt.*;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 

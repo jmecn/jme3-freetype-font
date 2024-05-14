@@ -1,7 +1,9 @@
 package io.github.jmecn.font;
 
+import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapCharacter;
 import com.jme3.font.BitmapCharacterSet;
+import com.jme3.material.Material;
 import com.jme3.texture.Image;
 import com.jme3.util.IntMap;
 import io.github.jmecn.font.freetype.FtFace;
@@ -27,6 +29,9 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
 
     /** The name of the font, or null. */
     public String name;
+
+    // hold the materials
+    private final IntMap<Material> materials;
 
     public boolean flip;
     public float padTop;
@@ -85,6 +90,7 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
     public FtBitmapCharacterSet() {
         regions = new ArrayList<>();
         characters = new IntMap<>();
+        materials = new IntMap<>();
         glyphs = new ArrayList<>(128);// all ascii chars
     }
 
@@ -161,7 +167,9 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
             generator.setPixelSizes(0, parameter.getSize());
             float baseline = ((flip ? -ascent : ascent) + capHeight) / scaleY;
             glyph = generator.createGlyph(ch, this, parameter, stroker, baseline, packer);
-            if (glyph == null) return missingGlyph;
+            if (glyph == null) {
+                return missingGlyph;
+            }
 
             setGlyphRegion(glyph, regions.get(glyph.getPage()));
             charset.put(ch, glyph);
@@ -485,4 +493,15 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         if (packer != null) packer.close();
     }
 
+    public void addMaterial(int page, Material material) {
+        materials.put(page, material);
+    }
+
+    public Material getMaterial(int page) {
+        return materials.get(page);
+    }
+
+    public int getPageSize() {
+        return materials.size();
+    }
 }

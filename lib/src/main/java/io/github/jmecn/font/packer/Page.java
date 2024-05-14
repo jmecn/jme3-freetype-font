@@ -89,6 +89,10 @@ public class Page {
         // TODO
     }
 
+    public int getIndex() {
+        return index;
+    }
+
     public Image getImage() {
         return image;
     }

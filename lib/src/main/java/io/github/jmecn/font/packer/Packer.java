@@ -3,7 +3,10 @@ package io.github.jmecn.font.packer;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
+import io.github.jmecn.font.packer.listener.PageListener;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +17,9 @@ import java.util.List;
  * @author yanmaoyuan
  */
 public class Packer implements AutoCloseable {
+
+    static Logger logger = LoggerFactory.getLogger(Packer.class);
+
     boolean packToTexture;
     int pageWidth;
     int pageHeight;
@@ -26,6 +32,8 @@ public class Packer implements AutoCloseable {
     private final List<Page> pages;
     Image.Format format;
     PackStrategy packStrategy;
+
+    private List<PageListener> listeners;
 
     public Packer(Image.Format format, int pageWidth, int pageHeight, int padding, boolean duplicateBorder) {
         // use SkylineStrategy by default
@@ -40,6 +48,31 @@ public class Packer implements AutoCloseable {
         this.duplicateBorder = duplicateBorder;
         this.pages = new ArrayList<>();
         this.packStrategy = packStrategy;
+        this.listeners = new ArrayList<>();
+    }
+
+    private boolean existsListener(PageListener listener) {
+        return listeners.contains(listener);
+    }
+
+    public void addListener(PageListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener cannot be null");
+        }
+
+        if (!existsListener(listener)) {
+            listeners.add(listener);
+        }
+    }
+
+    public void removeListener(PageListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener cannot be null");
+        }
+
+        if (existsListener(listener)) {
+            listeners.remove(listener);
+        }
     }
 
     public void sort(List<Rectangle> images) {
@@ -68,6 +101,7 @@ public class Packer implements AutoCloseable {
         Rectangle rect = new Rectangle(0, 0, image.getWidth(), image.getHeight());
 
         if (rect.getWidth() > pageWidth || rect.getHeight() > pageHeight) {
+            logger.info("Image dose not fit, page size:{}, {}, rect size:{}, {}", pageWidth, pageHeight, rect.getWidth(), rect.getHeight());
             if (name == null)  {
                 throw new IllegalArgumentException("Page size too small for page.");
             } else {
@@ -119,6 +153,11 @@ public class Packer implements AutoCloseable {
     public void addPage(Page page) {
         page.index = pages.size();
         pages.add(page);
+
+        // notify listeners
+        for (PageListener listener : listeners) {
+            listener.onPageAdded(this, packStrategy, page);
+        }
     }
 
     /**

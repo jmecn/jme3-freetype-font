@@ -1,10 +1,16 @@
 package io.github.jmecn.font;
 
+import com.jme3.asset.AssetKey;
+import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapFont;
 import com.jme3.material.Material;
+import com.jme3.material.MaterialDef;
 import com.jme3.util.IntMap;
+import io.github.jmecn.font.generator.FtFontGenerator;
+import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.packer.TextureRegion;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -18,11 +24,17 @@ public class FtBitmapFont extends BitmapFont {
     private boolean integer;
     private boolean ownsTexture;
 
-    private IntMap<Material> materials;
+    public FtBitmapFont(AssetManager assetManager, File file, int size) {
+        MaterialDef matDef = assetManager.loadAsset(new AssetKey<>("Common/MatDefs/Misc/Unshaded.j3md"));
+        FtFontGenerator generator = new FtFontGenerator(file);
+        FtFontParameter parameter = new FtFontParameter();
+        parameter.setSize(size);
+        parameter.setMatDef(matDef);
+        this.charSet = generator.generateData(parameter);
+        super.setCharSet(charSet);
+    }
 
     public FtBitmapFont(FtBitmapCharacterSet charSet, List<TextureRegion> pageRegions, boolean integer) {
-        materials = new IntMap<>();
-
         this.flipped = charSet.flip;
         this.charSet = charSet;
         this.integer = integer;
@@ -32,7 +44,7 @@ public class FtBitmapFont extends BitmapFont {
 
         // init super
         super.setCharSet(charSet);
-        load(charSet);
+        // load(charSet);
     }
 
     protected void load (FtBitmapCharacterSet data) {
@@ -67,8 +79,10 @@ public class FtBitmapFont extends BitmapFont {
 
     @Override
     public Material getPage(int page) {
-        // FIXME get exists material, or create new material
-        return materials.get(page);
+        return charSet.getMaterial(page);
     }
 
+    public int getPageSize() {
+        return charSet.getPageSize();
+    }
 }

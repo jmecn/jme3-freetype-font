@@ -1,5 +1,6 @@
 package io.github.jmecn.font.generator;
 
+import com.jme3.material.MaterialDef;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Texture;
 import io.github.jmecn.font.FtBitmapCharacterSet;
@@ -58,9 +59,15 @@ public class FtFontParameter {
     /** Whether to generate mip maps for the resulting texture */
     private boolean genMipMaps = false;
     /** Minification filter */
-    private Texture.MinFilter minFilter = Texture.MinFilter.NearestNoMipMaps;
+    private Texture.MinFilter minFilter = Texture.MinFilter.BilinearNoMipMaps;
     /** Magnification filter */
     private Texture.MagFilter magFilter = Texture.MagFilter.Bilinear;
+
+    /**
+     * Material definition to use for the font.
+     */
+    private MaterialDef matDef;
+
     /** When true, glyphs are rendered on the fly to the font's glyph page textures as they are needed. The
      * FreeTypeFontGenerator must not be disposed until the font is no longer needed. The FreeTypeBitmapFontData must be
      * disposed (separately from the generator) when the font is no longer needed. The FreeTypeFontParameter should not be
@@ -310,6 +317,14 @@ public class FtFontParameter {
 
     public void setMagFilter(Texture.MagFilter magFilter) {
         this.magFilter = magFilter;
+    }
+
+    public MaterialDef getMatDef() {
+        return matDef;
+    }
+
+    public void setMatDef(MaterialDef matDef) {
+        this.matDef = matDef;
     }
 
     public boolean isIncremental() {

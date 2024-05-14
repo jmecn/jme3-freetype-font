@@ -49,7 +49,7 @@ public class TestDisplay extends SimpleApplication {
             Texture2D texture2D = new Texture2D();
             texture2D.setImage(images[i]);
             texture2D.setMagFilter(Texture.MagFilter.Bilinear);
-            texture2D.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
+            texture2D.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
 
             Geometry geom = new Geometry("image#" + i, new Quad(size, size, true));
             Material material = new Material(assetManager, this.material);
