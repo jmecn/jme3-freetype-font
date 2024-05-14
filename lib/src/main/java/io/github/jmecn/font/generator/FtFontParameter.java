@@ -43,7 +43,7 @@ public class FtFontParameter {
     public int padLeft;
     public int padBottom;
     public int padRight;
-    /** The characters the font should contain. If '\0' is not included then {@link BitmapFontData#missingGlyph} is not set. */
+    /** The characters the font should contain. If '\0' is not included then {@link FtBitmapCharacterSet#missingGlyph} is not set. */
     public String characters = DEFAULT_CHARS;
     /** Whether the font should include kerning */
     public boolean kerning = true;

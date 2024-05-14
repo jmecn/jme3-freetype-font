@@ -1,28 +1,21 @@
-package io.github.jmecn.font.generator;
+package io.github.jmecn.font.loader;
 
 import com.jme3.font.BitmapCharacter;
-import com.jme3.texture.Image;
 import io.github.jmecn.font.exception.FtRuntimeException;
-import io.github.jmecn.font.freetype.FtFace;
-import io.github.jmecn.font.freetype.FtLibrary;
-import io.github.jmecn.font.freetype.FtStroker;
-import io.github.jmecn.font.packer.Packer;
+import io.github.jmecn.font.generator.Glyph;
+import io.github.jmecn.font.generator.GlyphRun;
 import io.github.jmecn.font.packer.TextureRegion;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.lwjgl.util.freetype.FreeType.FT_KERNING_DEFAULT;
-
 /**
  * desc:
  *
  * @author yanmaoyuan
- * @date 2024/5/12
  */
-public class FtBitmapFontData implements AutoCloseable {
-
+public class BitmapFontData {
     private static final int LOG2_PAGE_SIZE = 9;
     private static final int PAGE_SIZE = 1 << LOG2_PAGE_SIZE;
     private static final int PAGES = 0x10000 / PAGE_SIZE;
@@ -54,7 +47,7 @@ public class FtBitmapFontData implements AutoCloseable {
      * file, it needs to be set manually depending on how the glyphs are rendered on the backing textures. */
     public float cursorX;
 
-    public final Glyph[][] glyphsArray = new Glyph[PAGES][];
+    public final Glyph[][] glyphs = new Glyph[PAGES][];
     /** The glyph to display for characters not in the font. May be null. */
     public Glyph missingGlyph;
 
@@ -69,87 +62,7 @@ public class FtBitmapFontData implements AutoCloseable {
     public char[] capChars = {'M', 'N', 'B', 'D', 'C', 'E', 'F', 'K', 'A', 'G', 'H', 'I', 'J', 'L', 'O', 'P', 'Q', 'R', 'S',
             'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 
-    ///////////////
-
-
-    public List<TextureRegion> regions;
-
-    // Fields for incremental glyph generation.
-    FtFontGenerator generator;
-    FtFontParameter parameter;
-    FtStroker stroker;
-    Packer packer;
-    List<Glyph> glyphs;
-    private boolean dirty;
-
-    public FtBitmapFontData() {
-        regions = new ArrayList<>();
-    }
-
-    public void setGlyphRegion (Glyph glyph, TextureRegion region) {
-        Image texture = region.getImage();
-        float invTexWidth = 1.0f / texture.getWidth();
-        float invTexHeight = 1.0f / texture.getHeight();
-
-        int offsetX = 0;
-        int offsetY = 0;
-        float u = region.u;
-        float v = region.v;
-        int regionWidth = region.getRegionWidth();
-        int regionHeight = region.getRegionHeight();
-//        if (region instanceof AtlasRegion) {
-//            // Compensate for whitespace stripped from left and top edges.
-//            AtlasRegion atlasRegion = (AtlasRegion)region;
-//            offsetX = atlasRegion.offsetX;
-//            offsetY = atlasRegion.originalHeight - atlasRegion.packedHeight - atlasRegion.offsetY;
-//        }
-
-        int x = glyph.getX();
-        int x2 = glyph.getX() + glyph.getWidth();
-        int y = glyph.getY();
-        int y2 = glyph.getY() + glyph.getHeight();
-
-        // Shift glyph for left and top edge stripped whitespace. Clip glyph for right and bottom edge stripped whitespace.
-        // Note if the font region has padding, whitespace stripping must not be used.
-        if (offsetX > 0) {
-            x -= offsetX;
-            if (x < 0) {
-                glyph.setWidth(glyph.getWidth() + x);
-                glyph.setXOffset(glyph.getXOffset() - x);
-                x = 0;
-            }
-            x2 -= offsetX;
-            if (x2 > regionWidth) {
-                glyph.setWidth( glyph.getWidth() -(x2 - regionWidth) );
-                x2 = regionWidth;
-            }
-        }
-        if (offsetY > 0) {
-            y -= offsetY;
-            if (y < 0) {
-                glyph.setHeight(glyph.getHeight() + y);
-                if (glyph.getHeight() < 0) glyph.setHeight(0);
-                y = 0;
-            }
-            y2 -= offsetY;
-            if (y2 > regionHeight) {
-                int amount = y2 - regionHeight;
-                glyph.setHeight(glyph.getHeight() - amount);
-                glyph.setYOffset(glyph.getYOffset() + amount);
-                y2 = regionHeight;
-            }
-        }
-
-        // FIXME don't need to calculate it here.
-        glyph.u = u + x * invTexWidth;
-        glyph.u2 = u + x2 * invTexWidth;
-        if (flipped) {
-            glyph.v = v + y * invTexHeight;
-            glyph.v2 = v + y2 * invTexHeight;
-        } else {
-            glyph.v2 = v + y * invTexHeight;
-            glyph.v = v + y2 * invTexHeight;
-        }
+    public BitmapFontData () {
     }
 
     /** Sets the line height, which is the distance from one line of text to the next. */
@@ -159,13 +72,13 @@ public class FtBitmapFontData implements AutoCloseable {
     }
 
     public void setGlyph (int ch, Glyph glyph) {
-        Glyph[] page = glyphsArray[ch / PAGE_SIZE];
-        if (page == null) glyphsArray[ch / PAGE_SIZE] = page = new Glyph[PAGE_SIZE];
+        Glyph[] page = glyphs[ch / PAGE_SIZE];
+        if (page == null) glyphs[ch / PAGE_SIZE] = page = new Glyph[PAGE_SIZE];
         page[ch & PAGE_SIZE - 1] = glyph;
     }
 
     public Glyph getFirstGlyph () {
-        for (Glyph[] page : this.glyphsArray) {
+        for (Glyph[] page : this.glyphs) {
             if (page == null) continue;
             for (Glyph glyph : page) {
                 if (glyph == null || glyph.getHeight() == 0 || glyph.getWidth() == 0) continue;
@@ -181,44 +94,13 @@ public class FtBitmapFontData implements AutoCloseable {
         return getGlyph(ch) != null;
     }
 
-    private Glyph internalGetGlyph (char ch) {
-        Glyph[] page = glyphsArray[ch / PAGE_SIZE];
-        if (page != null) return page[ch & PAGE_SIZE - 1];
-        return null;
-    }
-
     /** Returns the glyph for the specified character, or null if no such glyph exists. Note that
      * {@link #getGlyphs(GlyphRun, CharSequence, int, int, Glyph)} should be be used to shape a string of characters into a list
      * of glyphs. */
-    public Glyph getGlyph(char ch) {
-        Glyph glyph = internalGetGlyph(ch);
-        if (glyph == null && generator != null) {
-            generator.setPixelSizes(0, parameter.size);
-            float baseline = ((flipped ? -ascent : ascent) + capHeight) / scaleY;
-            glyph = generator.createGlyph(ch, this, parameter, stroker, baseline, packer);
-            if (glyph == null) return missingGlyph;
-
-            setGlyphRegion(glyph, regions.get(glyph.getPage()));
-            setGlyph(ch, glyph);
-            glyphs.add(glyph);
-            dirty = true;
-
-            FtFace face = generator.face;
-            if (parameter.kerning) {
-                int glyphIndex = face.getCharIndex(ch);
-                for (int i = 0, n = glyphs.size(); i < n; i++) {
-                    BitmapCharacter other = glyphs.get(i);
-                    int otherIndex = face.getCharIndex(other.getChar());
-
-                    long kerning = face.getKerning(glyphIndex, otherIndex, FT_KERNING_DEFAULT);
-                    if (kerning != 0) glyph.addKerning(other.getChar(), FtLibrary.from26D6ToInt(kerning));
-
-                    kerning = face.getKerning(otherIndex, glyphIndex, FT_KERNING_DEFAULT);
-                    if (kerning != 0) other.addKerning(ch, FtLibrary.from26D6ToInt(kerning));
-                }
-            }
-        }
-        return glyph;
+    public Glyph getGlyph (char ch) {
+        Glyph[] page = glyphs[ch / PAGE_SIZE];
+        if (page != null) return page[ch & PAGE_SIZE - 1];
+        return null;
     }
 
     /** Using the specified string, populates the glyphs and positions of the specified glyph run.
@@ -226,7 +108,7 @@ public class FtBitmapFontData implements AutoCloseable {
      *           square bracket.
      * @param lastGlyph The glyph immediately before this run, or null if this is run is the first on a line of text. Used tp
      *           apply kerning between the specified glyph and the first glyph in this run. */
-    public void internalGetGlyphs(GlyphRun run, CharSequence str, int start, int end, Glyph lastGlyph) {
+    public void getGlyphs (GlyphRun run, CharSequence str, int start, int end, Glyph lastGlyph) {
         int max = end - start;
         if (max == 0) return;
         boolean markupEnabled = this.markupEnabled;
@@ -260,20 +142,6 @@ public class FtBitmapFontData implements AutoCloseable {
                     : (lastGlyph.getWidth() + lastGlyph.getXOffset()) * scaleX - padRight;
             xAdvances.add(lastGlyphWidth);
         }
-    }
-
-    public void getGlyphs (GlyphRun run, CharSequence str, int start, int end, Glyph lastGlyph) {
-        if (packer != null) packer.setPackToTexture(true); // All glyphs added after this are packed directly to the texture.
-        internalGetGlyphs(run, str, start, end, lastGlyph);
-        if (dirty) {
-            dirty = false;
-            packer.updateTextureRegions(regions, parameter.minFilter, parameter.magFilter, parameter.genMipMaps);
-        }
-    }
-
-    public List<Glyph> getGlyphs() {
-        // FIXME remove this method after change the implementation of FtBitmapFontData to BitmapCharacterSet
-        return glyphs;
     }
 
     /** Returns the first valid glyph index to use to wrap to the next line, starting at the specified start index and
@@ -364,11 +232,5 @@ public class FtBitmapFontData implements AutoCloseable {
 
     public String toString () {
         return name != null ? name : super.toString();
-    }
-
-    @Override
-    public void close() {
-        if (stroker != null) stroker.close();
-        if (packer != null) packer.close();
     }
 }

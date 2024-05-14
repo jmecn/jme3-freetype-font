@@ -1,7 +1,7 @@
 package io.github.jmecn.font.app;
 
 import com.jme3.texture.Image;
-import io.github.jmecn.font.generator.FtBitmapFontData;
+import io.github.jmecn.font.generator.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.packer.Packer;
@@ -129,20 +129,20 @@ public class TestGenerateImage {
         try (FtFontGenerator generator = new FtFontGenerator(new File(FONT), 0)) {
 
             // use predefined packer
-            Packer packer = new Packer(Image.Format.RGBA8, 512, 512, 1, false, new SkylineStrategy());
+            Packer packer = new Packer(Image.Format.RGBA8, 256, 256, 1, false, new SkylineStrategy());
 
             FtFontParameter parameter = new FtFontParameter();
             parameter.packer = packer;
-            parameter.size = 16;
+            parameter.size = 32;
             parameter.characters = FtFontParameter.DEFAULT_CHARS + XIN;
             parameter.incremental = true;
 
-            FtBitmapFontData data = generator.generateData(parameter);
+            FtBitmapCharacterSet data = generator.generateData(parameter);
 
             // add incremental font
             char[] chars = DASHIZHI.toCharArray();
             for (char ch : chars) {
-                data.getGlyph(ch);
+                data.getCharacter(ch);
             }
 
             // show image

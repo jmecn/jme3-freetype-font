@@ -1,6 +1,6 @@
 package io.github.jmecn.font;
 
-import io.github.jmecn.font.generator.FtBitmapFontData;
+import io.github.jmecn.font.generator.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.generator.Glyph;
@@ -31,10 +31,10 @@ public class TestGenerator {
         try (FtFontGenerator generator = new FtFontGenerator(new File(FONT), 0)) {
             FtFontParameter parameter = new FtFontParameter();
             parameter.incremental = true;
-            FtBitmapFontData data = generator.generateData(parameter);
+            FtBitmapCharacterSet data = generator.generateData(parameter);
             String str = "你好世界!";
             for( int i = 0; i < str.length(); i++) {
-                Glyph glyph = data.getGlyph(str.charAt(i));
+                Glyph glyph = data.getCharacter(str.charAt(i));
                 logger.info("glyph:{}", glyph);
             }
         }

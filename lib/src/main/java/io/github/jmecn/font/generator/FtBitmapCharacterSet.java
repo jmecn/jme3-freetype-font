@@ -1,33 +1,37 @@
 package io.github.jmecn.font.generator;
 
 import com.jme3.font.BitmapCharacter;
+import com.jme3.font.BitmapCharacterSet;
 import com.jme3.texture.Image;
-import io.github.jmecn.font.exception.FtRuntimeException;
+import com.jme3.util.IntMap;
+import io.github.jmecn.font.freetype.FtFace;
+import io.github.jmecn.font.freetype.FtLibrary;
+import io.github.jmecn.font.freetype.FtStroker;
+import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.TextureRegion;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.lwjgl.util.freetype.FreeType.FT_KERNING_DEFAULT;
 
 /**
  * desc:
  *
  * @author yanmaoyuan
  */
-public class BitmapFontData {
-    private static final int LOG2_PAGE_SIZE = 9;
-    private static final int PAGE_SIZE = 1 << LOG2_PAGE_SIZE;
-    private static final int PAGES = 0x10000 / PAGE_SIZE;
+public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoCloseable {
 
     /** The name of the font, or null. */
     public String name;
-    /** An array of the image paths, for multiple texture pages. */
-    public String[] imagePaths;
-    public File fontFile;
-    public boolean flipped;
-    public float padTop, padRight, padBottom, padLeft;
-    /** The distance from one line of text to the next. To set this value, use {@link #setLineHeight(float)}. */
-    public float lineHeight;
+
+    public boolean flip;
+    public float padTop;
+    public float padRight;
+    public float padBottom;
+    public float padLeft;
+    /** The distance from one line of text to the next. To set this value, use {@link #setLineHeight(int)}. */
+    public int lineHeight;
     /** The distance from the top of most uppercase characters to the baseline. Since the drawing position is the cap height of
      * the first line, the cap height can be used to get the location of the baseline. */
     public float capHeight = 1;
@@ -40,13 +44,14 @@ public class BitmapFontData {
     /** Multiplier for the line height of blank lines. down * blankLineHeight is used as the distance to move down for a blank
      * line. */
     public float blankLineScale = 1;
-    public float scaleX = 1, scaleY = 1;
+    public float scaleX = 1;
+    public float scaleY = 1;
     public boolean markupEnabled;
     /** The amount to add to the glyph X position when drawing a cursor between glyphs. This field is not set by the BMFont
      * file, it needs to be set manually depending on how the glyphs are rendered on the backing textures. */
     public float cursorX;
 
-    public final Glyph[][] glyphs = new Glyph[PAGES][];
+    public final IntMap<IntMap<Glyph>> characters;
     /** The glyph to display for characters not in the font. May be null. */
     public Glyph missingGlyph;
 
@@ -61,15 +66,31 @@ public class BitmapFontData {
     public char[] capChars = {'M', 'N', 'B', 'D', 'C', 'E', 'F', 'K', 'A', 'G', 'H', 'I', 'J', 'L', 'O', 'P', 'Q', 'R', 'S',
             'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 
-    public BitmapFontData () {
+    ///////////////
+
+
+    public List<TextureRegion> regions;
+
+    // Fields for incremental glyph generation.
+    FtFontGenerator generator;
+    FtFontParameter parameter;
+    FtStroker stroker;
+    Packer packer;
+    List<Glyph> glyphs;
+    private boolean dirty;
+
+    public FtBitmapCharacterSet() {
+        regions = new ArrayList<>();
+        characters = new IntMap<>();
     }
 
-    public void setGlyphRegion (Glyph glyph, TextureRegion region) {
+    public void setGlyphRegion(Glyph glyph, TextureRegion region) {
         Image texture = region.getImage();
         float invTexWidth = 1.0f / texture.getWidth();
         float invTexHeight = 1.0f / texture.getHeight();
 
-        int offsetX = 0, offsetY = 0;
+        int offsetX = 0;
+        int offsetY = 0;
         float u = region.u;
         float v = region.v;
         int regionWidth = region.getRegionWidth();
@@ -120,7 +141,7 @@ public class BitmapFontData {
         // FIXME don't need to calculate it here.
         glyph.u = u + x * invTexWidth;
         glyph.u2 = u + x2 * invTexWidth;
-        if (flipped) {
+        if (flip) {
             glyph.v = v + y * invTexHeight;
             glyph.v2 = v + y2 * invTexHeight;
         } else {
@@ -129,42 +150,80 @@ public class BitmapFontData {
         }
     }
 
-    /** Sets the line height, which is the distance from one line of text to the next. */
-    public void setLineHeight (float height) {
-        lineHeight = height * scaleY;
-        down = flipped ? lineHeight : -lineHeight;
+    public void addCharacter(int ch, Glyph glyph) {
+        getCharacterSet(0).put(ch, glyph);
     }
-
-    public void setGlyph (int ch, Glyph glyph) {
-        Glyph[] page = glyphs[ch / PAGE_SIZE];
-        if (page == null) glyphs[ch / PAGE_SIZE] = page = new Glyph[PAGE_SIZE];
-        page[ch & PAGE_SIZE - 1] = glyph;
+    public void addCharacter(int style, int ch, Glyph glyph) {
+        getCharacterSet(style).put(ch, glyph);
     }
 
     public Glyph getFirstGlyph () {
-        for (Glyph[] page : this.glyphs) {
-            if (page == null) continue;
-            for (Glyph glyph : page) {
-                if (glyph == null || glyph.getHeight() == 0 || glyph.getWidth() == 0) continue;
-                return glyph;
-            }
+        if (glyphs.isEmpty()) {
+            return null;
         }
-        throw new FtRuntimeException("No glyphs found.");
+        return glyphs.get(0);
     }
 
     /** Returns true if the font has the glyph, or if the font has a {@link #missingGlyph}. */
-    public boolean hasGlyph (char ch) {
-        if (missingGlyph != null) return true;
-        return getGlyph(ch) != null;
+    public boolean hasGlyph(char ch) {
+        if (missingGlyph != null) {
+            return true;
+        }
+        return getCharacter(ch) != null;
+    }
+
+    private IntMap<Glyph> getCharacterSet(int style) {
+        if (characters.containsKey(style)) {
+            return characters.get(style);
+        } else {
+            IntMap<Glyph> map = new IntMap<>();
+            characters.put(style, map);
+            return map;
+        }
     }
 
     /** Returns the glyph for the specified character, or null if no such glyph exists. Note that
      * {@link #getGlyphs(GlyphRun, CharSequence, int, int, Glyph)} should be be used to shape a string of characters into a list
      * of glyphs. */
-    public Glyph getGlyph (char ch) {
-        Glyph[] page = glyphs[ch / PAGE_SIZE];
-        if (page != null) return page[ch & PAGE_SIZE - 1];
-        return null;
+    public Glyph getCharacter(char ch) {
+        return getCharacter(ch, 0);
+    }
+
+    /** Returns the glyph for the specified character, or null if no such glyph exists. Note that
+     * {@link #getGlyphs(GlyphRun, CharSequence, int, int, Glyph)} should be be used to shape a string of characters into a list
+     * of glyphs. */
+    public Glyph getCharacter(char ch, int style) {
+        // get cached character
+        IntMap<Glyph> charset = getCharacterSet(style);
+        Glyph glyph = charset.get(ch);
+
+        if (glyph == null && generator != null) {
+            generator.setPixelSizes(0, parameter.size);
+            float baseline = ((flip ? -ascent : ascent) + capHeight) / scaleY;
+            glyph = generator.createGlyph(ch, this, parameter, stroker, baseline, packer);
+            if (glyph == null) return missingGlyph;
+
+            setGlyphRegion(glyph, regions.get(glyph.getPage()));
+            charset.put(ch, glyph);
+            glyphs.add(glyph);
+            dirty = true;
+
+            FtFace face = generator.face;
+            if (parameter.kerning) {
+                int glyphIndex = face.getCharIndex(ch);
+                for (int i = 0, n = glyphs.size(); i < n; i++) {
+                    Glyph other = glyphs.get(i);
+                    int otherIndex = face.getCharIndex(other.getChar());
+
+                    long kerning = face.getKerning(glyphIndex, otherIndex, FT_KERNING_DEFAULT);
+                    if (kerning != 0) glyph.addKerning(other.getChar(), FtLibrary.from26D6ToInt(kerning));
+
+                    kerning = face.getKerning(otherIndex, glyphIndex, FT_KERNING_DEFAULT);
+                    if (kerning != 0) other.addKerning(ch, FtLibrary.from26D6ToInt(kerning));
+                }
+            }
+        }
+        return glyph;
     }
 
     /** Using the specified string, populates the glyphs and positions of the specified glyph run.
@@ -172,7 +231,7 @@ public class BitmapFontData {
      *           square bracket.
      * @param lastGlyph The glyph immediately before this run, or null if this is run is the first on a line of text. Used tp
      *           apply kerning between the specified glyph and the first glyph in this run. */
-    public void getGlyphs (GlyphRun run, CharSequence str, int start, int end, Glyph lastGlyph) {
+    public void internalGetGlyphs(GlyphRun run, CharSequence str, int start, int end, Glyph lastGlyph) {
         int max = end - start;
         if (max == 0) return;
         boolean markupEnabled = this.markupEnabled;
@@ -187,7 +246,7 @@ public class BitmapFontData {
         do {
             char ch = str.charAt(start++);
             if (ch == '\r') continue; // Ignore.
-            Glyph glyph = getGlyph(ch);
+            Glyph glyph = getCharacter(ch);
             if (glyph == null) {
                 if (missingGlyph == null) continue;
                 glyph = missingGlyph;
@@ -206,6 +265,20 @@ public class BitmapFontData {
                     : (lastGlyph.getWidth() + lastGlyph.getXOffset()) * scaleX - padRight;
             xAdvances.add(lastGlyphWidth);
         }
+    }
+
+    public void getGlyphs (GlyphRun run, CharSequence str, int start, int end, Glyph lastGlyph) {
+        if (packer != null) packer.setPackToTexture(true); // All glyphs added after this are packed directly to the texture.
+        internalGetGlyphs(run, str, start, end, lastGlyph);
+        if (dirty) {
+            dirty = false;
+            packer.updateTextureRegions(regions, parameter.minFilter, parameter.magFilter, parameter.genMipMaps);
+        }
+    }
+
+    public List<Glyph> getGlyphs() {
+        // FIXME remove this method after change the implementation of FtBitmapCharacterSet to BitmapCharacterSet
+        return glyphs;
     }
 
     /** Returns the first valid glyph index to use to wrap to the next line, starting at the specified start index and
@@ -240,19 +313,6 @@ public class BitmapFontData {
             default:
                 return false;
         }
-    }
-
-    /** Returns the image path for the texture page at the given index (the "id" in the BMFont file). */
-    public String getImagePath (int index) {
-        return imagePaths[index];
-    }
-
-    public String[] getImagePaths () {
-        return imagePaths;
-    }
-
-    public File getFontFile () {
-        return fontFile;
     }
 
     /** Scales the font by the specified amounts on both axes
@@ -294,7 +354,157 @@ public class BitmapFontData {
         setScale(scaleX + amount, scaleY + amount);
     }
 
+    ///// getters & setters /////
+
+    @Override
+    public int getLineHeight() {
+        return lineHeight;
+    }
+
+    /** Sets the line height, which is the distance from one line of text to the next. */
+    @Override
+    public void setLineHeight(int lineHeight) {
+        this.lineHeight = (int) (lineHeight * scaleY);
+        down = flip ? this.lineHeight : - this.lineHeight;
+    }
+
+    public boolean isFlip() {
+        return flip;
+    }
+
+    public void setFlip(boolean flip) {
+        this.flip = flip;
+    }
+
+    public float getPadTop() {
+        return padTop;
+    }
+
+    public void setPadTop(float padTop) {
+        this.padTop = padTop;
+    }
+
+    public float getPadRight() {
+        return padRight;
+    }
+
+    public void setPadRight(float padRight) {
+        this.padRight = padRight;
+    }
+
+    public float getPadBottom() {
+        return padBottom;
+    }
+
+    public void setPadBottom(float padBottom) {
+        this.padBottom = padBottom;
+    }
+
+    public float getPadLeft() {
+        return padLeft;
+    }
+
+    public void setPadLeft(float padLeft) {
+        this.padLeft = padLeft;
+    }
+
+    public float getCapHeight() {
+        return capHeight;
+    }
+
+    public void setCapHeight(float capHeight) {
+        this.capHeight = capHeight;
+    }
+
+    public float getAscent() {
+        return ascent;
+    }
+
+    public void setAscent(float ascent) {
+        this.ascent = ascent;
+    }
+
+    public float getDescent() {
+        return descent;
+    }
+
+    public void setDescent(float descent) {
+        this.descent = descent;
+    }
+
+    public float getDown() {
+        return down;
+    }
+
+    public void setDown(float down) {
+        this.down = down;
+    }
+
+    public float getBlankLineScale() {
+        return blankLineScale;
+    }
+
+    public void setBlankLineScale(float blankLineScale) {
+        this.blankLineScale = blankLineScale;
+    }
+
+    public float getScaleX() {
+        return scaleX;
+    }
+
+    public void setScaleX(float scaleX) {
+        this.scaleX = scaleX;
+    }
+
+    public float getScaleY() {
+        return scaleY;
+    }
+
+    public void setScaleY(float scaleY) {
+        this.scaleY = scaleY;
+    }
+
+    public boolean isMarkupEnabled() {
+        return markupEnabled;
+    }
+
+    public void setMarkupEnabled(boolean markupEnabled) {
+        this.markupEnabled = markupEnabled;
+    }
+
+    public float getSpaceXadvance() {
+        return spaceXadvance;
+    }
+
+    public void setSpaceXadvance(float spaceXadvance) {
+        this.spaceXadvance = spaceXadvance;
+    }
+
+    public float getxHeight() {
+        return xHeight;
+    }
+
+    public void setxHeight(float xHeight) {
+        this.xHeight = xHeight;
+    }
+
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    public void setDirty(boolean dirty) {
+        this.dirty = dirty;
+    }
+
+    //////////
+
     public String toString () {
         return name != null ? name : super.toString();
+    }
+
+    @Override
+    public void close() {
+        if (stroker != null) stroker.close();
+        if (packer != null) packer.close();
     }
 }
