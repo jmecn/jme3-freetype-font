@@ -12,11 +12,11 @@ import java.util.Random;
 
 class TestPackStrategy {
 
-    static final int PAGE_SIZE = 512;
-    static final int RECT_COUNT = 3000;
+    static final int PAGE_SIZE = 1024;
+    static final int RECT_COUNT = 5000;
     static final int CHAR_SIZE = 32;
 
-    private PackStrategy packStrategy;
+    private final PackStrategy packStrategy;
 
     TestPackStrategy(PackStrategy packStrategy) {
         this.packStrategy = packStrategy;
@@ -62,7 +62,7 @@ class TestPackStrategy {
         return rectangles;
     }
 
-    void showResult(String strategy, List<Rectangle> list) {
+    void showResult(String strategy, List<Rectangle> list, long time) {
         IntMap<BufferedImage> images = new IntMap<>();
         IntMap<Graphics2D> g2ds = new IntMap<>();
         for (Rectangle rect : list) {
@@ -98,10 +98,9 @@ class TestPackStrategy {
         g2ds.forEach(e -> e.getValue().dispose());
 
         // show images
-        JDialog frame = new JDialog();
-        frame.setTitle(strategy + "#" + list.size() + " rect in " + images.size() + " pages");
-        frame.setModal(true);
-        frame.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        JFrame frame = new JFrame();
+        frame.setTitle(strategy + ", resolution:" + PAGE_SIZE + ", characters:" + list.size() + ", pages:" + images.size() + ", cost " + time + "ms");
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         JTabbedPane panel = new JTabbedPane();
         images.forEach(e -> {
             panel.add("page " + e.getKey(), new JLabel(new ImageIcon(e.getValue())));
@@ -114,6 +113,8 @@ class TestPackStrategy {
     public void run() {
         List<Rectangle> list = randomRectangles(RECT_COUNT, CHAR_SIZE);
 
+        long start = System.currentTimeMillis();
+
         Packer packer = new Packer(Image.Format.RGBA8, PAGE_SIZE, PAGE_SIZE, 1, true);
         packStrategy.sort(list);
         for (Rectangle rect : list) {
@@ -122,6 +123,8 @@ class TestPackStrategy {
             System.out.printf("%s, page:%d\n", rect, page.index);
         }
 
-        showResult(packStrategy.getClass().getSimpleName(), list);
+        long time = System.currentTimeMillis() - start;
+
+        showResult(packStrategy.getClass().getSimpleName(), list, time);
     }
 }
