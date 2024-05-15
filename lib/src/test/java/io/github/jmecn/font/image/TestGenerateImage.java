@@ -139,7 +139,7 @@ public class TestGenerateImage {
             parameter.setSize(32);
             parameter.setMagFilter(Texture.MagFilter.Nearest);
 
-            parameter.setColor(ColorRGBA.DarkGray);
+            parameter.setColor(ColorRGBA.Orange);
             parameter.setPadding(0);
 
             parameter.setBorderWidth(2);

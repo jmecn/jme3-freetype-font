@@ -73,17 +73,18 @@ public class TestBitmapText3D extends SimpleApplication {
         MaterialDef matDef = assetManager.loadAsset(new AssetKey<>("Common/MatDefs/Misc/Unshaded.j3md"));
         FtFontGenerator generator = new FtFontGenerator(new File("font/Noto_Serif_SC/NotoSerifSC-Regular.otf"));
         FtFontParameter parameter = new FtFontParameter();
-        parameter.setSize(24);
+        parameter.setSize(17);
         parameter.setMatDef(matDef);
-        parameter.setIncremental(true);
+        //parameter.setIncremental(true);
         parameter.setMagFilter(Texture.MagFilter.Nearest);
+        parameter.setCharacters(txtB);
 
         FtBitmapFont fnt = generator.generateFont(parameter);
 
         DebugPrintUtils.drawGlyphRect(fnt.getCharSet());
 
         // BitmapFont fnt = assetManager.loadFont("Interface/Fonts/Default.fnt");
-        BitmapText txt = new BitmapText(fnt, false);
+        BitmapText txt = new BitmapText(fnt);
         txt.setBox(new Rectangle(0, 0, 6, 3));
         txt.setQueueBucket(Bucket.Transparent);
         txt.setSize( 0.5f );
