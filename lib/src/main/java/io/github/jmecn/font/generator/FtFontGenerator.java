@@ -378,16 +378,16 @@ public class FtFontGenerator implements AutoCloseable {
 
                 // Render border (pixmap is bigger than main).
                 FtBitmap borderBitmap = borderGlyph.getBitmap();
-                Image borderPixmap = borderBitmap.getImage(Image.Format.RGBA8, parameter.getBorderColor(), parameter.getBorderGamma());
+                Image borderImage = borderBitmap.getImage(Image.Format.RGBA8, parameter.getBorderColor(), parameter.getBorderGamma());
 
                 // Draw main glyph on top of border.
                 for (int i = 0, n = parameter.getRenderCount(); i < n; i++) {
-                    ImageUtils.drawImage(borderPixmap, mainImage, (int) offsetX, (int) offsetY);
+                    ImageUtils.drawImage(borderImage, mainImage, (int) offsetX, (int) offsetY);
                 }
 
                 mainImage.dispose();
                 mainGlyph.close();
-                mainImage = borderPixmap;
+                mainImage = borderImage;
                 mainGlyph = borderGlyph;
             }
 
@@ -398,7 +398,7 @@ public class FtFontGenerator implements AutoCloseable {
                 int shadowOffsetY = Math.max(parameter.getShadowOffsetY(), 0);
                 int shadowW = mainW + Math.abs(parameter.getShadowOffsetX());
                 int shadowH = mainH + Math.abs(parameter.getShadowOffsetY());
-                Image shadowPixmap = ImageUtils.newImage(mainImage.getFormat(), shadowW, shadowH);
+                Image shadowImage = ImageUtils.newImage(mainImage.getFormat(), shadowW, shadowH);
 
                 ColorRGBA shadowColor = parameter.getShadowColor();
                 float a = shadowColor.a;
@@ -407,7 +407,7 @@ public class FtFontGenerator implements AutoCloseable {
                     byte g = (byte)(shadowColor.g * 255);
                     byte b = (byte)(shadowColor.b * 255);
                     ByteBuffer mainPixels = mainImage.getData(0);
-                    ByteBuffer shadowPixels = shadowPixmap.getData(0);
+                    ByteBuffer shadowPixels = shadowImage.getData(0);
                     for (int y = 0; y < mainH; y++) {
                         int shadowRow = shadowW * (y + shadowOffsetY) + shadowOffsetX;
                         for (int x = 0; x < mainW; x++) {
@@ -425,10 +425,10 @@ public class FtFontGenerator implements AutoCloseable {
 
                 // Draw main glyph (with any border) on top of shadow.
                 for (int i = 0, n = parameter.getRenderCount(); i < n; i++) {
-                    ImageUtils.drawImage(shadowPixmap, mainImage, Math.max(-parameter.getShadowOffsetX(), 0), Math.max(-parameter.getShadowOffsetY(), 0));
+                    ImageUtils.drawImage(shadowImage, mainImage, Math.max(-parameter.getShadowOffsetX(), 0), Math.max(-parameter.getShadowOffsetY(), 0));
                 }
                 mainImage.dispose();
-                mainImage = shadowPixmap;
+                mainImage = shadowImage;
             } else if (parameter.getBorderWidth() == 0) {
                 // No shadow and no border, draw glyph additional times.
                 for (int i = 0, n = parameter.getRenderCount() - 1; i < n; i++) {
@@ -437,18 +437,23 @@ public class FtFontGenerator implements AutoCloseable {
             }
 
             if (parameter.getPadTop() > 0 || parameter.getPadLeft() > 0 || parameter.getPadBottom() > 0 || parameter.getPadRight() > 0) {
-                Image padPixmap = ImageUtils.newImage(mainImage.getFormat(), mainImage.getWidth() + parameter.getPadLeft() + parameter.getPadRight(),
+                Image paddingImage = ImageUtils.newImage(mainImage.getFormat(), mainImage.getWidth() + parameter.getPadLeft() + parameter.getPadRight(),
                         mainImage.getHeight() + parameter.getPadTop() + parameter.getPadBottom());
-                ImageUtils.drawImage(padPixmap, mainImage, parameter.getPadLeft(), parameter.getPadRight());
+                ImageUtils.drawImage(paddingImage, mainImage, parameter.getPadLeft(), parameter.getPadRight());
                 mainImage.dispose();
-                mainImage = padPixmap;
+                mainImage = paddingImage;
             }
         }
 
         FtGlyphMetrics metrics = slot.getMetrics();
         Glyph glyph = new Glyph(c);
-        glyph.setWidth(mainImage.getWidth());
-        glyph.setHeight(mainImage.getHeight());
+        if (mainImage != null) {
+            glyph.setWidth(mainImage.getWidth());
+            glyph.setHeight(mainImage.getHeight());
+        } else {
+            glyph.setWidth(0);
+            glyph.setHeight(0);
+        }
         glyph.setXOffset(mainGlyph.getLeft());
         if (parameter.isFlip()) {
             glyph.setYOffset(-mainGlyph.getTop() + (int) baseLine);

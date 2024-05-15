@@ -69,13 +69,16 @@ public class FtLibrary implements AutoCloseable {
         return x << 16;
     }
 
-
     public static int from26D6(long value) {
         return (int) (value >> 6);
     }
 
     public static int from16D16(long value) {
         return (int) (value >> 16);
+    }
+
+    public static float from16D16f(long value) {
+        return value / 65536.0f;
     }
 
     public String getVersion() {

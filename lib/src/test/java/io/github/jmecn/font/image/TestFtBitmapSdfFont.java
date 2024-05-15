@@ -1,4 +1,4 @@
-package io.github.jmecn.font.app;
+package io.github.jmecn.font.image;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;

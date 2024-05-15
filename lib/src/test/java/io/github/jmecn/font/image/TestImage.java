@@ -1,4 +1,4 @@
-package io.github.jmecn.font.app;
+package io.github.jmecn.font.image;
 
 import com.jme3.texture.Image;
 import io.github.jmecn.font.FtBitmapCharacterSet;

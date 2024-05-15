@@ -1,4 +1,4 @@
-package io.github.jmecn.font.app;
+package io.github.jmecn.font.image;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
@@ -139,14 +139,14 @@ public class TestGenerateImage {
             parameter.setSize(32);
             parameter.setMagFilter(Texture.MagFilter.Nearest);
 
-            parameter.setColor(ColorRGBA.White);
-            parameter.setPadding(1);
+            parameter.setColor(ColorRGBA.DarkGray);
+            parameter.setPadding(0);
 
-            parameter.setBorderWidth(0);
+            parameter.setBorderWidth(2);
             parameter.setBorderColor(ColorRGBA.Yellow);
 
-            parameter.setShadowOffsetX(0);
-            parameter.setShadowOffsetY(0);
+            parameter.setShadowOffsetX(2);
+            parameter.setShadowOffsetY(2);
             parameter.setShadowColor(ColorRGBA.White);
 
             parameter.setCharacters(FtFontParameter.DEFAULT_CHARS + XIN);
@@ -161,7 +161,7 @@ public class TestGenerateImage {
             }
 
             // draw glyph rect
-            DebugPrintUtils.drawGlyphRect(data);
+            // DebugPrintUtils.drawGlyphRect(data);
 
             // show image
             Image[] images = parameter.getPacker().getPages().stream().map(Page::getImage).toArray(Image[]::new);

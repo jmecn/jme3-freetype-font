@@ -1,23 +1,19 @@
-package io.github.jmecn.font.app;
+package io.github.jmecn.font.material;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.material.Material;
 import com.jme3.material.MaterialDef;
 import com.jme3.material.Materials;
-import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Image;
-import com.jme3.texture.Texture;
-import com.jme3.texture.Texture2D;
 import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.packer.Packer;
-import io.github.jmecn.font.packer.Page;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 import io.github.jmecn.font.utils.DebugPrintUtils;
 
