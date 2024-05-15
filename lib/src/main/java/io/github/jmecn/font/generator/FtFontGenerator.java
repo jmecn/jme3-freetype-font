@@ -456,8 +456,27 @@ public class FtFontGenerator implements AutoCloseable {
         else {
             glyph.setYOffset(-(glyph.getHeight() - mainGlyph.getTop()) - (int) baseLine);
         }
+
         glyph.setXAdvance( FtLibrary.from26D6(metrics.getHoriAdvance()) + (int)parameter.getBorderWidth() + parameter.getSpaceX() );
+        glyph.setYAdvance( FtLibrary.from26D6(metrics.getVertAdvance()) + (int)parameter.getBorderWidth() + parameter.getSpaceY() );
         glyph.setFixedWidth(face.isFixedWidth());
+
+        // bitmap position, for debug purpose
+        glyph.setTop(mainGlyph.getTop());
+        glyph.setLeft(mainGlyph.getLeft());
+
+        // glyph metrics, for debug purpose
+        glyph.setHoriBearingX(FtLibrary.from26D6(metrics.getHoriBearingX()));
+        glyph.setHoriBearingY(FtLibrary.from26D6(metrics.getHoriBearingY()));
+        glyph.setHoriAdvance( FtLibrary.from26D6(metrics.getHoriAdvance()));
+        glyph.setVertBearingX( FtLibrary.from26D6(metrics.getVertBearingX()));
+        glyph.setVertBearingY( FtLibrary.from26D6(metrics.getVertBearingY()));
+        glyph.setVertAdvance( FtLibrary.from26D6(metrics.getVertAdvance()));
+
+        // generator parameter, for debug purpose
+        glyph.setBorderWidth((int) parameter.getBorderWidth());
+        glyph.setSpaceX(parameter.getSpaceX());
+        glyph.setSpaceY(parameter.getSpaceY());
 
         if (bitmapped) {
             ImageRaster raster = ImageRaster.create(mainImage);

@@ -242,4 +242,25 @@ public final class ImageUtils {
         }
         dest.setUpdateNeeded();
     }
+
+    public static void drawImage(Image destination, Image source, int srcX, int srcY, int srcWidth, int srcHeight, int dstX, int dstY, int dstWidth, int dstHeight) {
+        ImageRaster writer = ImageRaster.create(destination);
+        ImageRaster reader = ImageRaster.create(source);
+        ColorRGBA src = new ColorRGBA();
+        ColorRGBA dst = new ColorRGBA();
+        for (int y = 0; y < srcWidth; y++) {
+            for (int x = 0; x < srcHeight; x++) {
+                // get
+                reader.getPixel(srcX + x, srcY + y, src);
+                writer.getPixel(dstX + x, dstY + y, dst);
+                // set
+                // blend mode: sumAlpha
+                float srcAlpha = src.a;
+                float dstAlpha = dst.a;
+                dst.multLocal(1f - srcAlpha).addLocal(src.multLocal(srcAlpha));
+                dst.a = srcAlpha + dstAlpha;
+                writer.setPixel(dstX + x, dstY + y, dst);
+            }
+        }
+    }
 }

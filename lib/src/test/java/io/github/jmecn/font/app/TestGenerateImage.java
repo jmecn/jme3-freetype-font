@@ -2,6 +2,7 @@ package io.github.jmecn.font.app;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
+import com.jme3.texture.Texture;
 import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
@@ -130,21 +131,22 @@ public class TestGenerateImage {
     public static void main(String[] args) throws Exception {
         try (FtFontGenerator generator = new FtFontGenerator(new File(FONT))) {
 
-            // use predefined packer
+            // use pre-defined packer
             Packer packer = new Packer(Image.Format.RGBA8, 512, 512, 1, false, new SkylineStrategy());
 
             FtFontParameter parameter = new FtFontParameter();
             parameter.setPacker(packer);
-            parameter.setSize(24);
+            parameter.setSize(32);
+            parameter.setMagFilter(Texture.MagFilter.Nearest);
 
-            parameter.setColor(ColorRGBA.DarkGray);
-            parameter.setPadding(2, 2, 0, 0);
+            parameter.setColor(ColorRGBA.White);
+            parameter.setPadding(1);
 
-            parameter.setBorderWidth(2);
+            parameter.setBorderWidth(0);
             parameter.setBorderColor(ColorRGBA.Yellow);
 
-            parameter.setShadowOffsetX(2);
-            parameter.setShadowOffsetY(2);
+            parameter.setShadowOffsetX(0);
+            parameter.setShadowOffsetY(0);
             parameter.setShadowColor(ColorRGBA.White);
 
             parameter.setCharacters(FtFontParameter.DEFAULT_CHARS + XIN);

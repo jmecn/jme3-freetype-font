@@ -102,6 +102,7 @@ public class DebugPrintUtils {
         for (Glyph glyph : data.getGlyphs()) {
             ColorRGBA color = ColorRGBA.randomColor();
 
+            System.out.println(glyph);
             ImageRaster raster = rasterMap.get(glyph.getPage());
             if (raster == null) {
                 Image image = data.getImage(glyph.getPage());
@@ -119,5 +120,7 @@ public class DebugPrintUtils {
                 }
             }
         }
+
+        System.out.printf("lineHeight=%d, base=%d, ascent=%.1f, descent=%.1f, glyphs=%d\n", data.getLineHeight(), data.getBase(), data.getAscent(), data.getDescent(), data.getGlyphs().size());
     }
 }

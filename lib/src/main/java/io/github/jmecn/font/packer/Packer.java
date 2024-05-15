@@ -126,12 +126,22 @@ public class Packer implements AutoCloseable {
             int imageWidth = image.getWidth();
             int imageHeight = image.getHeight();
             // Copy corner pixels to fill corners of the padding.
-            page.drawImage(image, 0, 0, 1, 1, rectX - 1, rectY - 1, 1, 1);
-            page.drawImage(image, imageWidth - 1, 0, 1, 1, rectX + rectWidth, rectY - 1, 1, 1);
-            page.drawImage(image, 0, imageHeight - 1, 1, 1, rectX - 1, rectY + rectHeight, 1, 1);
-            page.drawImage(image, imageWidth - 1, imageHeight - 1, 1, 1, rectX + rectWidth, rectY + rectHeight, 1, 1);
+            page.drawImage(image,
+                    0, 0, 1, 1,
+                    rectX - 1, rectY - 1, 1, 1);
+            page.drawImage(image,
+                    imageWidth - 1, 0, 1, 1,
+                    rectX + rectWidth, rectY - 1, 1, 1);
+            page.drawImage(image,
+                    0, imageHeight - 1, 1, 1,
+                    rectX - 1, rectY + rectHeight, 1, 1);
+            page.drawImage(image,
+                    imageWidth - 1, imageHeight - 1, 1, 1,
+                    rectX + rectWidth, rectY + rectHeight, 1, 1);
             // Copy edge pixels into padding.
-            page.drawImage(image, 0, 0, imageWidth, 1, rectX, rectY - 1, rectWidth, 1);
+            page.drawImage(image,
+                    0, 0, imageWidth, 1,
+                    rectX, rectY - 1, rectWidth, 1);
             page.drawImage(image, 0, imageHeight - 1, imageWidth, 1, rectX, rectY + rectHeight, rectWidth, 1);
             page.drawImage(image, 0, 0, 1, imageHeight, rectX - 1, rectY, 1, rectHeight);
             page.drawImage(image, imageWidth - 1, 0, 1, imageHeight, rectX + rectWidth, rectY, 1, rectHeight);
