@@ -7,6 +7,7 @@ import com.jme3.material.Material;
 import com.jme3.material.MaterialDef;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
+import io.github.jmecn.font.generator.GlyphRun;
 
 import java.io.File;
 
@@ -46,5 +47,9 @@ public class FtBitmapFont extends BitmapFont {
     @Override
     public int getPageSize() {
         return charSet.getPageSize();
+    }
+
+    public void payload(String text) {
+        charSet.getGlyphs(new GlyphRun(), text, 0, text.length(), null);
     }
 }

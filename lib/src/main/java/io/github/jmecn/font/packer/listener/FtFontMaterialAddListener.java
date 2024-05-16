@@ -13,17 +13,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * desc:
- *
- * @author yanmaoyuan
+ * When a new page is added, add the image to the character set.
  */
-public class DefaultPageListener implements PageListener {
-    static Logger logger = LoggerFactory.getLogger(DefaultPageListener.class);
+public class FtFontMaterialAddListener implements PageListener {
+    static Logger logger = LoggerFactory.getLogger(FtFontMaterialAddListener.class);
 
     private final FtFontParameter parameter;
     private final FtBitmapCharacterSet data;
 
-    public DefaultPageListener(FtFontParameter parameter, FtBitmapCharacterSet data) {
+    public FtFontMaterialAddListener(FtFontParameter parameter, FtBitmapCharacterSet data) {
         this.parameter = parameter;
         this.data = data;
     }

@@ -13,7 +13,7 @@ import io.github.jmecn.font.Glyph;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.exception.FtRuntimeException;
 import io.github.jmecn.font.packer.*;
-import io.github.jmecn.font.packer.listener.DefaultPageListener;
+import io.github.jmecn.font.packer.listener.FtFontMaterialAddListener;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 import io.github.jmecn.font.utils.ImageUtils;
@@ -93,12 +93,15 @@ public class FtFontGenerator implements AutoCloseable {
 
     public BitmapFont generateFont(FtFontParameter parameter, FtBitmapCharacterSet data) {
         generateData(parameter, data);
+        return generateFont(data);
+    }
+
+    public BitmapFont generateFont(FtBitmapCharacterSet data) {
         if (data.getPageSize() == 0) {
             throw new FtRuntimeException("Unable to create a font with no images.");
         }
 
 //        FtBitmapFont font = newBitmapFont(data, true);
-//        font.setOwnsTexture(parameter.getPacker() == null);
 
         // create origin bitmap font
         BitmapFont font = new BitmapFont() {
@@ -116,14 +119,6 @@ public class FtFontGenerator implements AutoCloseable {
             }
         };
         font.setCharSet(data);
-//        int pageSize = data.getPageSize();
-//        Material[] pages = new Material[pageSize];
-//        for (int i = 0; i < pageSize; i++) {
-//            pages[i] = data.getMaterial(i);
-//        }
-//        BitmapFont font = new BitmapFont();
-//        font.setCharSet(data);
-//        font.setPages(pages);
 
         return font;
     }
@@ -160,11 +155,9 @@ public class FtFontGenerator implements AutoCloseable {
         float baseLine = data.getAscent();
         data.setBase((int) baseLine);
 
-        boolean ownsAtlas = false;
         Packer packer;
         if (parameter.getPacker() == null) {
             packer = newPacker(parameter, data, charactersLength);
-            ownsAtlas = true;
         } else {
             packer = parameter.getPacker();
         }
@@ -172,8 +165,7 @@ public class FtFontGenerator implements AutoCloseable {
         data.setHeight(packer.getPageHeight());
 
         // add listener, create Material when new page is added
-        packer.addListener(new DefaultPageListener(parameter, data));
-
+        packer.addListener(new FtFontMaterialAddListener(parameter, data));
 
         // if bitmapped
         if (bitmapped && (data.getLineHeight() == 0)) {

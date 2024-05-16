@@ -8,13 +8,4 @@ allprojects {
         }
     }
 
-//    // for macos
-//    run {
-//        jvmArgs '-XstartOnFirstThread'
-//    }
-//    // for macos
-//    javaexec {
-//        jvmArgs '-XstartOnFirstThread'
-//    }
-
 }

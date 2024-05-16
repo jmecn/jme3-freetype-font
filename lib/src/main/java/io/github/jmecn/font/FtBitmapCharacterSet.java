@@ -2,6 +2,7 @@ package io.github.jmecn.font;
 
 import com.jme3.font.BitmapCharacter;
 import com.jme3.font.BitmapCharacterSet;
+import com.jme3.font.BitmapText;
 import com.jme3.material.Material;
 import com.jme3.texture.Image;
 import com.jme3.util.IntMap;
@@ -12,6 +13,8 @@ import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.generator.GlyphRun;
 import io.github.jmecn.font.packer.Packer;
+import io.github.jmecn.font.packer.listener.BitmapTextPageListener;
+import io.github.jmecn.font.packer.listener.PageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +38,6 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
     // hold the materials
     private final IntMap<Material> materials;
 
-    public boolean flip;
     public float padTop;
     public float padRight;
     public float padBottom;
@@ -94,6 +96,17 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         characters = new IntMap<>();
         materials = new IntMap<>();
         glyphs = new ArrayList<>(128);// all ascii chars
+    }
+
+    /**
+     * register a BitmapText to the packer, the new page will be added to the BitmapText when packer is full.
+     *
+     * @param text
+     */
+    public void registerText(BitmapText text) {
+        if (packer != null) {
+            packer.addListener(new BitmapTextPageListener(text));
+        }
     }
 
     public void addCharacter(int ch, Glyph glyph) {
