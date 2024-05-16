@@ -2,7 +2,6 @@ package io.github.jmecn.font;
 
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
-import io.github.jmecn.font.generator.GlyphRun;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +30,6 @@ public class TestGenerator {
             parameter.setIncremental( true );
             FtBitmapCharacterSet data = generator.generateData(parameter);
             String str = "你好世界!";
-            data.getGlyphs(new GlyphRun(), str, 0, str.length(), null);
             for( int i = 0; i < str.length(); i++) {
                 Glyph glyph = data.getCharacter(str.charAt(i));
                 logger.info("glyph:{}", glyph);

@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author yanmaoyuan
  */
 class TestBitmapText {
+
     @Test void testLoadClass() {
         // init AssetManager
         AssetManager assetManager = new DesktopAssetManager(true);
@@ -41,23 +42,29 @@ class TestBitmapText {
         FtBitmapCharacterSet charSet = generator.generateData(parameter);
 
         BitmapFont font = generator.generateFont(charSet);
-        ///// important, this line will add a listener to packer
-        BitmapText text = new BitmapText(font, false, false);
-        charSet.registerText(text);
 
-        BitmapText[] texts = new BitmapText[10];
-        for (int i = 0; i < 10; i++) {
-            texts[i] = new BitmapText(font, false, false);
-            charSet.registerText(texts[i]);
-        }
+        BitmapText text = new BitmapText(font, false, false);
+        System.out.println(text);
+
+        ///// important, this line will add a listener to packer, so new BitmapTextPage will be created when needed
+        // charSet.registerText(text);
 
         text.setText("A");
+        text.updateLogicalState(0f);// trigger the delegate
         assertEquals(1, text.getChildren().size());
+
         text.setText("B");
-        assertEquals(2, text.getChildren().size());
-        text.setText("C");
+        text.updateLogicalState(0f);// trigger the delegate
         assertEquals(3, text.getChildren().size());
+
+        text.setText("C");
+        text.updateLogicalState(0f);// trigger the delegate
+        assertEquals(4, text.getChildren().size());
+
         text.setText("D");
-        assertEquals(4, texts[4].getChildren().size());
+        text.updateLogicalState(0f);// trigger the delegate
+        assertEquals(5, text.getChildren().size());
+
     }
+
 }

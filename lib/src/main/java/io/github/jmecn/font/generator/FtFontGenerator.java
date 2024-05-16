@@ -10,6 +10,7 @@ import com.jme3.texture.image.ImageRaster;
 import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.FtBitmapFont;
 import io.github.jmecn.font.Glyph;
+import io.github.jmecn.font.delegate.FtFontAgent;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.exception.FtRuntimeException;
 import io.github.jmecn.font.packer.*;
@@ -36,6 +37,10 @@ public class FtFontGenerator implements AutoCloseable {
 
     public static final int MAX_SIZE = 1024;
     public static final int MIN_SIZE = 64;
+
+    static {
+        FtFontAgent.init();
+    }
 
     FtLibrary library;
     FtFace face;

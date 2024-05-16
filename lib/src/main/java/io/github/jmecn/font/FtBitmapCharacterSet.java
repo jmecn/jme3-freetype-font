@@ -11,10 +11,8 @@ import io.github.jmecn.font.freetype.FtLibrary;
 import io.github.jmecn.font.freetype.FtStroker;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
-import io.github.jmecn.font.generator.GlyphRun;
 import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.listener.BitmapTextPageListener;
-import io.github.jmecn.font.packer.listener.PageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,17 +139,11 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         }
     }
 
-    /** Returns the glyph for the specified character, or null if no such glyph exists. Note that
-     * {@link #getGlyphs(GlyphRun, CharSequence, int, int, Glyph)} should be be used to shape a string of characters into a list
-     * of glyphs. */
     @Override
     public Glyph getCharacter(int ch) {
         return getCharacter(ch, 0);
     }
 
-    /** Returns the glyph for the specified character, or null if no such glyph exists. Note that
-     * {@link #getGlyphs(GlyphRun, CharSequence, int, int, Glyph)} should be be used to shape a string of characters into a list
-     * of glyphs. */
     @Override
     public Glyph getCharacter(int ch, int style) {
         // get cached character
@@ -186,58 +178,6 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
             }
         }
         return glyph;
-    }
-
-    /** Using the specified string, populates the glyphs and positions of the specified glyph run.
-     * @param str Characters to convert to glyphs. Will not contain newline or color tags. May contain "[[" for an escaped left
-     *           square bracket.
-     * @param lastGlyph The glyph immediately before this run, or null if this is run is the first on a line of text. Used tp
-     *           apply kerning between the specified glyph and the first glyph in this run. */
-    public void internalGetGlyphs(GlyphRun run, CharSequence str, int start, int end, Glyph lastGlyph) {
-        int max = end - start;
-        if (max == 0) return;
-        boolean markupEnabled = this.markupEnabled;
-        float scaleX = this.scaleX;
-        List<BitmapCharacter> glyphs = run.glyphs;
-        List<Float> xAdvances = run.xAdvances;
-
-        // Guess at number of glyphs needed.
-//        glyphs.ensureCapacity(max);
-//        run.xAdvances.ensureCapacity(max + 1);
-
-        do {
-            char ch = str.charAt(start++);
-            if (ch == '\r') continue; // Ignore.
-            Glyph glyph = getCharacter(ch);
-            if (glyph == null) {
-                if (missingGlyph == null) continue;
-                glyph = missingGlyph;
-            }
-            glyphs.add(glyph);
-            xAdvances.add(lastGlyph == null // First glyph on line, adjust the position so it isn't drawn left of 0.
-                    ? (glyph.isFixedWidth() ? 0 : -glyph.getXOffset() * scaleX - padLeft)
-                    : (lastGlyph.getXAdvance() + lastGlyph.getKerning(ch)) * scaleX);
-            lastGlyph = glyph;
-
-            // "[[" is an escaped left square bracket, skip second character.
-            if (markupEnabled && ch == '[' && start < end && str.charAt(start) == '[') start++;
-        } while (start < end);
-        if (lastGlyph != null) {
-            float lastGlyphWidth = lastGlyph.isFixedWidth() ? lastGlyph.getXAdvance() * scaleX
-                    : (lastGlyph.getWidth() + lastGlyph.getXOffset()) * scaleX - padRight;
-            xAdvances.add(lastGlyphWidth);
-        }
-    }
-
-    public void getGlyphs(GlyphRun run, CharSequence str, int start, int end, Glyph lastGlyph) {
-        if (packer != null) {
-            packer.setPackToTexture(true); // All glyphs added after this are packed directly to the texture.
-        }
-        internalGetGlyphs(run, str, start, end, lastGlyph);
-        if (dirty) {
-            dirty = false;
-            logger.info("new glyphs are added");
-        }
     }
 
     public List<Glyph> getGlyphs() {

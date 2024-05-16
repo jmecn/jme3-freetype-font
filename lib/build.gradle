@@ -8,7 +8,8 @@ dependencies {
     api "org.lwjgl:lwjgl-harfbuzz:$lwjglVersion"
     api "org.jmonkeyengine:jme3-core:$jme3Version"
     api 'org.slf4j:slf4j-api:1.7.36'
-    implementation 'org.javassist:javassist:3.27.0-GA'
+    implementation "net.bytebuddy:byte-buddy:1.8.0"
+    implementation "net.bytebuddy:byte-buddy-agent:1.8.0"
 
     testImplementation "org.lwjgl:lwjgl::$lwjglNatives"
     testImplementation "org.lwjgl:lwjgl-freetype::$lwjglNatives"
@@ -17,4 +18,5 @@ dependencies {
     testImplementation "org.jmonkeyengine:jme3-lwjgl3:$jme3Version"
     testImplementation "org.jmonkeyengine:jme3-desktop:$jme3Version"
     testImplementation 'ch.qos.logback:logback-classic:1.2.13'
+
 }
