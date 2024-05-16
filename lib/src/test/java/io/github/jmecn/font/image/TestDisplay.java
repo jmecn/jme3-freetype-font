@@ -51,7 +51,7 @@ public class TestDisplay extends SimpleApplication {
             texture2D.setMagFilter(Texture.MagFilter.Bilinear);
             texture2D.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
 
-            Geometry geom = new Geometry("image#" + i, new Quad(size, size, true));
+            Geometry geom = new Geometry("image#" + i, new Quad(size, size));
             Material material = new Material(assetManager, this.material);
             material.setTexture("ColorMap", texture2D);
             material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);

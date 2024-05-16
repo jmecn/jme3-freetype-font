@@ -2,9 +2,9 @@ package io.github.jmecn.font.packer;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
-import com.jme3.texture.Texture;
 import io.github.jmecn.font.packer.listener.PageListener;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
+import io.github.jmecn.font.utils.ImageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,26 +125,21 @@ public class Packer implements AutoCloseable {
         if (duplicateBorder) {
             int imageWidth = image.getWidth();
             int imageHeight = image.getHeight();
+            // min(-1, -1), max(width, height)
+            int left = rectX - 1;
+            int top = rectY - 1;
+            int right = rectX + rectWidth;
+            int bottom = rectY + rectHeight;
             // Copy corner pixels to fill corners of the padding.
-            page.drawImage(image,
-                    0, 0, 1, 1,
-                    rectX - 1, rectY - 1, 1, 1);
-            page.drawImage(image,
-                    imageWidth - 1, 0, 1, 1,
-                    rectX + rectWidth, rectY - 1, 1, 1);
-            page.drawImage(image,
-                    0, imageHeight - 1, 1, 1,
-                    rectX - 1, rectY + rectHeight, 1, 1);
-            page.drawImage(image,
-                    imageWidth - 1, imageHeight - 1, 1, 1,
-                    rectX + rectWidth, rectY + rectHeight, 1, 1);
+            ImageUtils.drawImage(page.image, image, 0, 0, 1, 1, left, top);
+            ImageUtils.drawImage(page.image, image, imageWidth - 1, 0, 1, 1, right, top);
+            ImageUtils.drawImage(page.image, image, 0, imageHeight - 1, 1, 1, left, bottom);
+            ImageUtils.drawImage(page.image, image, imageWidth - 1, imageHeight - 1, 1, 1, right, bottom);
             // Copy edge pixels into padding.
-            page.drawImage(image,
-                    0, 0, imageWidth, 1,
-                    rectX, rectY - 1, rectWidth, 1);
-            page.drawImage(image, 0, imageHeight - 1, imageWidth, 1, rectX, rectY + rectHeight, rectWidth, 1);
-            page.drawImage(image, 0, 0, 1, imageHeight, rectX - 1, rectY, 1, rectHeight);
-            page.drawImage(image, imageWidth - 1, 0, 1, imageHeight, rectX + rectWidth, rectY, 1, rectHeight);
+            ImageUtils.drawImage(page.image, image, 0, 0, imageWidth, 1, rectX, top);
+            ImageUtils.drawImage(page.image, image, 0, imageHeight - 1, imageWidth, 1, rectX, bottom);
+            ImageUtils.drawImage(page.image, image, 0, 0, 1, imageHeight, left, rectY);
+            ImageUtils.drawImage(page.image, image, imageWidth - 1, 0, 1, imageHeight, right, rectY);
         }
 
         return rect;

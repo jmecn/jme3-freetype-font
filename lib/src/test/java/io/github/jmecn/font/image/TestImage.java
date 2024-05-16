@@ -32,10 +32,7 @@ public class TestImage {
                 Glyph glyph = data.getCharacter(str.charAt(i));
                 logger.info("glyph:{}", glyph);
             }
-
-            Packer packer = parameter.getPacker();
-            List<Page> pages = packer.getPages();
-            Image[] images = pages.stream().map(Page::getImage).toArray(Image[]::new);
+            Image[] images = data.getImages().toArray(new Image[0]);
             TestDisplay.run(null, images);
         }
     }

@@ -128,6 +128,7 @@ public class TestGenerateImage {
             "pú tí sà pó hē 。\n" +
             "菩 提 萨 婆 诃 。";
     static final String DASHIZHI = "大势至法王子。与其同伦。五十二菩萨。即从座起。顶礼佛足。而白佛言： ‘我忆往昔。恒河沙劫。有佛出世。名无量光。十二如来。相继一劫。其最后佛。名超日月光。 彼佛教我。念佛三昧。譬如有人。一专为忆。一人专忘。如是二人。若逢不逢。或见非见。二人相忆。二忆念深。 如是乃至。从生至生。同于形影。不相乖异。十方如来。怜念众生。如母忆子。若子逃逝。虽忆何为。子若忆母。如母忆时。母子历生。不相违远。若众生心。忆佛念佛。现前当来。必定见佛。去佛不远。不假方便。自得心开。如染香人。身有香气。此则名曰。香光庄严。我本因地。以念佛心。入无生忍。今于此界。摄念佛人。归于净土。佛问圆通。我无选择。都摄六根。净念相继。得三摩地。斯为第一。";
+
     public static void main(String[] args) throws Exception {
         try (FtFontGenerator generator = new FtFontGenerator(new File(FONT))) {
 
@@ -161,7 +162,7 @@ public class TestGenerateImage {
             }
 
             // draw glyph rect
-            // DebugPrintUtils.drawGlyphRect(data);
+            DebugPrintUtils.drawGlyphRect(data);
 
             // show image
             Image[] images = parameter.getPacker().getPages().stream().map(Page::getImage).toArray(Image[]::new);

@@ -7,13 +7,42 @@ import com.jme3.texture.image.ImageRaster;
 import com.jme3.util.BufferUtils;
 import io.github.jmecn.font.freetype.FtBitmap;
 
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.lwjgl.util.freetype.FreeType.*;
 
+/**
+ * A singleton class for image utilities.
+ * It holds a weak reference cache of ImageRaster for each Image.
+ */
 public final class ImageUtils {
-    private ImageUtils() {}
+
+    static final Map<Image, WeakReference<ImageRaster>> weakRefCache;
+
+    static {
+        weakRefCache = new ConcurrentHashMap<>();
+    }
+
+    public static ImageRaster getRaster(Image image) {
+        ImageRaster raster;
+        if (weakRefCache.containsKey(image)) {
+            WeakReference<ImageRaster> ref = weakRefCache.get(image);
+            if (ref.get() != null) {
+                raster = ref.get();
+            } else {
+                raster = ImageRaster.create(image);
+                weakRefCache.put(image, new WeakReference<>(raster));
+            }
+        } else {
+            raster = ImageRaster.create(image);
+            weakRefCache.put(image, new WeakReference<>(raster));
+        }
+        return raster;
+    }
 
     public static Image ftBitmapToImage(FtBitmap bitmap, ColorRGBA color, float gamma) {
         int width = bitmap.getWidth();
@@ -111,57 +140,199 @@ public final class ImageUtils {
         return new Image(format, width, height, ByteBuffer.allocateDirect(capacity), ColorSpace.Linear);
     }
 
+    /**
+     * Xiaolin Wu's line algorithm
+     *
+     * @param destination
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param color
+     */
+    public static void drawLine(Image destination, int x0, int y0, int x1, int y1, ColorRGBA color) {
+        ImageRaster writer = getRaster(destination);
+        ColorRGBA c = new ColorRGBA(color);
+        // draw anti-aliased line
+        boolean steep = Math.abs(y1 - y0) > Math.abs(x1 - x0);
+        if (steep) {
+            int tmp;
+            // swap x0, y0
+            tmp = x0;
+            x0 = y0;
+            y0 = tmp;
+            // swap x1, y1
+            tmp = x1;
+            x1 = y1;
+            y1 = tmp;
+        }
+
+        if (x0 > x1) {
+            int tmp;
+            // swap x0, x1
+            tmp = x0;
+            x0 = x1;
+            x1 = tmp;
+            // swap y0, y1
+            tmp = y0;
+            y0 = y1;
+            y1 = tmp;
+        }
+
+        double gradient;
+        if (x0 == x1) {
+            gradient = 1.0;
+        } else {
+            gradient = (double) (y1 - y0) / (x1 - x0);
+        }
+
+        // handle first endpoint
+        double xend = x0;
+        double yend = y0 + gradient * (xend - x0);
+        double xgap = 0.5;
+        int xpxl1 = x0;// this will be used in the main loop
+        int xpxl2 = x1; //this will be used in the main loop
+        int ypxl1 = (int) yend;
+
+        double intery = yend + gradient;// first y-intersection for the main loop
+
+        if (steep) {
+            plot(writer, ypxl1, xpxl1, c, rfpart(yend) * xgap);
+            plot(writer, ypxl1 + 1, xpxl1, c, fpart(yend) * xgap);
+        } else {
+            plot(writer, xpxl1, ypxl1, c, rfpart(yend) * xgap);
+            plot(writer, xpxl1, ypxl1 + 1, c, fpart(yend) * xgap);
+        }
+
+        // handle second endpoint
+        xend = x1;
+        yend = y1 + gradient * (xend - x1);
+        xgap = 0.5;
+        int ypxl2 = (int) yend;
+        if (steep) {
+            plot(writer, ypxl2, xpxl2, c, rfpart(yend) * xgap);
+            plot(writer, ypxl2 + 1, xpxl2, c, fpart(yend) * xgap);
+        } else {
+            plot(writer, xpxl2, ypxl2, c, rfpart(yend) * xgap);
+            plot(writer, xpxl2, ypxl2 + 1, c, fpart(yend) * xgap);
+        }
+
+        // main loop
+        if (steep) {
+            for (int x = xpxl1 + 1; x <= xpxl2 - 1; x++) {
+                plot(writer, (int) intery, x, c, rfpart(intery));
+                plot(writer, (int) intery + 1, x, c, fpart(intery));
+                intery += gradient;
+            }
+        } else {
+            for (int x = xpxl1 + 1; x <= xpxl2 - 1; x++) {
+                plot(writer, x, (int) intery, c, rfpart(intery));
+                plot(writer, x, (int) intery + 1, c, fpart(intery));
+                intery += gradient;
+            }
+        }
+    }
+
+    static double fpart(double x) {
+        return x - (int) x;
+    }
+    static double rfpart(double x) {
+        return (int) (x + 1.0) - x;
+    }
+    /*
+    // integer part of x
+function ipart(x) is
+    return floor(x)
+
+function round(x) is
+    return ipart(x + 0.5)
+
+// fractional part of x
+function fpart(x) is
+    return x - ipart(x)
+
+function rfpart(x) is
+    return 1 - fpart(x)
+     */
+    private static void plot(ImageRaster raster, int x, int y, ColorRGBA c, double brightness) {
+        if (x < 0 || y < 0 || x >= raster.getWidth() || y >= raster.getHeight()) {
+            return;
+        }
+        // plot the pixel at (x, y) with brightness c (where 0 ≤ c ≤ 1)
+        c.a = (float) brightness;
+        raster.setPixel(x, y, c);
+    }
+
+    public static void drawRect(Image destination, int rectX, int rectY, int rectWidth, int rectHeight, ColorRGBA color) {
+        ImageRaster writer = getRaster(destination);
+        // draw rect but not fill it
+        for (int y = 0; y < rectHeight; y++) {
+            int dy = y + rectY;
+            if (dy < 0 || dy >= destination.getHeight()) {
+                continue;
+            }
+            for (int x = 0; x < rectWidth; x++) {
+                int dx = x + rectX;
+                if (dx < 0 || dx >= destination.getWidth()) {
+                    continue;
+                }
+                if (x == 0 || x == rectWidth - 1 || y == 0 || y == rectHeight - 1) {
+                    writer.setPixel(rectX + x, dy, color);
+                }
+            }
+        }
+    }
+
     public static void drawImage(Image destination, Image source, int x, int y) {
-        ImageRaster writer = ImageRaster.create(destination);
-        ImageRaster reader = ImageRaster.create(source);
-        ColorRGBA src = new ColorRGBA();
-        ColorRGBA dst = new ColorRGBA();
+        drawImage(destination, source, 0, 0, source.getWidth(), source.getHeight(), x, y, false);
+    }
+
+    public static void drawImage(Image destination, Image source, int x, int y, boolean flipY) {
+        drawImage(destination, source, 0, 0, source.getWidth(), source.getHeight(), x, y, flipY);
+    }
+
+    public static void drawImage(Image destination, Image source, int srcX, int srcY, int srcWidth, int srcHeight, int dstX, int dstY) {
+        drawImage(destination, source, srcX, srcY, srcWidth, srcHeight, dstX, dstY, false);
+    }
+
+    public static void drawImage(Image destination, Image source, int srcX, int srcY, int srcWidth, int srcHeight, int dstX, int dstY, boolean flipY) {
+        ImageRaster writer = getRaster(destination);
+        ImageRaster reader = getRaster(source);
 
         int dstWidth = destination.getWidth();
         int dstHeight = destination.getHeight();
-        int srcHeight = source.getHeight();
-        int srcWidth = source.getWidth();
 
-        for (int yPos = 0; yPos < srcHeight; yPos++) {
-            for (int xPos = 0; xPos < srcWidth; xPos++) {
-                int dx = xPos + x;
-                int dy = yPos + y;
-                if (dx < 0 || dx >= dstWidth || dy < 0 || dy >= dstHeight) {
+        ColorRGBA src = new ColorRGBA();
+        ColorRGBA dst = new ColorRGBA();
+        for (int y = 0; y < srcHeight; y++) {
+            int sy = srcY + y;
+            int dy;
+            if (flipY) {
+                dy = dstHeight - 1 - (dstY + y);
+            } else {
+                dy = dstY + y;
+            }
+            if (dy < 0 || dy >= dstHeight) {
+                // out of bounds
+                continue;
+            }
+            for (int x = 0; x < srcWidth; x++) {
+                int sx = srcX + x;
+                int dx = dstX + x;
+                if (dx < 0 || dx >= dstWidth) {
                     // out of bounds
                     continue;
                 }
                 // get
-                reader.getPixel(xPos, yPos, src);
-                writer.getPixel(xPos + x, yPos + y, dst);
-                // set
-                // blend mode: sumAlpha
-                float srcAlpha = src.a;
-                float dstAlpha = dst.a;
-                dst.multLocal(1f - srcAlpha).addLocal(src.multLocal(srcAlpha));
-                dst.a = srcAlpha + dstAlpha;// sum alpha
-                writer.setPixel(xPos + x, yPos + y, dst);
-            }
-        }
-        destination.setUpdateNeeded();
-    }
-
-    public static void drawImage(Image destination, Image source, int srcX, int srcY, int srcWidth, int srcHeight, int dstX, int dstY, int dstWidth, int dstHeight) {
-        ImageRaster writer = ImageRaster.create(destination);
-        ImageRaster reader = ImageRaster.create(source);
-        ColorRGBA src = new ColorRGBA();
-        ColorRGBA dst = new ColorRGBA();
-        for (int y = 0; y < srcWidth; y++) {
-            for (int x = 0; x < srcHeight; x++) {
-                // get
-                reader.getPixel(srcX + x, srcY + y, src);
-                writer.getPixel(dstX + x, dstY + y, dst);
+                reader.getPixel(sx, sy, src);
+                writer.getPixel(dx, dy, dst);
                 // set
                 // blend mode: sumAlpha
                 float srcAlpha = src.a;
                 float dstAlpha = dst.a;
                 dst.multLocal(1f - srcAlpha).addLocal(src.multLocal(srcAlpha));
                 dst.a = srcAlpha + dstAlpha;
-                writer.setPixel(dstX + x, dstY + y, dst);
+                writer.setPixel(dx, dy, dst);
             }
         }
     }

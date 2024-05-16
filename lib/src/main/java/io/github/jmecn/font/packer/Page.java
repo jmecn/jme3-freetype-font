@@ -75,17 +75,7 @@ public class Page {
     }
 
     public void drawImage(Image image, int x, int y) {
-        ImageUtils.drawImage(this.image, image, x, y);
-    }
-
-    public void drawImage(Image image, int x, int y, int srcx, int srcy, int srcWidth, int srcHeight) {
-        ImageUtils.drawImage(this.image, image, x, y);
-    }
-
-    public void drawImage(Image image, int srcx, int srcy, int srcWidth, int srcHeight, int dstx, int dsty, int dstWidth,
-                          int dstHeight) {
-        // TODO
-        ImageUtils.drawImage(this.image, image, srcx, srcy, srcWidth, srcHeight, dstx, dsty, dstWidth, dstHeight);
+        ImageUtils.drawImage(this.image, image, x, y, true);
     }
 
     public int getIndex() {

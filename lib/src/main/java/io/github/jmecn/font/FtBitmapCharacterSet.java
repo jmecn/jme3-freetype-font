@@ -3,6 +3,7 @@ package io.github.jmecn.font;
 import com.jme3.font.BitmapCharacter;
 import com.jme3.font.BitmapCharacterSet;
 import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import com.jme3.util.IntMap;
 import io.github.jmecn.font.freetype.FtFace;
@@ -80,7 +81,7 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
     ///////////////
 
 
-    public List<Image> images;
+    List<Image> images;
 
     // Fields for incremental glyph generation.
     FtFontGenerator generator;
@@ -493,5 +494,9 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
 
     public Image getImage(int page) {
         return images.get(page);
+    }
+
+    public List<Image> getImages() {
+        return images;
     }
 }
