@@ -54,8 +54,6 @@ public class FtFontParameter {
     /** The optional Packer to use for packing multiple fonts into a single texture.
      * @see FtFontParameter */
     private Packer packer = null;
-    /** Whether to flip the font vertically */
-    private boolean flip = false;
     /** Whether to generate mip maps for the resulting texture */
     private boolean genMipMaps = false;
     /** Minification filter */
@@ -299,14 +297,6 @@ public class FtFontParameter {
 
     public void setPacker(Packer packer) {
         this.packer = packer;
-    }
-
-    public boolean isFlip() {
-        return flip;
-    }
-
-    public void setFlip(boolean flip) {
-        this.flip = flip;
     }
 
     public boolean isGenMipMaps() {

@@ -3,7 +3,6 @@ package io.github.jmecn.font;
 import com.jme3.font.BitmapCharacter;
 import com.jme3.font.BitmapCharacterSet;
 import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import com.jme3.util.IntMap;
 import io.github.jmecn.font.freetype.FtFace;
@@ -13,7 +12,6 @@ import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.generator.GlyphRun;
 import io.github.jmecn.font.packer.Packer;
-import io.github.jmecn.font.packer.TextureRegion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,7 +147,7 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
 
         if (glyph == null && generator != null) {
             generator.setPixelSizes(0, parameter.getSize());
-            float baseline = ((flip ? -ascent : ascent) + capHeight) / scaleY;
+            float baseline = (ascent + capHeight) / scaleY;
             glyph = generator.createGlyph((char) ch, this, parameter, stroker, baseline, packer);
             if (glyph == null) {
                 return missingGlyph;
@@ -269,9 +267,6 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
     }
 
     /** Scales the font by the specified amounts on both axes
-     * <p>
-     * Note that smoother scaling can be achieved if the texture backing the BitmapFont is using {@link com.jme3.texture.Texture.MagFilter#Bilinear}.
-     * The default is Nearest, so use a BitmapFont constructor that takes a {@link TextureRegion}.
      * @throws IllegalArgumentException if scaleX or scaleY is zero. */
     public void setScale (float scaleX, float scaleY) {
         if (scaleX == 0) throw new IllegalArgumentException("scaleX cannot be 0.");
@@ -318,15 +313,7 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
     @Override
     public void setLineHeight(int lineHeight) {
         this.lineHeight = (int) (lineHeight * scaleY);
-        down = flip ? this.lineHeight : - this.lineHeight;
-    }
-
-    public boolean isFlip() {
-        return flip;
-    }
-
-    public void setFlip(boolean flip) {
-        this.flip = flip;
+        down = - this.lineHeight;
     }
 
     public float getPadTop() {

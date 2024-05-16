@@ -154,7 +154,6 @@ public class FtFontGenerator implements AutoCloseable {
         // set general font data
         FtSizeMetrics fontMetrics = face.getSize().getMetrics();
         data.setRenderedSize(parameter.getSize());
-        data.setFlip(parameter.isFlip());
         data.setAscent(FtLibrary.from26D6(fontMetrics.getAscender()));
         data.setDescent(FtLibrary.from26D6(fontMetrics.getDescender()));
         data.setLineHeight(FtLibrary.from26D6(fontMetrics.getHeight()));
@@ -216,10 +215,6 @@ public class FtFontGenerator implements AutoCloseable {
 
         data.ascent -= data.capHeight;
         data.down = -data.lineHeight;
-        if (parameter.isFlip()) {
-            data.ascent = -data.ascent;
-            data.down = -data.down;
-        }
 
         FtStroker stroker = null;
         if (parameter.getBorderWidth() > 0) {
@@ -472,11 +467,7 @@ public class FtFontGenerator implements AutoCloseable {
             glyph.setHeight(0);
         }
         glyph.setXOffset(mainGlyph.getLeft());
-        if (parameter.isFlip()) {
-            glyph.setYOffset(-(glyph.getHeight() - mainGlyph.getTop()) - (int) baseLine);
-        } else {
-            glyph.setYOffset((int) baseLine - mainGlyph.getTop());
-        }
+        glyph.setYOffset((int) baseLine - mainGlyph.getTop());
 
         glyph.setXAdvance( FtLibrary.from26D6(metrics.getHoriAdvance()) + (int)parameter.getBorderWidth() + parameter.getSpaceX() );
         glyph.setYAdvance( FtLibrary.from26D6(metrics.getVertAdvance()) + (int)parameter.getBorderWidth() + parameter.getSpaceY() );

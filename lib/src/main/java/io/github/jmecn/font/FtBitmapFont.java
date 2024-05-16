@@ -19,7 +19,6 @@ import java.util.List;
 public class FtBitmapFont extends BitmapFont {
 
     private FtBitmapCharacterSet charSet;
-    private boolean flipped;
     private boolean integer;
     private boolean ownsTexture;
 
@@ -34,7 +33,6 @@ public class FtBitmapFont extends BitmapFont {
     }
 
     public FtBitmapFont(FtBitmapCharacterSet charSet, boolean integer) {
-        this.flipped = charSet.flip;
         this.charSet = charSet;
         this.integer = integer;
 
