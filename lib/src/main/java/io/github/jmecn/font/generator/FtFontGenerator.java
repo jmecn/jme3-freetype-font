@@ -59,7 +59,7 @@ public class FtFontGenerator implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         face.close();
         library.close();
     }
@@ -128,8 +128,8 @@ public class FtFontGenerator implements AutoCloseable {
         return font;
     }
 
-    protected FtBitmapFont newBitmapFont(FtBitmapCharacterSet data, boolean ownsTexture) {
-        return new FtBitmapFont(data, ownsTexture);
+    protected FtBitmapFont newBitmapFont(FtBitmapCharacterSet data) {
+        return new FtBitmapFont(data);
     }
 
     public FtBitmapCharacterSet generateData(int size) {

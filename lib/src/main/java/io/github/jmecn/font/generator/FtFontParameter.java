@@ -85,7 +85,7 @@ public class FtFontParameter {
      * disposed (separately from the generator) when the font is no longer needed. The FreeTypeFontParameter should not be
      * modified after creating a font. If a PixmapPacker is not specified, the font glyph page textures will use
      * {@link FtFontGenerator#MAX_SIZE}. */
-    private boolean incremental;
+    private boolean incremental = true;
 
     public int getSize() {
         return size;
