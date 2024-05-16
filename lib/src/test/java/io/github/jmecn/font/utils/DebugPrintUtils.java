@@ -97,28 +97,11 @@ public class DebugPrintUtils {
     }
 
     public static void drawGlyphRect(FtBitmapCharacterSet data) {
-        IntMap<ImageRaster> rasterMap = new IntMap<>();
-
         for (Glyph glyph : data.getGlyphs()) {
             ColorRGBA color = ColorRGBA.randomColor();
-
             System.out.println(glyph);
-            ImageRaster raster = rasterMap.get(glyph.getPage());
-            if (raster == null) {
-                Image image = data.getImage(glyph.getPage());
-                raster = ImageRaster.create(image);
-                rasterMap.put(glyph.getPage(), raster);
-            }
-
-            // draw rect but not fill it
-            for (int y = 0; y < glyph.getHeight(); y++) {
-                for (int x = 0; x < glyph.getWidth(); x++) {
-                    if (x == 0 || x == glyph.getWidth() - 1 || y == 0 || y == glyph.getHeight() - 1
-                            || x == glyph.getXOffset() || y == glyph.getYOffset()) {
-                        raster.setPixel(glyph.getX() + x, glyph.getY() + y, color);
-                    }
-                }
-            }
+            Image image = data.getImage(glyph.getPage());
+            ImageUtils.drawRect(image, glyph.getX(), glyph.getY(), glyph.getWidth(), glyph.getHeight(), color, true);
         }
 
         System.out.printf("lineHeight=%d, base=%d, ascent=%.1f, descent=%.1f, glyphs=%d\n", data.getLineHeight(), data.getBase(), data.getAscent(), data.getDescent(), data.getGlyphs().size());

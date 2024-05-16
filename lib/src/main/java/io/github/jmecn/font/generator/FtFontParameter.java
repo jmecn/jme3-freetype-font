@@ -68,6 +68,20 @@ public class FtFontParameter {
      */
     private MaterialDef matDef;
 
+    /**
+     * Material uniform param name for the color map.
+     */
+    private String colorMapParamName = "ColorMap";// or DiffuseMap in Lighting.j3md
+
+    /**
+     * When true, vertex color is used instead of texture color.
+     */
+    private boolean useVertexColor = true;
+    /**
+     * Material uniform param name for the vertex color.
+     */
+    private String vertexColorParamName = "VertexColor";
+
     /** When true, glyphs are rendered on the fly to the font's glyph page textures as they are needed. The
      * FreeTypeFontGenerator must not be disposed until the font is no longer needed. The FreeTypeBitmapFontData must be
      * disposed (separately from the generator) when the font is no longer needed. The FreeTypeFontParameter should not be
@@ -325,6 +339,30 @@ public class FtFontParameter {
 
     public void setMatDef(MaterialDef matDef) {
         this.matDef = matDef;
+    }
+
+    public String getColorMapParamName() {
+        return colorMapParamName;
+    }
+
+    public void setColorMapParamName(String colorMapParamName) {
+        this.colorMapParamName = colorMapParamName;
+    }
+
+    public boolean isUseVertexColor() {
+        return useVertexColor;
+    }
+
+    public void setUseVertexColor(boolean useVertexColor) {
+        this.useVertexColor = useVertexColor;
+    }
+
+    public String getVertexColorParamName() {
+        return vertexColorParamName;
+    }
+
+    public void setVertexColorParamName(String vertexColorParamName) {
+        this.vertexColorParamName = vertexColorParamName;
     }
 
     public boolean isIncremental() {

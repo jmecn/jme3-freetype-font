@@ -36,24 +36,30 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetKey;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
-import com.jme3.font.Rectangle;
 import com.jme3.material.MaterialDef;
 import com.jme3.math.ColorRGBA;
-import com.jme3.renderer.queue.RenderQueue.Bucket;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
-import io.github.jmecn.font.FtBitmapFont;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
-import io.github.jmecn.font.utils.DebugPrintUtils;
 
 import java.io.File;
 
 public class TestBitmapText3D extends SimpleApplication {
 
-    final private String txtB =
-    "ABCDEFGHIKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-=_+[]\\;',./{}|:<>?";
+    final private String TEXT = "《将进酒·君不见》\n" +
+            "作者：李白 朝代：唐\n" +
+            "君不见，黄河之水天上来，奔流到海不复回。\n" +
+            "君不见，高堂明镜悲白发，朝如青丝暮成雪。\n" +
+            "人生得意须尽欢，莫使金樽空对月。\n" +
+            "天生我材必有用，千金散尽还复来。\n" +
+            "烹羊宰牛且为乐，会须一饮三百杯。\n" +
+            "岑夫子，丹丘生，将进酒，杯莫停。\n" +
+            "与君歌一曲，请君为我倾耳听。\n" +
+            "钟鼓馔玉不足贵，但愿长醉不愿醒。\n" +
+            "古来圣贤皆寂寞，惟有饮者留其名。\n" +
+            "陈王昔时宴平乐，斗酒十千恣欢谑。\n" +
+            "主人何为言少钱，径须沽取对君酌。\n" +
+            "五花马，千金裘，呼儿将出换美酒，与尔同销万古愁。";
 
     public static void main(String[] args){
         TestBitmapText3D app = new TestBitmapText3D();
@@ -64,31 +70,22 @@ public class TestBitmapText3D extends SimpleApplication {
     public void simpleInitApp() {
         viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 
-        Quad q = new Quad(6, 3);
-        Geometry g = new Geometry("quad", q);
-        g.setLocalTranslation(0, -3, -0.0001f);
-        g.setMaterial(assetManager.loadMaterial("Common/Materials/RedColor.j3m"));
-        rootNode.attachChild(g);
-
         MaterialDef matDef = assetManager.loadAsset(new AssetKey<>("Common/MatDefs/Misc/Unshaded.j3md"));
+
         FtFontGenerator generator = new FtFontGenerator(new File("font/Noto_Serif_SC/NotoSerifSC-Regular.otf"));
         FtFontParameter parameter = new FtFontParameter();
-        parameter.setSize(17);
+        parameter.setSize(16);
         parameter.setMatDef(matDef);
-        //parameter.setIncremental(true);
-        parameter.setMagFilter(Texture.MagFilter.Nearest);
-        parameter.setCharacters(txtB);
+        parameter.setMagFilter(Texture.MagFilter.Bilinear);
+        parameter.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        parameter.setBorderWidth(1);
+        parameter.setCharacters(TEXT);
 
-        FtBitmapFont fnt = generator.generateFont(parameter);
+        BitmapFont fnt = generator.generateFont(parameter);
 
-        DebugPrintUtils.drawGlyphRect(fnt.getCharSet());
-
-        // BitmapFont fnt = assetManager.loadFont("Interface/Fonts/Default.fnt");
         BitmapText txt = new BitmapText(fnt);
-        txt.setBox(new Rectangle(0, 0, 6, 3));
-        txt.setQueueBucket(Bucket.Transparent);
-        txt.setSize( 0.5f );
-        txt.setText(txtB);
+        txt.setSize(0.5f);
+        txt.setText(TEXT);
         rootNode.attachChild(txt);
     }
 

@@ -64,8 +64,7 @@ public class TestBitmapFont extends SimpleApplication {
         inputManager.addListener(keyListener, "WordWrap");
         inputManager.addRawInputListener(textListener);
 
-        FtBitmapFont fnt = new FtBitmapFont(assetManager, new File("font/Noto_Serif_SC/NotoSerifSC-Regular.otf"), 16);
-        DebugPrintUtils.drawGlyphRect(fnt.getCharSet());
+        FtBitmapFont fnt = new FtBitmapFont(assetManager, new File("font/Noto_Serif_SC/NotoSerifSC-Regular.otf"), 17);
 
         txt = new BitmapText(fnt);
         txt.setBox(new Rectangle(0, 0, settings.getWidth(), settings.getHeight()));

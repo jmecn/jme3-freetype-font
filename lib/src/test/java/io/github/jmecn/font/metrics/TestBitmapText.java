@@ -2,6 +2,7 @@ package io.github.jmecn.font.metrics;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetKey;
+import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.font.Rectangle;
 import com.jme3.material.MaterialDef;
@@ -12,6 +13,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
+import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.FtBitmapFont;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
@@ -55,9 +57,9 @@ public class TestBitmapText extends SimpleApplication {
         parameter.setMagFilter(Texture.MagFilter.Nearest);
         parameter.setCharacters(text);
 
-        FtBitmapFont fnt = generator.generateFont(parameter);
+        BitmapFont fnt = generator.generateFont(parameter);
 
-        DebugPrintUtils.drawGlyphRect(fnt.getCharSet());
+        DebugPrintUtils.drawGlyphRect((FtBitmapCharacterSet) fnt.getCharSet());
 
         BitmapText txt = new BitmapText(fnt, false);
         txt.setBox(new Rectangle(0, 0, 6, 3));

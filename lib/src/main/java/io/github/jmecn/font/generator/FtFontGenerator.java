@@ -1,6 +1,8 @@
 package io.github.jmecn.font.generator;
 
 import com.jme3.font.BitmapCharacter;
+import com.jme3.font.BitmapFont;
+import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.texture.Image;
@@ -85,20 +87,35 @@ public class FtFontGenerator implements AutoCloseable {
         }
     }
 
-    public FtBitmapFont generateFont(FtFontParameter parameter) {
+    public BitmapFont generateFont(FtFontParameter parameter) {
         return generateFont(parameter, new FtBitmapCharacterSet());
     }
 
-    public FtBitmapFont generateFont(FtFontParameter parameter, FtBitmapCharacterSet data) {
+    public BitmapFont generateFont(FtFontParameter parameter, FtBitmapCharacterSet data) {
         generateData(parameter, data);
         if (data.getPageSize() == 0) {
             throw new FtRuntimeException("Unable to create a font with no images.");
         }
 
-        FtBitmapFont font = newBitmapFont(data, true);
-        font.setOwnsTexture(parameter.getPacker() == null);
+//        FtBitmapFont font = newBitmapFont(data, true);
+//        font.setOwnsTexture(parameter.getPacker() == null);
 
         // create origin bitmap font
+        BitmapFont font = new BitmapFont() {
+            public FtBitmapCharacterSet getCharSet() {
+                return data;
+            }
+            @Override
+            public Material getPage(int page) {
+                return data.getMaterial(page);
+            }
+
+            @Override
+            public int getPageSize() {
+                return data.getPageSize();
+            }
+        };
+        font.setCharSet(data);
 //        int pageSize = data.getPageSize();
 //        Material[] pages = new Material[pageSize];
 //        for (int i = 0; i < pageSize; i++) {
@@ -456,10 +473,9 @@ public class FtFontGenerator implements AutoCloseable {
         }
         glyph.setXOffset(mainGlyph.getLeft());
         if (parameter.isFlip()) {
-            glyph.setYOffset(-mainGlyph.getTop() + (int) baseLine);
-        }
-        else {
             glyph.setYOffset(-(glyph.getHeight() - mainGlyph.getTop()) - (int) baseLine);
+        } else {
+            glyph.setYOffset((int) baseLine - mainGlyph.getTop());
         }
 
         glyph.setXAdvance( FtLibrary.from26D6(metrics.getHoriAdvance()) + (int)parameter.getBorderWidth() + parameter.getSpaceX() );

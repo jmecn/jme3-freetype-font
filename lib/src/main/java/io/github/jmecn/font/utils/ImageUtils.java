@@ -27,23 +27,6 @@ public final class ImageUtils {
         weakRefCache = new ConcurrentHashMap<>();
     }
 
-    public static ImageRaster getRaster(Image image) {
-        ImageRaster raster;
-        if (weakRefCache.containsKey(image)) {
-            WeakReference<ImageRaster> ref = weakRefCache.get(image);
-            if (ref.get() != null) {
-                raster = ref.get();
-            } else {
-                raster = ImageRaster.create(image);
-                weakRefCache.put(image, new WeakReference<>(raster));
-            }
-        } else {
-            raster = ImageRaster.create(image);
-            weakRefCache.put(image, new WeakReference<>(raster));
-        }
-        return raster;
-    }
-
     public static Image ftBitmapToImage(FtBitmap bitmap, ColorRGBA color, float gamma) {
         int width = bitmap.getWidth();
         int rows = bitmap.getRows();
@@ -151,7 +134,7 @@ public final class ImageUtils {
      * @param color
      */
     public static void drawLine(Image destination, int x0, int y0, int x1, int y1, ColorRGBA color) {
-        ImageRaster writer = getRaster(destination);
+        ImageRaster writer = ImageRaster.create(destination);
         ColorRGBA c = new ColorRGBA(color);
         // draw anti-aliased line
         boolean steep = Math.abs(y1 - y0) > Math.abs(x1 - x0);
@@ -263,24 +246,20 @@ function rfpart(x) is
         raster.setPixel(x, y, c);
     }
 
-    public static void drawRect(Image destination, int rectX, int rectY, int rectWidth, int rectHeight, ColorRGBA color) {
-        ImageRaster writer = getRaster(destination);
-        // draw rect but not fill it
-        for (int y = 0; y < rectHeight; y++) {
-            int dy = y + rectY;
-            if (dy < 0 || dy >= destination.getHeight()) {
-                continue;
-            }
-            for (int x = 0; x < rectWidth; x++) {
-                int dx = x + rectX;
-                if (dx < 0 || dx >= destination.getWidth()) {
-                    continue;
-                }
-                if (x == 0 || x == rectWidth - 1 || y == 0 || y == rectHeight - 1) {
-                    writer.setPixel(rectX + x, dy, color);
-                }
-            }
+    public static void drawRect(Image destination, int rectX, int rectY, int rectWidth, int rectHeight, ColorRGBA color, boolean flipY) {
+        int x0 = rectX;
+        int y0 = rectY;
+        int x1 = rectX + rectWidth - 1;
+        int y1 = rectY + rectHeight - 1;
+
+        if (flipY) {
+            y0 = destination.getHeight() - 1 - y0;
+            y1 = destination.getHeight() - 1 - y1;
         }
+        drawLine(destination, x0, y0, x1, y0, color);
+        drawLine(destination, x0, y1, x1, y1, color);
+        drawLine(destination, x0, y0, x0, y1, color);
+        drawLine(destination, x1, y0, x1, y1, color);
     }
 
     public static void drawImage(Image destination, Image source, int x, int y) {
@@ -296,8 +275,8 @@ function rfpart(x) is
     }
 
     public static void drawImage(Image destination, Image source, int srcX, int srcY, int srcWidth, int srcHeight, int dstX, int dstY, boolean flipY) {
-        ImageRaster writer = getRaster(destination);
-        ImageRaster reader = getRaster(source);
+        ImageRaster writer = ImageRaster.create(destination);
+        ImageRaster reader = ImageRaster.create(source);
 
         int dstWidth = destination.getWidth();
         int dstHeight = destination.getHeight();

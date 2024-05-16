@@ -165,7 +165,7 @@ public class TestGenerateImage {
             DebugPrintUtils.drawGlyphRect(data);
 
             // show image
-            Image[] images = parameter.getPacker().getPages().stream().map(Page::getImage).toArray(Image[]::new);
+            Image[] images = data.getImages().toArray(new Image[0]);
             TestDisplay.run(null, images);
         }
     }

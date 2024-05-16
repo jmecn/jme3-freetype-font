@@ -42,10 +42,13 @@ public class DefaultPageListener implements PageListener {
         Texture2D texture2D = new Texture2D(image);
         texture2D.setMinFilter(parameter.getMinFilter());
         texture2D.setMagFilter(parameter.getMagFilter());
+        texture2D.setAnisotropicFilter(8);
 
         Material material = new Material(parameter.getMatDef());
-        material.setTexture("ColorMap", texture2D);
-        material.setBoolean("VertexColor", true);
+        material.setTexture(parameter.getColorMapParamName(), texture2D);
+        if (parameter.isUseVertexColor()) {
+            material.setBoolean(parameter.getVertexColorParamName(), true);
+        }
         material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
 
         data.addMaterial(page.getIndex(), material);
