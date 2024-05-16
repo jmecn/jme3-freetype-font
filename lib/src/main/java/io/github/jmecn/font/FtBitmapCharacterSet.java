@@ -96,17 +96,6 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         glyphs = new ArrayList<>(128);// all ascii chars
     }
 
-    /**
-     * register a BitmapText to the packer, the new page will be added to the BitmapText when packer is full.
-     *
-     * @param text
-     */
-    public void registerText(BitmapText text) {
-        if (packer != null) {
-            packer.addListener(new BitmapTextPageListener(text));
-        }
-    }
-
     public void addCharacter(int ch, Glyph glyph) {
         getCharacterSet(0).put(ch, glyph);
     }

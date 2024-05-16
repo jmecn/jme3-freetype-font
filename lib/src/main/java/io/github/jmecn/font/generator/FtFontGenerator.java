@@ -2,6 +2,7 @@ package io.github.jmecn.font.generator;
 
 import com.jme3.font.BitmapCharacter;
 import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapText;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -10,7 +11,7 @@ import com.jme3.texture.image.ImageRaster;
 import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.FtBitmapFont;
 import io.github.jmecn.font.Glyph;
-import io.github.jmecn.font.delegate.FtFontAgent;
+import io.github.jmecn.font.delegate.BitmapTextDelegate;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.exception.FtRuntimeException;
 import io.github.jmecn.font.packer.*;
@@ -18,6 +19,10 @@ import io.github.jmecn.font.packer.listener.FtFontMaterialAddListener;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 import io.github.jmecn.font.utils.ImageUtils;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.agent.ByteBuddyAgent;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.matcher.ElementMatchers;
 import org.lwjgl.util.freetype.FreeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.ByteBuffer;
 
+import static net.bytebuddy.dynamic.loading.ClassReloadingStrategy.fromInstalledAgent;
 import static org.lwjgl.util.freetype.FreeType.*;
 
 /**
@@ -39,7 +45,14 @@ public class FtFontGenerator implements AutoCloseable {
     public static final int MIN_SIZE = 64;
 
     static {
-        FtFontAgent.init();
+        // The dark magic to override private method BitmapText#assemble()
+        ByteBuddyAgent.install();
+
+        new ByteBuddy().redefine(BitmapText.class)
+                .method(ElementMatchers.named("assemble"))
+                .intercept(MethodDelegation.to(BitmapTextDelegate.class))
+                .make()
+                .load(BitmapText.class.getClassLoader(), fromInstalledAgent());
     }
 
     FtLibrary library;

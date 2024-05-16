@@ -73,8 +73,8 @@ public class BitmapTextDelegate {
         if (charSet instanceof FtBitmapCharacterSet) {
             FtBitmapCharacterSet ftCharSet = (FtBitmapCharacterSet) charSet;
             int pageSize = ftCharSet.getPageSize();
-            logger.debug("page size:{}, current:{}", pageSize, textPages.length);
             if (pageSize > textPages.length) {
+                logger.debug("page size:{}, current:{}", pageSize, textPages.length);
                 Object array = Array.newInstance(clazzBitmapTextPage, pageSize);
                 for (int i = 0; i < textPages.length; i++) {
                     Array.set(array, i, textPages[i]);
