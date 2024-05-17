@@ -50,7 +50,7 @@ maven:
     <dependency>
         <groupId>io.github.jmecn</groupId>
         <artifactId>jme3-freetype-font</artifactId>
-        <version>0.1.1</version>
+        <version>0.1.2</version>
     </dependency>
 
     <dependency>
@@ -71,7 +71,7 @@ repositories {
 }
 
 dependencies {
-    implementation "io.github.jmecn:jme3-freetype-font:0.1.1"
+    implementation "io.github.jmecn:jme3-freetype-font:0.1.2"
     implementation "org.lwjgl:lwjgl-freetype::natives-windows:3.3.2"
 }
 ```
@@ -128,6 +128,25 @@ public void simpleInitApp() {
     font.setCharSet(charSet);
 }
 ```
+
+Use Distance-field font. You need to change the default MatDef to any other SDF font support shader. I copied on from freetype-gl as a default MatDef.
+
+DON'T set BorderWidth or ShadowOffsetX/Y with SDF font.
+
+```java
+public void simpleInitApp() {
+    assetManager.registerLoader(FtFontLoader.class, "otf");
+    FtFontKey key = new FtFontKey("Font/NotoSerifSC-Regular.otf", 64, true);
+    key.setRenderMode(RenderMode.SDF);// specify the render mode
+    key.setSpread(8);// specify the spread, range in [2, 32]
+    key.setMatDefName("Shaders/Font/SdFont.j3md");// specify the Shader
+    key.setColorMapParamName("ColorMap");
+    key.setUseVertexColor(false);// SdFont currently doesn't support vertex color, so turn it off
+    BitmapFont fnt = assetManager.loadAsset(key);
+}
+```
+
+Enjoy yourself.
 
 ## Note
 
