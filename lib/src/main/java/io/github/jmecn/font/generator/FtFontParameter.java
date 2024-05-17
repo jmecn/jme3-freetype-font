@@ -144,6 +144,7 @@ public class FtFontParameter {
             case SDF:
                 this.magFilter = Texture.MagFilter.Bilinear;
                 this.minFilter = Texture.MinFilter.BilinearNoMipMaps;
+                break;
         }
     }
 
