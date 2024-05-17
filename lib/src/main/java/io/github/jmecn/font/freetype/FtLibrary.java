@@ -1,5 +1,6 @@
 package io.github.jmecn.font.freetype;
 
+import io.github.jmecn.font.exception.FtRuntimeException;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -122,14 +123,19 @@ public class FtLibrary implements AutoCloseable {
         return newFace(inputStream, 0);
     }
 
-    public FtFace newFace(InputStream inputStream, long faceIndex) throws IOException {
+    public FtFace newFace(InputStream inputStream, long faceIndex) {
         // Read all data
         ByteArrayOutputStream bos = new ByteArrayOutputStream(65536);
         BufferedInputStream bis = new BufferedInputStream(inputStream);
         byte[] buffer = new byte[4096];
         int len;
-        while((len = bis.read(buffer) ) != -1) {
-            bos.write(buffer, 0, len);
+        try {
+            while ((len = bis.read(buffer)) != -1) {
+                bos.write(buffer, 0, len);
+            }
+        } catch (IOException e) {
+            logger.error("Failed reading font file", e);
+            throw new FtRuntimeException("Read font data failed", e);
         }
 
         byte[] data = bos.toByteArray();

@@ -33,6 +33,7 @@
 package io.github.jmecn.font.example;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.asset.plugins.FileLocator;
 import com.jme3.font.BitmapText;
 import com.jme3.font.LineWrapMode;
 import com.jme3.font.Rectangle;
@@ -42,9 +43,8 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.event.*;
 import io.github.jmecn.font.FtBitmapFont;
-import io.github.jmecn.font.utils.DebugPrintUtils;
-
-import java.io.File;
+import io.github.jmecn.font.plugins.FtFontKey;
+import io.github.jmecn.font.plugins.FtFontLoader;
 
 public class TestBitmapFont extends SimpleApplication {
 
@@ -64,7 +64,10 @@ public class TestBitmapFont extends SimpleApplication {
         inputManager.addListener(keyListener, "WordWrap");
         inputManager.addRawInputListener(textListener);
 
-        FtBitmapFont fnt = new FtBitmapFont(assetManager, new File("font/Noto_Serif_SC/NotoSerifSC-Regular.otf"), 17);
+        assetManager.registerLocator("font", FileLocator.class);
+        assetManager.registerLoader(FtFontLoader.class, "otf");
+
+        FtBitmapFont fnt = assetManager.loadAsset(new FtFontKey("Noto_Serif_SC/NotoSerifSC-Regular.otf", 17));
 
         txt = new BitmapText(fnt);
         txt.setBox(new Rectangle(0, 0, settings.getWidth(), settings.getHeight()));

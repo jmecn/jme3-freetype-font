@@ -3,7 +3,6 @@ package io.github.jmecn.font.generator;
 import com.jme3.font.BitmapCharacter;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
-import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.texture.Image;
@@ -28,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import static net.bytebuddy.dynamic.loading.ClassReloadingStrategy.fromInstalledAgent;
@@ -76,6 +76,15 @@ public class FtFontGenerator implements AutoCloseable {
         setPixelSizes(0, 15);
     }
 
+    public FtFontGenerator(InputStream in) {
+        this(in, 0);
+    }
+
+    public FtFontGenerator(InputStream in, int faceIndex) {
+        library = new FtLibrary();
+        face = library.newFace(in, faceIndex);
+
+    }
     @Override
     public void close() {
         face.close();
@@ -119,26 +128,7 @@ public class FtFontGenerator implements AutoCloseable {
             throw new FtRuntimeException("Unable to create a font with no images.");
         }
 
-//        FtBitmapFont font = newBitmapFont(data, true);
-
-        // create origin bitmap font
-        BitmapFont font = new BitmapFont() {
-            public FtBitmapCharacterSet getCharSet() {
-                return data;
-            }
-            @Override
-            public Material getPage(int page) {
-                return data.getMaterial(page);
-            }
-
-            @Override
-            public int getPageSize() {
-                return data.getPageSize();
-            }
-        };
-        font.setCharSet(data);
-
-        return font;
+        return new FtBitmapFont(data);
     }
 
     protected FtBitmapFont newBitmapFont(FtBitmapCharacterSet data) {

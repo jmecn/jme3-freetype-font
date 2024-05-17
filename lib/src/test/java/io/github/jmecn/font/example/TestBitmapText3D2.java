@@ -115,7 +115,6 @@ public class TestBitmapText3D2 extends SimpleApplication {
         }
     }
 
-
     private void buildBitmapText() {
         Quad q = new Quad(6, 5);
         Geometry g = new Geometry("quad", q);
