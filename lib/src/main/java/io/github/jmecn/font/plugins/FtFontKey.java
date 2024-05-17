@@ -1,10 +1,10 @@
 package io.github.jmecn.font.plugins;
 
 import com.jme3.asset.AssetKey;
+import com.jme3.font.BitmapFont;
 import com.jme3.material.MaterialDef;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Texture;
-import io.github.jmecn.font.FtBitmapFont;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.generator.enums.Hinting;
 import io.github.jmecn.font.packer.Packer;
@@ -16,7 +16,7 @@ import java.util.Objects;
  *
  * @author yanmaoyuan
  */
-public class FtFontKey extends AssetKey<FtBitmapFont> {
+public class FtFontKey extends AssetKey<BitmapFont> {
 
     private final FtFontParameter delegate;
 

@@ -8,8 +8,8 @@ import com.jme3.math.FastMath;
 import com.jme3.texture.Image;
 import com.jme3.texture.image.ImageRaster;
 import io.github.jmecn.font.FtBitmapCharacterSet;
-import io.github.jmecn.font.FtBitmapFont;
 import io.github.jmecn.font.Glyph;
+import io.github.jmecn.font.delegate.BitmapFontDelegate;
 import io.github.jmecn.font.delegate.BitmapTextDelegate;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.exception.FtRuntimeException;
@@ -53,6 +53,14 @@ public class FtFontGenerator implements AutoCloseable {
                 .intercept(MethodDelegation.to(BitmapTextDelegate.class))
                 .make()
                 .load(BitmapText.class.getClassLoader(), fromInstalledAgent());
+
+        new ByteBuddy().redefine(BitmapFont.class)
+                .method(ElementMatchers.named("getPage"))
+                .intercept(MethodDelegation.to(BitmapFontDelegate.class))
+                .method(ElementMatchers.named("getPageSize"))
+                .intercept(MethodDelegation.to(BitmapFontDelegate.class))
+                .make()
+                .load(BitmapFont.class.getClassLoader(), fromInstalledAgent());
     }
 
     FtLibrary library;
@@ -69,7 +77,7 @@ public class FtFontGenerator implements AutoCloseable {
     public FtFontGenerator(File file, int faceIndex) {
         library = new FtLibrary();
         face = library.newFace(file, faceIndex);
-        name = file.getName();// FIXME with out extension
+        name = face.getFamilyName();
         if (checkForBitmapFont()) {
             return;
         }
@@ -128,17 +136,9 @@ public class FtFontGenerator implements AutoCloseable {
             throw new FtRuntimeException("Unable to create a font with no images.");
         }
 
-        return new FtBitmapFont(data);
-    }
-
-    protected FtBitmapFont newBitmapFont(FtBitmapCharacterSet data) {
-        return new FtBitmapFont(data);
-    }
-
-    public FtBitmapCharacterSet generateData(int size) {
-        FtFontParameter parameter = new FtFontParameter();
-        parameter.setSize(size);
-        return generateData(parameter);
+        BitmapFont font = new BitmapFont();
+        font.setCharSet(data);
+        return font;
     }
 
     public FtBitmapCharacterSet generateData(FtFontParameter parameter) {

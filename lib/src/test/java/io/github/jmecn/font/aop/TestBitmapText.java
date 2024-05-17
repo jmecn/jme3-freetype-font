@@ -41,10 +41,10 @@ class TestBitmapText {
         FtFontGenerator generator = new FtFontGenerator(new File("../font/FreeSerif.ttf"));
         FtBitmapCharacterSet charSet = generator.generateData(parameter);
 
-        BitmapFont font = generator.generateFont(charSet);
+        BitmapFont font = new BitmapFont();
+        font.setCharSet(charSet);
 
         BitmapText text = new BitmapText(font, false, false);
-        System.out.println(text);
 
         ///// important, this line will add a listener to packer, so new BitmapTextPage will be created when needed
         // charSet.registerText(text);

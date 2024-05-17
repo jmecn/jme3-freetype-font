@@ -5,8 +5,6 @@ import com.jme3.asset.AssetKey;
 import com.jme3.asset.AssetLoader;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.MaterialDef;
-import io.github.jmecn.font.FtBitmapCharacterSet;
-import io.github.jmecn.font.FtBitmapFont;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 
@@ -24,8 +22,7 @@ public class FtFontLoader implements AssetLoader {
 
         FtFontGenerator generator = new FtFontGenerator(assetInfo.openStream());
         FtFontParameter parameter = newParameter(assetManager, key);
-        FtBitmapCharacterSet charSet = generator.generateData(parameter);
-        return new FtBitmapFont(charSet);
+        return generator.generateFont(parameter);
     }
 
     private FtFontParameter newParameter(AssetManager assetManager, AssetKey<?> key) {

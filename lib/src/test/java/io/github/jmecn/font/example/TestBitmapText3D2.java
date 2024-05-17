@@ -46,12 +46,10 @@ import com.jme3.scene.shape.Quad;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
-import io.github.jmecn.font.FtBitmapFont;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
-import io.github.jmecn.font.utils.DebugPrintUtils;
 
 import java.io.File;
 

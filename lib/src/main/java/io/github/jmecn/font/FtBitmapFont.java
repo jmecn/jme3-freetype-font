@@ -11,7 +11,9 @@ import io.github.jmecn.font.generator.FtFontParameter;
 import java.io.File;
 
 /**
- * desc:
+ * This is a convenience class that loads a font from a file.
+ *
+ * @author yanmaoyuan
  */
 public class FtBitmapFont extends BitmapFont {
 
@@ -56,11 +58,6 @@ public class FtBitmapFont extends BitmapFont {
     }
 
     @Override
-    public FtBitmapCharacterSet getCharSet() {
-        return charSet;
-    }
-
-    @Override
     public Material getPage(int page) {
         return charSet.getMaterial(page);
     }
@@ -70,6 +67,4 @@ public class FtBitmapFont extends BitmapFont {
         return charSet.getPageSize();
     }
 
-    public void payload(String text) {
-    }
 }
