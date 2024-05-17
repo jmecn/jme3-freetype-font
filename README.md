@@ -111,7 +111,7 @@ public void simpleInitApp() {
     FtFontParameter params = new FtFontParameter();
     params.setSize(16);
     params.setIncremental(true);
-    params.setMono(true);
+    params.setRenderMode(RenderMode.MONO);
     params.setMagFilter(Texture.MagFilter.Nearest);
     params.setMinFilter(Texture.MinFilter.NearestNoMipMap);
 
