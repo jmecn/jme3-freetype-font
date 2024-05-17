@@ -1,6 +1,9 @@
 package io.github.jmecn.font.editor;
 
+import com.jme3.app.DetailedProfilerState;
 import com.jme3.app.SimpleApplication;
+import com.jme3.app.StatsAppState;
+import com.jme3.app.state.AppState;
 import com.jme3.asset.plugins.FileLocator;
 import com.jme3.font.BitmapFont;
 import com.jme3.material.Material;
@@ -24,19 +27,32 @@ import io.github.jmecn.font.plugins.FtFontLoader;
 public class Main extends SimpleApplication {
     public static void main(String[] args) {
         AppSettings settings = new AppSettings(true);
-        settings.setResolution(848, 480);
+        settings.setResolution(1280, 720);
         settings.setTitle("Freetype font editor");
         settings.setSamples(4);
 
-        Main app = new Main();
+        Main app = new Main(new StatsAppState(), new DetailedProfilerState());
         app.setSettings(settings);
         app.start();
+    }
+
+    public Main(AppState... states) {
+        super(states);
     }
 
     @Override
     public void simpleInitApp() {
         assetManager.registerLoader(FtFontLoader.class, "otf", "ttf");
 
+        // hide stats and profiler by default
+        StatsAppState statsAppState = stateManager.getState(StatsAppState.class);
+        statsAppState.initialize(stateManager, this);
+        statsAppState.setDisplayStatView(false);
+        statsAppState.setDisplayFps(false);
+
+        DetailedProfilerState profilerState = stateManager.getState(DetailedProfilerState.class);
+        profilerState.initialize(stateManager, this);
+        profilerState.setEnabled(false);
 
         // init sky
         Spatial sky = SkyFactory.createSky(assetManager, "sky/env1.hdr", SkyFactory.EnvMapType.EquirectMap);
