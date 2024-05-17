@@ -40,6 +40,7 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
+import io.github.jmecn.font.FtBitmapFont;
 
 public class TestBitmapFontAlignment extends SimpleApplication {
 
@@ -52,6 +53,8 @@ public class TestBitmapFontAlignment extends SimpleApplication {
     public void simpleInitApp() {
         int width = getCamera().getWidth();
         int height = getCamera().getHeight();
+
+        FtBitmapFont guiFont = new FtBitmapFont(assetManager, "jme3test/font/FreeSerif.ttf", 17);
 
         // VAlign.Top
         BitmapText labelAlignTop = guiFont.createLabel("This text has VAlign.Top.");

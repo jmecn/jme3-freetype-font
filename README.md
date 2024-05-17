@@ -36,3 +36,6 @@ Other important features(in plan):
 * Support generating SDF fonts and rendering them correctly.
 * Support font fallback. Users can set the priority of fonts like CSS style sheets.
 * With the support of harfbuzz, correctly handle glyphs and accurately recognize languages with different writing script.
+
+## How to use
+

@@ -60,9 +60,9 @@ public class FtFontParameter {
     /** Whether to generate mip maps for the resulting texture */
     private boolean genMipMaps = false;
     /** Minification filter */
-    private Texture.MinFilter minFilter = Texture.MinFilter.BilinearNoMipMaps;
+    private Texture.MinFilter minFilter = Texture.MinFilter.NearestNoMipMaps;
     /** Magnification filter */
-    private Texture.MagFilter magFilter = Texture.MagFilter.Bilinear;
+    private Texture.MagFilter magFilter = Texture.MagFilter.Nearest;
 
     /**
      * Material definition to use for the font.
