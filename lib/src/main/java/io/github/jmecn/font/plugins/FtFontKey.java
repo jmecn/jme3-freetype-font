@@ -45,6 +45,14 @@ public class FtFontKey extends AssetKey<BitmapFont> {
 
     /// delegate method ///
 
+    public boolean isRightToLeft() {
+        return delegate.isRightToLeft();
+    }
+
+    public void setRightToLeft(boolean rightToLeft) {
+        delegate.setRightToLeft(rightToLeft);
+    }
+
     public int getSize() {
         return delegate.getSize();
     }

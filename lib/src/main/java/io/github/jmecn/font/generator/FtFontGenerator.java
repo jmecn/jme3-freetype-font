@@ -128,16 +128,13 @@ public class FtFontGenerator implements AutoCloseable {
 
     public BitmapFont generateFont(FtFontParameter parameter, FtBitmapCharacterSet data) {
         generateData(parameter, data);
-        return generateFont(data);
-    }
 
-    public BitmapFont generateFont(FtBitmapCharacterSet data) {
         if (data.getPageSize() == 0) {
             throw new FtRuntimeException("Unable to create a font with no images.");
         }
-
         BitmapFont font = new BitmapFont();
         font.setCharSet(data);
+        font.setRightToLeft(parameter.isRightToLeft());
         return font;
     }
 

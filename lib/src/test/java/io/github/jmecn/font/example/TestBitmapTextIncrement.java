@@ -112,7 +112,7 @@ public class TestBitmapTextIncrement extends SimpleApplication {
         parameter.setIncremental(true);// important
 
         FtBitmapCharacterSet characterSet = generator.generateData(parameter);
-        BitmapFont fnt = generator.generateFont(characterSet);
+        BitmapFont fnt = generator.generateFont(parameter, characterSet);
 
         txt = new BitmapText(fnt);
         txt.setSize(0.2f);
