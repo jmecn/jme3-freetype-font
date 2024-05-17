@@ -5,6 +5,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Texture;
 import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.enums.Hinting;
+import io.github.jmecn.font.generator.enums.RenderMode;
 import io.github.jmecn.font.packer.Packer;
 
 import java.util.Objects;
@@ -19,8 +20,8 @@ public class FtFontParameter {
 
     /** The size in pixels */
     private int size = 16;
-    /** If true, font smoothing is disabled. */
-    private boolean mono;
+    private RenderMode renderMode = RenderMode.NORMAL;
+    private int spread = 2;
     /** Strength of hinting */
     private Hinting hinting = Hinting.NORMAL;
     /** Foreground color (required for non-black borders) */
@@ -112,14 +113,6 @@ public class FtFontParameter {
         this.size = size;
     }
 
-    public boolean isMono() {
-        return mono;
-    }
-
-    public void setMono(boolean mono) {
-        this.mono = mono;
-    }
-
     public Hinting getHinting() {
         return hinting;
     }
@@ -135,13 +128,35 @@ public class FtFontParameter {
         return hinting.getLoadFlags();
     }
 
-    public int getRenderMode() {
-        if (mono) {
-            return FT_RENDER_MODE_MONO;
-        } else {
-            // TODO support sdf
-            return FT_RENDER_MODE_NORMAL;
+    public void setRenderMode(RenderMode renderMode) {
+        this.renderMode = renderMode;
+        // automatically set the texture filter
+        switch (renderMode) {
+            case MONO:
+                this.magFilter = Texture.MagFilter.Nearest;
+                this.minFilter = Texture.MinFilter.NearestNoMipMaps;
+                break;
+            case LIGHT:
+            case NORMAL:
+                this.magFilter = Texture.MagFilter.Bilinear;
+                this.minFilter = Texture.MinFilter.NearestNoMipMaps;
+                break;
+            case SDF:
+                this.magFilter = Texture.MagFilter.Bilinear;
+                this.minFilter = Texture.MinFilter.BilinearNoMipMaps;
         }
+    }
+
+    public RenderMode getRenderMode() {
+        return renderMode;
+    }
+
+    public int getSpread() {
+        return spread;
+    }
+
+    public void setSpread(int spread) {
+        this.spread = spread;
     }
 
     public ColorRGBA getColor() {
@@ -397,11 +412,11 @@ public class FtFontParameter {
             return false;
         }
         FtFontParameter parameter = (FtFontParameter) o;
-        return size == parameter.size && mono == parameter.mono && Float.compare(gamma, parameter.gamma) == 0 && renderCount == parameter.renderCount && Float.compare(borderWidth, parameter.borderWidth) == 0 && borderStraight == parameter.borderStraight && Float.compare(borderGamma, parameter.borderGamma) == 0 && shadowOffsetX == parameter.shadowOffsetX && shadowOffsetY == parameter.shadowOffsetY && spaceX == parameter.spaceX && spaceY == parameter.spaceY && padTop == parameter.padTop && padLeft == parameter.padLeft && padBottom == parameter.padBottom && padRight == parameter.padRight && kerning == parameter.kerning && genMipMaps == parameter.genMipMaps && useVertexColor == parameter.useVertexColor && incremental == parameter.incremental && hinting == parameter.hinting && Objects.equals(color, parameter.color) && Objects.equals(borderColor, parameter.borderColor) && Objects.equals(shadowColor, parameter.shadowColor) && Objects.equals(characters, parameter.characters) && Objects.equals(packer, parameter.packer) && minFilter == parameter.minFilter && magFilter == parameter.magFilter && Objects.equals(matDef, parameter.matDef) && Objects.equals(matDefName, parameter.matDefName) && Objects.equals(colorMapParamName, parameter.colorMapParamName) && Objects.equals(vertexColorParamName, parameter.vertexColorParamName);
+        return size == parameter.size && renderMode == parameter.renderMode && spread == parameter.spread && Float.compare(gamma, parameter.gamma) == 0 && renderCount == parameter.renderCount && Float.compare(borderWidth, parameter.borderWidth) == 0 && borderStraight == parameter.borderStraight && Float.compare(borderGamma, parameter.borderGamma) == 0 && shadowOffsetX == parameter.shadowOffsetX && shadowOffsetY == parameter.shadowOffsetY && spaceX == parameter.spaceX && spaceY == parameter.spaceY && padTop == parameter.padTop && padLeft == parameter.padLeft && padBottom == parameter.padBottom && padRight == parameter.padRight && kerning == parameter.kerning && genMipMaps == parameter.genMipMaps && useVertexColor == parameter.useVertexColor && incremental == parameter.incremental && hinting == parameter.hinting && Objects.equals(color, parameter.color) && Objects.equals(borderColor, parameter.borderColor) && Objects.equals(shadowColor, parameter.shadowColor) && Objects.equals(characters, parameter.characters) && Objects.equals(packer, parameter.packer) && minFilter == parameter.minFilter && magFilter == parameter.magFilter && Objects.equals(matDef, parameter.matDef) && Objects.equals(matDefName, parameter.matDefName) && Objects.equals(colorMapParamName, parameter.colorMapParamName) && Objects.equals(vertexColorParamName, parameter.vertexColorParamName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(size, mono, hinting, color, gamma, renderCount, borderWidth, borderColor, borderStraight, borderGamma, shadowOffsetX, shadowOffsetY, shadowColor, spaceX, spaceY, padTop, padLeft, padBottom, padRight, characters, kerning, packer, genMipMaps, minFilter, magFilter, matDef, matDefName, colorMapParamName, useVertexColor, vertexColorParamName, incremental);
+        return Objects.hash(size, renderMode, spread, hinting, color, gamma, renderCount, borderWidth, borderColor, borderStraight, borderGamma, shadowOffsetX, shadowOffsetY, shadowColor, spaceX, spaceY, padTop, padLeft, padBottom, padRight, characters, kerning, packer, genMipMaps, minFilter, magFilter, matDef, matDefName, colorMapParamName, useVertexColor, vertexColorParamName, incremental);
     }
 }

@@ -13,6 +13,7 @@ import io.github.jmecn.font.delegate.BitmapFontDelegate;
 import io.github.jmecn.font.delegate.BitmapTextDelegate;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.exception.FtRuntimeException;
+import io.github.jmecn.font.generator.enums.RenderMode;
 import io.github.jmecn.font.packer.*;
 import io.github.jmecn.font.packer.listener.FtFontMaterialAddListener;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
@@ -358,11 +359,15 @@ public class FtFontGenerator implements AutoCloseable {
             return null;
         }
 
+        if (parameter.getRenderMode() == RenderMode.SDF) {
+            library.setSdfSpread(parameter.getSpread());
+        }
+
         FtGlyphSlot slot = face.getGlyph();
         FtGlyph main = slot.getGlyph();
         FtBitmapGlyph mainGlyph;
         try {
-            mainGlyph = main.toBitmap(parameter.getRenderMode());
+            mainGlyph = main.toBitmap(parameter.getRenderMode().getMode());
         } catch (FtRuntimeException e) {
             main.close();
             logger.error("Couldn't render codepoint: {}, char:{}", (int) c, c, e);
@@ -380,7 +385,7 @@ public class FtFontGenerator implements AutoCloseable {
                 long left = mainGlyph.getLeft();
                 FtGlyph border = slot.getGlyph();
                 border = border.strokeBorder(stroker, false, true);
-                FtBitmapGlyph borderGlyph = border.toBitmap(parameter.getRenderMode());
+                FtBitmapGlyph borderGlyph = border.toBitmap(parameter.getRenderMode().getMode());
                 offsetX = left - borderGlyph.getLeft();
                 offsetY = -(top - borderGlyph.getTop());
 
@@ -504,6 +509,13 @@ public class FtFontGenerator implements AutoCloseable {
         glyph.setX(rect.getX());
         glyph.setY(rect.getY());
 
+        if (parameter.getRenderMode() == RenderMode.SDF) {
+            // smaller
+            glyph.setX(rect.getX() + parameter.getSpread());
+            glyph.setY(rect.getY() + parameter.getSpread());
+            glyph.setWidth(glyph.getWidth() - parameter.getSpread() * 2);
+            glyph.setHeight(glyph.getHeight() - parameter.getSpread() * 2);
+        }
         mainImage.dispose();
         mainGlyph.close();
 

@@ -7,6 +7,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Texture;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.generator.enums.Hinting;
+import io.github.jmecn.font.generator.enums.RenderMode;
 import io.github.jmecn.font.packer.Packer;
 
 import java.util.Objects;
@@ -61,14 +62,6 @@ public class FtFontKey extends AssetKey<BitmapFont> {
         delegate.setSize(size);
     }
 
-    public boolean isMono() {
-        return delegate.isMono();
-    }
-
-    public void setMono(boolean mono) {
-        delegate.setMono(mono);
-    }
-
     public Hinting getHinting() {
         return delegate.getHinting();
     }
@@ -81,8 +74,20 @@ public class FtFontKey extends AssetKey<BitmapFont> {
         return delegate.getLoadFlags();
     }
 
-    public int getRenderMode() {
+    public void setRenderMode(RenderMode renderMode) {
+        delegate.setRenderMode(renderMode);
+    }
+
+    public RenderMode getRenderMode() {
         return delegate.getRenderMode();
+    }
+
+    public int getSpread() {
+        return delegate.getSpread();
+    }
+
+    public void setSpread(int spread) {
+        delegate.setSpread(spread);
     }
 
     public ColorRGBA getColor() {

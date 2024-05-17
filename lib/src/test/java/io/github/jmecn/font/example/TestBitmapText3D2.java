@@ -48,6 +48,7 @@ import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
+import io.github.jmecn.font.generator.enums.RenderMode;
 import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 
@@ -74,6 +75,53 @@ public class TestBitmapText3D2 extends SimpleApplication {
 
         buildBitmapText();
         buildFtBitmapText();
+        buildSdfBitmapText();
+    }
+
+    private void buildSdfBitmapText() {
+        Quad q = new Quad(6, 5);
+        Geometry g = new Geometry("quad", q);
+        g.setLocalTranslation(-6, -5, -0.0001f);
+        g.setMaterial(assetManager.loadMaterial("Common/Materials/RedColor.j3m"));
+        rootNode.attachChild(g);
+
+        MaterialDef matDef = assetManager.loadAsset(new AssetKey<>("Shaders/Font/SdFont.j3md"));
+        FtFontGenerator generator = new FtFontGenerator(new File("font/FreeSerif.ttf"));
+        FtFontParameter parameter = new FtFontParameter();
+        parameter.setPacker(new Packer(Image.Format.RGBA8, 256, 256, 0, false, new SkylineStrategy()));
+        parameter.setSize(32);
+        parameter.setRenderMode(RenderMode.SDF);
+        parameter.setSpread(4);
+        parameter.setMatDef(matDef);
+        parameter.setUseVertexColor(false);
+        parameter.setCharacters(TEXT);
+
+        BitmapFont fnt = generator.generateFont(parameter);
+
+        BitmapText txt = new BitmapText(fnt);
+        txt.setBox(new Rectangle(0, 0, 6, 5));
+        txt.setQueueBucket(Bucket.Transparent);
+        txt.setSize( 0.5f );
+        txt.setText(TEXT);
+        txt.setLocalTranslation(-6, 0, 0);
+        rootNode.attachChild(txt);
+
+        // show font images
+        int pageSize = fnt.getPageSize();
+        for (int i = 0; i < pageSize; i++) {
+            Geometry g2 = buildFontPage(fnt, i);
+            g2.setLocalTranslation(-6, i * 6, 0);
+            rootNode.attachChild(g2);
+        }
+    }
+
+    private Geometry buildFontPage(BitmapFont font, int i) {
+        Geometry page = new Geometry("page#" + i, new Quad(6, 6));
+        Material mat = font.getPage(i);
+        Material unshaded = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        unshaded.setTexture("ColorMap", mat.getTextureParam("ColorMap").getTextureValue());
+        page.setMaterial(unshaded);
+        return page;
     }
 
     private void buildFtBitmapText() {
@@ -105,10 +153,8 @@ public class TestBitmapText3D2 extends SimpleApplication {
         // show font images
         int pageSize = fnt.getPageSize();
         for (int i = 0; i < pageSize; i++) {
-            Geometry g2 = new Geometry("quad", new Quad(6, 6));
+            Geometry g2 = buildFontPage(fnt, i);
             g2.setLocalTranslation(0, i * 6, 0);
-            Material mat = fnt.getPage(i);
-            g2.setMaterial(mat);
             rootNode.attachChild(g2);
         }
     }
@@ -132,10 +178,8 @@ public class TestBitmapText3D2 extends SimpleApplication {
         // show font images
         int pageSize = fnt.getPageSize();
         for (int i = 0; i < pageSize; i++) {
-            Geometry g2 = new Geometry("quad", new Quad(6, 6));
+            Geometry g2 = buildFontPage(fnt, i);
             g2.setLocalTranslation(6, i * 6, 0);
-            Material mat = fnt.getPage(i);
-            g2.setMaterial(mat);
             rootNode.attachChild(g2);
         }
     }
