@@ -365,7 +365,7 @@ public class FtFontGenerator implements AutoCloseable {
             mainGlyph = main.toBitmap(parameter.getRenderMode());
         } catch (FtRuntimeException e) {
             main.close();
-            logger.error("Couldn't render char: {}", c, e);
+            logger.error("Couldn't render codepoint: {}, char:{}", (int) c, c, e);
             return null;
         }
         FtBitmap mainBitmap = mainGlyph.getBitmap();
