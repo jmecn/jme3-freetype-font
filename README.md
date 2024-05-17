@@ -25,7 +25,7 @@
 
 Core (in plan):
 
-* Load *.ttf fonts and render them with the support of freetype 1. The backend now is lwjgl-freetype.
+* Load *.ttf fonts and render them with the support of freetype. The backend now is lwjgl-freetype.
 * Generate a BitmapFont of your desired size on the fly.
 * Seamless integration with the original BitmapFont and BitmapText. This is mainly to allow Lemur to use the new font directly, and other jME3 user projects can also easily replace the font.
 * A font editor tool like hiero, in pure jME3 way. User can preview the font, save and load font presets with it. 
