@@ -4,7 +4,9 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Image;
@@ -33,6 +35,8 @@ public class TestGlyphMetrics extends SimpleApplication {
     private static final int loadFlags = FT_LOAD_DEFAULT | FT_LOAD_NO_BITMAP;
 
     private final TestGlyph[] params;
+    // private static final float[] SCALES = {0.25f, 0.5f, 1, 2};
+    private static final float[] SCALES = {1};
 
     public static void main(String[] args) {
         AppSettings settings = new AppSettings(true);
@@ -60,6 +64,9 @@ public class TestGlyphMetrics extends SimpleApplication {
         try(FtLibrary library = new FtLibrary()) {
             for (TestGlyph param : params) {
                 FtFace face = faceMap.computeIfAbsent(param.getFont(), (k) -> library.newFace(param.getFont()));
+                if (param.getRenderMode() == FT_RENDER_MODE_SDF) {
+                    library.setSdfSpread(param.getSpread());
+                }
                 loadGlyphMetrics(face, param);
             }
             // close face
@@ -118,15 +125,24 @@ public class TestGlyphMetrics extends SimpleApplication {
     }
 
     private void loadImages() {
+        Node node = new Node();
+        node.setQueueBucket(RenderQueue.Bucket.Transparent);
         int i = 0;
+        float maxScale = SCALES[SCALES.length - 1];
         for (TestGlyph glyph : params) {
             Geometry geom = loadImage(glyph);
             if (geom != null) {
-                //geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-                geom.setLocalTranslation(i++, 0, 0);
-                rootNode.attachChild(geom);
+                for (float scale : SCALES) {
+                    Geometry copy = geom.clone();
+                    copy.scale(scale);
+                    copy.move(i * 32, 0, i);
+                    node.attachChild(copy);
+                }
             }
+            i++;
         }
+        node.scale(1f / 64);
+        rootNode.attachChild(node);
     }
     private Geometry loadImage(TestGlyph glyph) {
         if (glyph.getImage() == null) {
@@ -146,8 +162,23 @@ public class TestGlyphMetrics extends SimpleApplication {
         material.setTexture("ColorMap", texture);
         material.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
 
-        Geometry picture = new Geometry("picture", new Quad(1, 1));
+        // make all characters the same height
+        int imageWidth = glyph.getImage().getWidth();
+        int imageHeight = glyph.getImage().getHeight();
+        int glyphWidth = glyph.getWidth();
+        int glyphHeight = glyph.getHeight();
+        int spread = glyph.getSpread();
+
+        Geometry picture = new Geometry("picture", new Quad(imageWidth, imageHeight, true));
+        picture.setQueueBucket(RenderQueue.Bucket.Transparent);
         picture.setMaterial(material);
+
+        if (glyph.getRenderMode() == FT_RENDER_MODE_SDF) {
+            // the sdf image size is larger than glyph metrics size
+            // image width = spread * 2 + width
+            // image height = spread * 2 + height
+            picture.move(-spread, -spread, 0);
+        }
         return picture;
     }
 

@@ -3,6 +3,7 @@ package io.github.jmecn.font.metrics;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
+import io.github.jmecn.font.freetype.FtLibrary;
 
 import static org.lwjgl.util.freetype.FreeType.FT_RENDER_MODE_NORMAL;
 
@@ -18,6 +19,7 @@ public class TestGlyph {
     String font;
     int pixelSize = 16;
     int renderMode = FT_RENDER_MODE_NORMAL;
+    int spread = 2;// in [2, 32], for sdf render
     ColorRGBA color = ColorRGBA.White;
     float gamma = 1.8f;
     Texture.MinFilter minFilter = Texture.MinFilter.NearestNoMipMaps;
@@ -91,6 +93,18 @@ public class TestGlyph {
 
     public TestGlyph setRenderMode(int renderMode) {
         this.renderMode = renderMode;
+        return this;
+    }
+
+    public int getSpread() {
+        return spread;
+    }
+
+    public TestGlyph setSpread(int spread) {
+        if (spread < FtLibrary.MIN_SPREAD || spread > FtLibrary.MAX_SPREAD) {
+            throw new IllegalArgumentException("spread should between [2, 32]");
+        }
+        this.spread = spread;
         return this;
     }
 
@@ -277,4 +291,5 @@ public class TestGlyph {
     public void setImage(Image image) {
         this.image = image;
     }
+
 }

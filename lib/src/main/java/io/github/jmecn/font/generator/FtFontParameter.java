@@ -62,7 +62,7 @@ public class FtFontParameter {
     /** Minification filter */
     private Texture.MinFilter minFilter = Texture.MinFilter.NearestNoMipMaps;
     /** Magnification filter */
-    private Texture.MagFilter magFilter = Texture.MagFilter.Nearest;
+    private Texture.MagFilter magFilter = Texture.MagFilter.Bilinear;
 
     /**
      * Material definition to use for the font.

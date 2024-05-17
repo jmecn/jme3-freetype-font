@@ -25,13 +25,18 @@ public class FtFontKey extends AssetKey<FtBitmapFont> {
     }
 
     public FtFontKey(String name) {
-        this(name, FtFontParameter.DEFAULT_FONT_SIZE);
+        this(name, FtFontParameter.DEFAULT_FONT_SIZE, false);
     }
 
     public FtFontKey(String name, int size) {
+        this(name, size, false);
+    }
+
+    public FtFontKey(String name, int size, boolean incremental) {
         super(name);
         delegate = new FtFontParameter();
         setSize(size);
+        setIncremental(incremental);
     }
 
     public FtFontParameter getDelegate() {

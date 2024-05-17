@@ -56,13 +56,13 @@ public class TestGenerateMaterialSerif extends SimpleApplication {
 
         FtBitmapCharacterSet data = generator.generateData(parameter);
 
-        DebugPrintUtils.drawGlyphRect(data);
+        //DebugPrintUtils.drawGlyphRect(data);
 
         float size = 2f;
         int pageSize = data.getPageSize();
         for (int i = 0; i < pageSize; i++) {
 
-            Geometry geom = new Geometry("image#" + i, new Quad(size, size, true));
+            Geometry geom = new Geometry("image#" + i, new Quad(size, size));
 
             Material mat = data.getMaterial(i);
             geom.setMaterial(mat);

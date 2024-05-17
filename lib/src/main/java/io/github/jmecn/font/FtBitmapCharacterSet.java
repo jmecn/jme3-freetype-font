@@ -2,7 +2,6 @@ package io.github.jmecn.font;
 
 import com.jme3.font.BitmapCharacter;
 import com.jme3.font.BitmapCharacterSet;
-import com.jme3.font.BitmapText;
 import com.jme3.material.Material;
 import com.jme3.texture.Image;
 import com.jme3.util.IntMap;
@@ -12,7 +11,6 @@ import io.github.jmecn.font.freetype.FtStroker;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.packer.Packer;
-import io.github.jmecn.font.packer.listener.BitmapTextPageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,7 +140,7 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         if (glyph == null && generator != null) {
             generator.setPixelSizes(0, parameter.getSize());
             float baseline = (ascent + capHeight) / scaleY;
-            glyph = generator.createGlyph((char) ch, this, parameter, stroker, baseline, packer);
+            glyph = generator.createGlyph((char) ch, parameter, stroker, baseline, packer);
             if (glyph == null) {
                 return missingGlyph;
             }

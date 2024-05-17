@@ -234,7 +234,7 @@ public class FtFontGenerator implements AutoCloseable {
             heights[i] = height;
 
             if (c == '\0') {
-                Glyph missingGlyph = createGlyph('\0', data, parameter, stroker, baseLine, packer);
+                Glyph missingGlyph = createGlyph('\0', parameter, stroker, baseLine, packer);
                 if (missingGlyph != null && missingGlyph.getWidth() != 0 && missingGlyph.getHeight() != 0) {
                     data.addCharacter('\0', missingGlyph);
                     data.missingGlyph = missingGlyph;
@@ -256,7 +256,7 @@ public class FtFontGenerator implements AutoCloseable {
 
             char c = characters[best];
             if (data.getCharacter(c) == null) {
-                Glyph glyph = createGlyph(c, data, parameter, stroker, baseLine, packer);
+                Glyph glyph = createGlyph(c, parameter, stroker, baseLine, packer);
                 if (glyph != null) {
                     data.addCharacter(c, glyph);
                     data.getGlyphs().add(glyph);
@@ -350,8 +350,7 @@ public class FtFontGenerator implements AutoCloseable {
     }
 
     /** @return null if glyph was not found. */
-    public Glyph createGlyph(char c, FtBitmapCharacterSet data, FtFontParameter parameter, FtStroker stroker,
-                             float baseLine, Packer packer) {
+    public Glyph createGlyph(char c, FtFontParameter parameter, FtStroker stroker, float baseLine, Packer packer) {
 
         boolean missing = face.getCharIndex(c) == 0 && c != 0;
         if (missing) {
