@@ -3,6 +3,12 @@ MaterialDef Font {
     MaterialParameters {
         Texture2D ColorMap
         Color Color
+        Color Color (Color)
+        Boolean VertexColor (UseVertexColor)
+        // The glow color of the object
+        Color GlowColor
+        // Alpha threshold for fragment discarding
+        Float AlphaDiscardThreshold (AlphaTestFallOff) : 0.02
     }
 
     Technique {
@@ -22,6 +28,8 @@ MaterialDef Font {
         Defines {
             HAS_COLOR_MAP : ColorMap
             HAS_COLOR : Color
+            HAS_GLOWCOLOR : GlowColor
+            DISCARD_ALPHA : AlphaDiscardThreshold
         }
     }
 

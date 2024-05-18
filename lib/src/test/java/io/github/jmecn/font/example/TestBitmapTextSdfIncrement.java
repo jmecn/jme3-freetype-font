@@ -108,7 +108,7 @@ public class TestBitmapTextSdfIncrement extends SimpleApplication {
         MaterialDef matDef = assetManager.loadAsset(new AssetKey<>("Shaders/Font/SdFont.j3md"));
         parameter.setMatDef(matDef);
         parameter.setSpread(4);
-        parameter.setUseVertexColor(false);
+        //parameter.setUseVertexColor(false);
         parameter.setColorMapParamName("ColorMap");
         parameter.setMagFilter(Texture.MagFilter.Bilinear);
         parameter.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);

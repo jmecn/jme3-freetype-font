@@ -510,11 +510,11 @@ public class FtFontGenerator implements AutoCloseable {
         glyph.setY(rect.getY());
 
         if (parameter.getRenderMode() == RenderMode.SDF) {
-            // smaller
-            glyph.setX(rect.getX() + parameter.getSpread());
-            glyph.setY(rect.getY() + parameter.getSpread());
-            glyph.setWidth(glyph.getWidth() - parameter.getSpread() * 2);
-            glyph.setHeight(glyph.getHeight() - parameter.getSpread() * 2);
+            // No need to make the rectangle smaller, just apply alpha discard to the distance-field font shader.
+            // glyph.setX(rect.getX() + parameter.getSpread());
+            // glyph.setY(rect.getY() + parameter.getSpread());
+            // glyph.setWidth(glyph.getWidth() - parameter.getSpread() * 2);
+            // glyph.setHeight(glyph.getHeight() - parameter.getSpread() * 2);
         }
         mainImage.dispose();
         mainGlyph.close();

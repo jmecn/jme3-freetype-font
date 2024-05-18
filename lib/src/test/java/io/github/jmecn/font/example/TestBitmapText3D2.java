@@ -93,7 +93,6 @@ public class TestBitmapText3D2 extends SimpleApplication {
         parameter.setRenderMode(RenderMode.SDF);
         parameter.setSpread(4);
         parameter.setMatDef(matDef);
-        parameter.setUseVertexColor(false);
         parameter.setCharacters(TEXT);
 
         BitmapFont fnt = generator.generateFont(parameter);
