@@ -7,6 +7,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.texture.Image;
 import com.jme3.texture.image.ImageRaster;
+import com.jme3.util.MipMapGenerator;
 import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.Glyph;
 import io.github.jmecn.font.delegate.BitmapFontDelegate;
@@ -295,6 +296,14 @@ public class FtFontGenerator implements AutoCloseable {
             spaceGlyph.setWidth( (int)(spaceGlyph.getXAdvance() + data.padRight) );
         }
 
+        if (parameter.isGenMipMaps()) {
+            // Generate mip maps.
+            for (Page page : packer.getPages()) {
+                Image image = page.getImage();
+                MipMapGenerator.generateMipMaps(image);
+                page.setDirty(false);
+            }
+        }
         return data;
     }
 

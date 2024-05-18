@@ -3,6 +3,7 @@ package io.github.jmecn.font.generator;
 import com.jme3.material.MaterialDef;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Texture;
+import io.github.jmecn.font.CommonChars;
 import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.enums.Hinting;
 import io.github.jmecn.font.generator.enums.RenderMode;
@@ -54,7 +55,7 @@ public class FtFontParameter {
     private int padBottom;
     private int padRight;
     /** The characters the font should contain. If '\0' is not included then {@link FtBitmapCharacterSet#missingGlyph} is not set. */
-    private String characters = DEFAULT_CHARS;
+    private String characters = CommonChars.ASCII.getChars();
     /** Whether the font should include kerning */
     private boolean kerning = true;
     /** The optional Packer to use for packing multiple fonts into a single texture.

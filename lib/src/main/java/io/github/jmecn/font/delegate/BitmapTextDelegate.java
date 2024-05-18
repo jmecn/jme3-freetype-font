@@ -72,6 +72,7 @@ public class BitmapTextDelegate {
 
         if (charSet instanceof FtBitmapCharacterSet) {
             FtBitmapCharacterSet ftCharSet = (FtBitmapCharacterSet) charSet;
+            ftCharSet.updateMipmap();
             int pageSize = ftCharSet.getPageSize();
             if (pageSize > textPages.length) {
                 logger.debug("page size:{}, current:{}", pageSize, textPages.length);

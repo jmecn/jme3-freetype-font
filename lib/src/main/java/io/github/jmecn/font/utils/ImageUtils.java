@@ -4,6 +4,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import com.jme3.texture.image.ColorSpace;
 import com.jme3.texture.image.ImageRaster;
+import com.jme3.texture.image.MipMapImageRaster;
 import com.jme3.util.BufferUtils;
 import io.github.jmecn.font.freetype.FtBitmap;
 
@@ -271,7 +272,12 @@ function rfpart(x) is
     }
 
     public static void drawImage(Image destination, Image source, int srcX, int srcY, int srcWidth, int srcHeight, int dstX, int dstY, boolean flipY) {
-        ImageRaster writer = ImageRaster.create(destination);
+        ImageRaster writer;
+        if (destination.hasMipmaps()) {
+            writer = new MipMapImageRaster(destination, 0);
+        } else {
+            writer = ImageRaster.create(destination, 0);
+        }
         ImageRaster reader = ImageRaster.create(source);
 
         int dstWidth = destination.getWidth();

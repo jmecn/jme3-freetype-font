@@ -5,12 +5,14 @@ import com.jme3.font.BitmapCharacterSet;
 import com.jme3.material.Material;
 import com.jme3.texture.Image;
 import com.jme3.util.IntMap;
+import com.jme3.util.MipMapGenerator;
 import io.github.jmecn.font.freetype.FtFace;
 import io.github.jmecn.font.freetype.FtLibrary;
 import io.github.jmecn.font.freetype.FtStroker;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.packer.Packer;
+import io.github.jmecn.font.packer.Page;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -425,5 +427,22 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
 
     public List<Image> getImages() {
         return images;
+    }
+
+    /**
+     * This method is used to update mipmap for incremental font. It will update mipmap for each dirty page.
+     *
+     */
+    public void updateMipmap() {
+        if (parameter != null && parameter.isIncremental() && parameter.isGenMipMaps() && packer.isDirty()) {
+            for (Page page : packer.getPages()) {
+                if (page.isDirty()) {
+                    MipMapGenerator.generateMipMaps(page.getImage());
+                    page.setDirty(false);
+                    logger.debug("update mipmap for page:{}", page.getIndex());
+                }
+            }
+            packer.setDirty(false);
+        }
     }
 }

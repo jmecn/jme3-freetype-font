@@ -1,4 +1,4 @@
-package io.github.jmecn.font.aop;
+package io.github.jmecn.font.delegate;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.DesktopAssetManager;

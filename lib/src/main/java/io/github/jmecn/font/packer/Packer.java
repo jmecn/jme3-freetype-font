@@ -20,7 +20,6 @@ public class Packer implements AutoCloseable {
 
     static Logger logger = LoggerFactory.getLogger(Packer.class);
 
-    boolean packToTexture;
     int pageWidth;
     int pageHeight;
     int padding;
@@ -30,6 +29,7 @@ public class Packer implements AutoCloseable {
     int alphaThreshold;
     private ColorRGBA transparentColor = new ColorRGBA(0, 0, 0, 0);
     private final List<Page> pages;
+    private boolean dirty;// use this flag to determine whether the packer is dirty, which means the packer is dirty if any page is dirty. good for performance.
     Image.Format format;
     PackStrategy packStrategy;
 
@@ -142,6 +142,9 @@ public class Packer implements AutoCloseable {
             ImageUtils.drawImage(page.image, image, imageWidth - 1, 0, 1, imageHeight, right, rectY);
         }
 
+        // mark page as dirty, so the mipmap can be re-generated
+        page.setDirty(true);
+        setDirty(true);
         return rect;
     }
 
@@ -258,11 +261,10 @@ public class Packer implements AutoCloseable {
         // nothing to do
     }
 
-    public boolean isPackToTexture() {
-        return packToTexture;
+    public boolean isDirty() {
+        return dirty;
     }
-
-    public void setPackToTexture(boolean packToTexture) {
-        this.packToTexture = packToTexture;
+    public synchronized void setDirty(boolean dirty) {
+        this.dirty = dirty;
     }
 }
