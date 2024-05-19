@@ -259,6 +259,9 @@ public class Packer implements AutoCloseable {
     @Override
     public void close() {
         // nothing to do
+        for (Page page : pages) {
+            page.getImage().dispose();
+        }
     }
 
     public boolean isDirty() {

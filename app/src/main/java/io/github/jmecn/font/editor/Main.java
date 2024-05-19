@@ -4,10 +4,22 @@ import com.jme3.app.DetailedProfilerState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.app.state.AppState;
+import com.jme3.asset.AssetKey;
+import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapText;
+import com.jme3.font.Rectangle;
+import com.jme3.material.Material;
+import com.jme3.material.MaterialDef;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Quad;
 import com.jme3.system.AppSettings;
+import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 import imgui.*;
@@ -18,13 +30,19 @@ import imgui.type.ImString;
 import io.github.jmecn.font.CommonChars;
 import io.github.jmecn.font.editor.app.CheckerBoardState;
 import io.github.jmecn.font.editor.app.LightState;
+import io.github.jmecn.font.freetype.FtLibrary;
+import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.generator.enums.Hinting;
 import io.github.jmecn.font.generator.enums.RenderMode;
+import io.github.jmecn.font.packer.PackStrategy;
+import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 import io.github.jmecn.font.plugins.FtFontLoader;
+import org.lwjgl.util.freetype.FreeType;
 
+import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -43,8 +61,16 @@ public class Main extends SimpleApplication {
         app.setSettings(settings);
         app.start();
     }
+    static final String TEXT = "ABCDEFGHIKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-=_+[]\\;',./{}|:<>?\n" +
+            "jMonkeyEngine is a modern developer friendly game engine written primarily in Java.\n";
 
+    private Node scene;
+
+    private Packer packer;
+    private FtFontGenerator generator;
     private final FtFontParameter parameter;
+
+    ImString font = new ImString();
 
     // here is all the FtFontParameters, for imgui
     ImInt size = new ImInt();
@@ -61,7 +87,7 @@ public class Main extends SimpleApplication {
     // packer
     ImInt packerSize = new ImInt();
     ImInt packPadding = new ImInt();
-    ImInt packStrategy = new ImInt();// 0 - SkylineStrategy, 1 -
+    ImInt strategy = new ImInt();// 0 - SkylineStrategy, 1 -
     String[] strategyOptions;
 
     // color
@@ -103,11 +129,15 @@ public class Main extends SimpleApplication {
 
     public Main(AppState... states) {
         super(states);
+        scene = new Node("freetype-font");
+
         parameter = new FtFontParameter();
+
+        font.set("font/FreeSerif.ttf");
 
         packerSize.set(1024);
         packPadding.set(1);
-        packStrategy.set(0);
+        strategy.set(0);
 
         renderModes = Arrays.stream(RenderMode.values()).map(RenderMode::name).toArray(String[]::new);
         hintings = Arrays.stream(Hinting.values()).map(Hinting::name).toArray(String[]::new);
@@ -165,6 +195,8 @@ public class Main extends SimpleApplication {
     @Override
     public void simpleInitApp() {
         assetManager.registerLoader(FtFontLoader.class, "otf", "ttf");
+
+        rootNode.attachChild(scene);
 
         // hide stats and profiler by default
         StatsAppState statsAppState = stateManager.getState(StatsAppState.class);
@@ -244,7 +276,7 @@ public class Main extends SimpleApplication {
         ImGui.begin("Packer");
         ImGui.inputInt("size", packerSize);
         ImGui.inputInt("padding", packPadding);
-        ImGui.combo("strategy", packStrategy, strategyOptions);
+        ImGui.combo("strategy", strategy, strategyOptions);
         ImGui.end();
 
         ImGui.begin("FtFontParameters");
@@ -254,9 +286,9 @@ public class Main extends SimpleApplication {
         ImGui.combo("renderMode", renderMode, renderModes);
 
         ImGui.colorEdit4("color", color);
-        ImGui.inputFloat("gamma", gamma);
+        ImGui.sliderFloat("gamma", gamma.getData(), 1.0f, 2.2f);
         ImGui.inputInt("renderCount", renderCount);
-        ImGui.inputInt("spread", spread);
+        ImGui.sliderInt("spread", spread.getData(), FtLibrary.MIN_SPREAD, FtLibrary.MAX_SPREAD);
         ImGui.combo("hinting", hinting, hintings);
         ImGui.checkbox("kerning", kerning);
         ImGui.checkbox("incremental", incremental);
@@ -266,7 +298,7 @@ public class Main extends SimpleApplication {
         ImGui.inputFloat("borerWidth", borderWidth);
         ImGui.colorEdit4("borderColor", borderColor);
         ImGui.checkbox("borderStraight", borderStraight);
-        ImGui.inputFloat("borderGamma", borderGamma);
+        ImGui.sliderFloat("borderGamma", borderGamma.getData(), 1.0f, 2.2f);
 
         ImGui.inputInt("shadowOffsetX", shadowOffsetX);
         ImGui.inputInt("shadowOffsetY", shadowOffsetY);
@@ -285,11 +317,105 @@ public class Main extends SimpleApplication {
         ImGui.combo("magFilter", magFilter, magFilterOptions);
 
         if (ImGui.button("Generate")) {
-            parameter.setIncremental(incremental.get());
+            getParameter();
         }
         ImGui.end();
 
         // End the ImGui frame
         ImGuiJme3.endFrame();
+    }
+
+    private void getParameter() {
+        PackStrategy packStrategy;
+        if (strategy.get() == 0) {
+            packStrategy = new GuillotineStrategy();
+        } else {
+            packStrategy = new SkylineStrategy();
+        }
+
+        if (packer != null) {
+            packer.close();
+            packer = null;
+        }
+        packer = new Packer(Image.Format.RGBA8, packerSize.get(), packerSize.get(), packPadding.get(),  false, packStrategy);
+
+        parameter.setPacker(packer);
+        parameter.setSize(size.get());
+        parameter.setRenderMode(RenderMode.valueOf(renderModes[renderMode.get()]));
+        parameter.setColor(new ColorRGBA(color[0], color[1], color[2], color[3]));
+        parameter.setGamma(gamma.get());
+        parameter.setRenderCount(renderCount.get());
+        parameter.setSpread(spread.get());
+        parameter.setHinting(Hinting.valueOf(hintings[hinting.get()]));
+        parameter.setKerning(kerning.get());
+        parameter.setIncremental(incremental.get());
+
+        parameter.setBorderWidth(borderWidth.get());
+        parameter.setBorderColor(new ColorRGBA(borderColor[0], borderColor[1], borderColor[2], borderColor[3]));
+        parameter.setBorderStraight(borderStraight.get());
+        parameter.setBorderGamma(borderGamma.get());
+
+        parameter.setShadowOffsetX(shadowOffsetX.get());
+        parameter.setShadowOffsetY(shadowOffsetY.get());
+        parameter.setShadowColor(new ColorRGBA(shadowColor[0], shadowColor[1], shadowColor[2], shadowColor[3]));
+
+        parameter.setSpaceX(spaceX.get());
+        parameter.setSpaceY(spaceY.get());
+
+        parameter.setPadLeft(padLeft.get());
+        parameter.setPadRight(padRight.get());
+        parameter.setPadTop(padTop.get());
+        parameter.setPadBottom(padBottom.get());
+
+        parameter.setGenMipMaps(genMipMaps.get());
+        parameter.setMinFilter(Texture.MinFilter.valueOf(minFilterOptions[minFilter.get()]));
+        parameter.setMagFilter(Texture.MagFilter.valueOf(magFilterOptions[magFilter.get()]));
+
+        MaterialDef matDef = assetManager.loadAsset(new AssetKey<>(parameter.getMatDefName()));
+        parameter.setMatDef(matDef);
+
+        if (generator != null) {
+            // TODO clean up
+            generator.close();
+        }
+
+        generator = new FtFontGenerator(new File(font.get()), 0);
+
+        BitmapFont font = generator.generateFont(parameter);
+
+        scene.detachAllChildren();
+        buildFtBitmapText(font);
+
+    }
+
+    private Geometry buildFontPage(BitmapFont font, int i) {
+        Geometry page = new Geometry("page#" + i, new Quad(6, 6));
+        Material mat = font.getPage(i);
+        Material unshaded = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        unshaded.setTexture("ColorMap", mat.getTextureParam("ColorMap").getTextureValue());
+        page.setMaterial(unshaded);
+        return page;
+    }
+
+    private void buildFtBitmapText(BitmapFont fnt) {
+        Quad q = new Quad(6, 5);
+        Geometry g = new Geometry("quad", q);
+        g.setLocalTranslation(0, -5, -0.0001f);
+        g.setMaterial(assetManager.loadMaterial("Common/Materials/RedColor.j3m"));
+        scene.attachChild(g);
+        BitmapText txt = new BitmapText(fnt);
+        txt.setBox(new Rectangle(0, 0, 6, 5));
+        txt.setQueueBucket(RenderQueue.Bucket.Transparent);
+        txt.setSize( 0.5f );
+        txt.setText(TEXT);
+        scene.attachChild(txt);
+
+        // show font images
+        int pageSize = fnt.getPageSize();
+        for (int i = 0; i < pageSize; i++) {
+            Geometry g2 = buildFontPage(fnt, i);
+            g2.setLocalTranslation(0, i * 6, 0);
+            scene.attachChild(g2);
+        }
     }
 }

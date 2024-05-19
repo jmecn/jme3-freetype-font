@@ -3,6 +3,7 @@ package io.github.jmecn.font.image;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
+import io.github.jmecn.font.CommonChars;
 import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
@@ -150,7 +151,7 @@ public class TestGenerateImage {
             parameter.setShadowOffsetY(2);
             parameter.setShadowColor(ColorRGBA.White);
 
-            parameter.setCharacters(FtFontParameter.DEFAULT_CHARS + XIN);
+            parameter.setCharacters(CommonChars.ASCII.getChars() + XIN);
             parameter.setIncremental(true);
 
             FtBitmapCharacterSet data = generator.generateData(parameter);
