@@ -19,3 +19,4 @@
 # Ignore Gradle build output directory
 .DS_Store
 build
+imgui.ini

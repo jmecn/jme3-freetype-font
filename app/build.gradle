@@ -2,10 +2,24 @@ plugins {
     id 'jme3-freetype-font.java-application-conventions'
 }
 
+ext.imguiVersion = '1.86.11'
+
+switch (org.gradle.internal.os.OperatingSystem.current()) {
+    case org.gradle.internal.os.OperatingSystem.LINUX:
+        ext.imguiFreetype = "natives-linux"
+        break
+    case org.gradle.internal.os.OperatingSystem.MAC_OS:
+        ext.imguiFreetype = "natives-macos"
+        break
+    case org.gradle.internal.os.OperatingSystem.WINDOWS:
+        ext.imguiFreetype = "natives-windows"
+        break
+}
+
 dependencies {
     implementation project(':jme3-freetype-font')
     implementation "org.projectlombok:lombok:1.18.20"
-    implementation "com.google.guava:guava:27.0.1-jre"
+    implementation "com.google.guava:guava:32.0.0-jre"
 
     // lemur
     implementation("com.simsilica:lemur:1.16.0")
@@ -19,6 +33,12 @@ dependencies {
     implementation "org.jmonkeyengine:jme3-lwjgl3:$jme3Version"
     implementation "org.jmonkeyengine:jme3-desktop:$jme3Version"
     implementation 'ch.qos.logback:logback-classic:1.2.13'
+
+    // imgui-java
+    implementation "io.github.spair:imgui-java-binding:$imguiVersion"
+    implementation "io.github.spair:imgui-java-lwjgl3:$imguiVersion"
+    implementation "io.github.spair:imgui-java-$imguiFreetype-ft:$imguiVersion"
+
 }
 
 application {
