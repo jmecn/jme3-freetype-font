@@ -101,4 +101,77 @@ class TestHarfbuzzLibrary {
         face.close();
         library.close();
     }
+
+    @Test void testFallback() {
+        // init lwjgl3 harfbuzz with freetype
+        Configuration.HARFBUZZ_LIBRARY_NAME.set(FreeType.getLibrary());
+
+        // load 2 fonts, english first and chinese second
+        FtLibrary library = new FtLibrary();
+
+        String[] fonts = new String[] {
+                "../font/FreeSerif.ttf",
+                "../font/Noto_Serif_SC/NotoSerifSC-Regular.otf"
+        };
+        int fontCount = fonts.length;
+
+        // load all fonts
+        FtFace[] faces = new FtFace[fontCount];
+        long[] hb_face_t = new long[fontCount];
+        long[] hb_font_t = new long[fontCount];
+
+        for (int i = 0; i < fontCount; i++) {
+            faces[i] = library.newFace(fonts[i]);
+            faces[i].setPixelSize(0, 16);
+
+            hb_face_t[i] = hb_ft_face_create_referenced(faces[i].address());
+            hb_font_t[i] = hb_font_create(hb_face_t[i]);
+
+       }
+
+        // 顺序加载字符串，按照字体顺序来查找 glyphIndex，如果找不到就记下其位置，在下一个字体中查找，如果找不到就报错。
+        String text = "Hello, world! 你好，世界！👋";
+
+        // 迭代次数，最大不超过字体的数量
+        for (int iteration = 0; iteration < fonts.length; iteration++) {
+
+            FtFace face = faces[iteration];
+            hb_ft_font_set_funcs(hb_font_t[iteration]);// should I use hb_ft_font_set_funcs or hb_font_set_funcs?
+            hb_font_set_scale(hb_font_t[iteration], FONT_SIZE << 6, FONT_SIZE << 6);
+
+            // Create  HarfBuzz buffer
+            long buf = hb_buffer_create();
+
+            hb_buffer_add_utf8(buf, text, 0, -1);
+            // Set buffer to LTR direction, common script and default language
+            //hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
+            //hb_buffer_set_script(buf, HB_SCRIPT_COMMON);
+            hb_buffer_set_language(buf, hb_language_from_string("zh"));
+
+            hb_shape(hb_font_t[0], buf, null);
+
+            hb_glyph_info_t.Buffer glyph_info = hb_buffer_get_glyph_infos(buf);
+            hb_glyph_position_t.Buffer glyph_pos = hb_buffer_get_glyph_positions(buf);
+            int glyph_count = hb_buffer_get_length(buf);
+            System.out.println("glyph_count=" + glyph_count);
+            for (int i = 0; i < glyph_count; ++i) {
+                int codepoint = glyph_info.get(i).codepoint();
+                int x_advance = glyph_pos.get(i).x_advance() >> 6;
+                int glyphIndex = face.getCharIndex(codepoint);
+                System.out.printf("codepoint=0x%X, glyph_index=0x%X, x_advance=%d\n", codepoint, glyphIndex, x_advance);
+            }
+
+            hb_buffer_destroy(buf);
+        }
+
+
+        //// release all resources
+        for (int i = 0; i < fontCount; i++) {
+            hb_font_destroy(hb_font_t[i]);
+            hb_face_destroy(hb_face_t[i]);
+            faces[i].close();
+        }
+
+        library.close();
+    }
 }
