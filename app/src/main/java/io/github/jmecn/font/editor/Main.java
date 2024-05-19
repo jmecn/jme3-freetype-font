@@ -1,6 +1,7 @@
 package io.github.jmecn.font.editor;
 
 import com.jme3.app.DetailedProfilerState;
+import com.jme3.app.FlyCamAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.app.state.AppState;
@@ -28,7 +29,6 @@ import imgui.type.ImFloat;
 import imgui.type.ImInt;
 import imgui.type.ImString;
 import io.github.jmecn.font.CommonChars;
-import io.github.jmecn.font.editor.app.CheckerBoardState;
 import io.github.jmecn.font.editor.app.LightState;
 import io.github.jmecn.font.freetype.FtLibrary;
 import io.github.jmecn.font.generator.FtFontGenerator;
@@ -40,7 +40,8 @@ import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 import io.github.jmecn.font.plugins.FtFontLoader;
-import org.lwjgl.util.freetype.FreeType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Arrays;
@@ -57,14 +58,16 @@ public class Main extends SimpleApplication {
         settings.setTitle("Freetype font editor");
         settings.setSamples(4);
 
-        Main app = new Main(new StatsAppState(), new DetailedProfilerState());
+        Main app = new Main(new StatsAppState(), new DetailedProfilerState(), new FlyCamAppState());
         app.setSettings(settings);
         app.start();
     }
+
+    static Logger logger = LoggerFactory.getLogger(Main.class);
     static final String TEXT = "ABCDEFGHIKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-=_+[]\\;',./{}|:<>?\n" +
             "jMonkeyEngine is a modern developer friendly game engine written primarily in Java.\n";
 
-    private Node scene;
+    private final Node scene;
 
     private Packer packer;
     private FtFontGenerator generator;
@@ -135,9 +138,9 @@ public class Main extends SimpleApplication {
 
         font.set("font/FreeSerif.ttf");
 
-        packerSize.set(1024);
+        packerSize.set(256);
         packPadding.set(1);
-        strategy.set(0);
+        strategy.set(1);
 
         renderModes = Arrays.stream(RenderMode.values()).map(RenderMode::name).toArray(String[]::new);
         hintings = Arrays.stream(Hinting.values()).map(Hinting::name).toArray(String[]::new);
@@ -196,6 +199,8 @@ public class Main extends SimpleApplication {
     public void simpleInitApp() {
         assetManager.registerLoader(FtFontLoader.class, "otf", "ttf");
 
+        flyCam.setMoveSpeed(10f);
+        flyCam.setDragToRotate(true);
         rootNode.attachChild(scene);
 
         // hide stats and profiler by default
@@ -218,7 +223,7 @@ public class Main extends SimpleApplication {
 
         ///// init app state /////
         stateManager.attach(new LightState());
-        stateManager.attach(new CheckerBoardState());
+        //stateManager.attach(new CheckerBoardState());
 
         // init camera
         cam.setLocation(new Vector3f(0f, 3f, 10f));
@@ -337,6 +342,7 @@ public class Main extends SimpleApplication {
             packer.close();
             packer = null;
         }
+
         packer = new Packer(Image.Format.RGBA8, packerSize.get(), packerSize.get(), packPadding.get(),  false, packStrategy);
 
         parameter.setPacker(packer);
@@ -414,8 +420,10 @@ public class Main extends SimpleApplication {
         int pageSize = fnt.getPageSize();
         for (int i = 0; i < pageSize; i++) {
             Geometry g2 = buildFontPage(fnt, i);
-            g2.setLocalTranslation(0, i * 6, 0);
+            g2.setLocalTranslation(0, i * 6f, 0);
             scene.attachChild(g2);
         }
+
+        logger.info("scene:{}", scene.getChildren());
     }
 }
