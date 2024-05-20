@@ -1,7 +1,6 @@
 package io.github.jmecn.font.editor;
 
 import com.jme3.app.DetailedProfilerState;
-import com.jme3.app.FlyCamAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.app.state.AppState;
@@ -24,6 +23,9 @@ import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 import imgui.*;
+import imgui.flag.ImGuiInputTextFlags;
+import imgui.flag.ImGuiSliderFlags;
+import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImBoolean;
 import imgui.type.ImFloat;
 import imgui.type.ImInt;
@@ -40,11 +42,19 @@ import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 import io.github.jmecn.font.plugins.FtFontLoader;
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.util.tinyfd.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
+
+import static org.lwjgl.system.MemoryStack.stackPush;
 
 /**
  * desc:
@@ -58,7 +68,7 @@ public class Main extends SimpleApplication {
         settings.setTitle("Freetype font editor");
         settings.setSamples(4);
 
-        Main app = new Main(new StatsAppState(), new DetailedProfilerState(), new FlyCamAppState());
+        Main app = new Main(new StatsAppState(), new DetailedProfilerState());
         app.setSettings(settings);
         app.start();
     }
@@ -86,9 +96,12 @@ public class Main extends SimpleApplication {
     ImBoolean kerning = new ImBoolean();
     ImBoolean incremental = new ImBoolean();
     ImString characters = new ImString();
+    ImString text = new ImString();
 
     // packer
-    ImInt packerSize = new ImInt();
+    ImInt packerWidth = new ImInt();
+    ImInt packerHeight = new ImInt();
+    String[] packerSizes = new String[]{"128", "256", "512", "1024", "2048", "4096"};
     ImInt packPadding = new ImInt();
     ImInt strategy = new ImInt();// 0 - SkylineStrategy, 1 -
     String[] strategyOptions;
@@ -99,7 +112,7 @@ public class Main extends SimpleApplication {
     ImInt renderCount = new ImInt();
 
     // border
-    ImFloat borderWidth = new ImFloat();
+    ImInt borderWidth = new ImInt();
     float[] borderColor = new float[4];
     ImBoolean borderStraight = new ImBoolean();
     ImFloat borderGamma = new ImFloat();
@@ -118,7 +131,6 @@ public class Main extends SimpleApplication {
     ImInt padRight = new ImInt();
 
     // texture
-    ImBoolean genMipMaps = new ImBoolean();
     ImInt minFilter = new ImInt();
     String[] minFilterOptions;
     ImInt magFilter = new ImInt();
@@ -138,7 +150,8 @@ public class Main extends SimpleApplication {
 
         font.set("font/FreeSerif.ttf");
 
-        packerSize.set(256);
+        packerWidth.set(1);
+        packerHeight.set(1);
         packPadding.set(1);
         strategy.set(1);
 
@@ -162,6 +175,7 @@ public class Main extends SimpleApplication {
         incremental.set(params.isIncremental());
 
         characters.set(params.getCharacters());
+        text.set(TEXT);
 
         color = params.getColor().toArray(color);
         gamma.set(params.getGamma());
@@ -184,7 +198,6 @@ public class Main extends SimpleApplication {
         padBottom.set(params.getPadBottom());
         padRight.set(params.getPadRight());
 
-        genMipMaps.set(params.isGenMipMaps());
         minFilter.set(params.getMinFilter().ordinal());
         magFilter.set(params.getMagFilter().ordinal());
 
@@ -199,8 +212,6 @@ public class Main extends SimpleApplication {
     public void simpleInitApp() {
         assetManager.registerLoader(FtFontLoader.class, "otf", "ttf");
 
-        flyCam.setMoveSpeed(10f);
-        flyCam.setDragToRotate(true);
         rootNode.attachChild(scene);
 
         // hide stats and profiler by default
@@ -223,10 +234,9 @@ public class Main extends SimpleApplication {
 
         ///// init app state /////
         stateManager.attach(new LightState());
-        //stateManager.attach(new CheckerBoardState());
 
         // init camera
-        cam.setLocation(new Vector3f(0f, 3f, 10f));
+        cam.setLocation(new Vector3f(0f, 3f, 20f));
         cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
         cam.setFov(60);
     }
@@ -272,64 +282,150 @@ public class Main extends SimpleApplication {
         super.destroy();
     }
 
+    @Override
     public void simpleRender(RenderManager rm) {
         // Start the ImGui frame
         ImGuiJme3.startFrame();
 
-        // menubar
-
-        ImGui.begin("Packer");
-        ImGui.inputInt("size", packerSize);
-        ImGui.inputInt("padding", packPadding);
-        ImGui.combo("strategy", strategy, strategyOptions);
-        ImGui.end();
-
-        ImGui.begin("FtFontParameters");
-
-
-        ImGui.inputInt("size", size);
-        ImGui.combo("renderMode", renderMode, renderModes);
-
-        ImGui.colorEdit4("color", color);
-        ImGui.sliderFloat("gamma", gamma.getData(), 1.0f, 2.2f);
-        ImGui.inputInt("renderCount", renderCount);
-        ImGui.sliderInt("spread", spread.getData(), FtLibrary.MIN_SPREAD, FtLibrary.MAX_SPREAD);
-        ImGui.combo("hinting", hinting, hintings);
-        ImGui.checkbox("kerning", kerning);
-        ImGui.checkbox("incremental", incremental);
-
-        // 将 parameter 中的参数全部使用 imgui 绘制出来
-
-        ImGui.inputFloat("borerWidth", borderWidth);
-        ImGui.colorEdit4("borderColor", borderColor);
-        ImGui.checkbox("borderStraight", borderStraight);
-        ImGui.sliderFloat("borderGamma", borderGamma.getData(), 1.0f, 2.2f);
-
-        ImGui.inputInt("shadowOffsetX", shadowOffsetX);
-        ImGui.inputInt("shadowOffsetY", shadowOffsetY);
-        ImGui.colorEdit4("shadowColor", shadowColor);
-
-        ImGui.inputInt("spaceX", spaceX);
-        ImGui.inputInt("spaceY", spaceY);
-
-        ImGui.inputInt("padLeft", padLeft);
-        ImGui.inputInt("padRight", padRight);
-        ImGui.inputInt("padTop", padTop);
-        ImGui.inputInt("padBottom", padBottom);
-
-        ImGui.checkbox("genMipMaps", genMipMaps);
-        ImGui.combo("minFilter", minFilter, minFilterOptions);
-        ImGui.combo("magFilter", magFilter, magFilterOptions);
-
-        if (ImGui.button("Generate")) {
-            getParameter();
-        }
-        ImGui.end();
+        showParameterWindow();
 
         // End the ImGui frame
         ImGuiJme3.endFrame();
     }
 
+    private void showParameterWindow() {
+        ImGui.begin("FtFontParameters", ImGuiWindowFlags.MenuBar);
+
+        showMenuBar();
+
+        ImGui.pushItemWidth(300);
+        ImGui.inputText("Font", font, ImGuiInputTextFlags.ReadOnly);
+        if (ImGui.button("Preview")) {
+            getParameter();
+        }
+
+        ImGui.separator();
+        ImGui.text("General");
+        ImGui.pushItemWidth(80);
+        ImGui.combo("render mode", renderMode, renderModes);
+        if (renderMode.get() == RenderMode.SDF.ordinal()) {
+            ImGui.sameLine();
+            ImGui.dragInt("spread", spread.getData(), 1f, FtLibrary.MIN_SPREAD, FtLibrary.MAX_SPREAD);
+        }
+        ImGui.combo("hinting", hinting, hintings);
+        ImGui.pushItemWidth(60);
+        ImGui.dragInt("font size", size.getData(), 1f, 1f, 9999f);
+
+        ImGui.pushItemWidth(200);
+        ImGui.colorEdit4("color", color);
+        ImGui.pushItemWidth(60);
+        ImGui.dragFloat("gamma", gamma.getData(), 0.001f, 1.0f, 2.2f);
+        ImGui.dragInt("render count", renderCount.getData(), 1f, 1f, 10f);
+        ImGui.checkbox("kerning", kerning);
+        ImGui.checkbox("incremental", incremental);
+
+        if (ImGui.collapsingHeader("Text")) {
+            ImGui.inputTextMultiline("##text", text, 300, 100, ImGuiInputTextFlags.AllowTabInput);
+        }
+
+        if (ImGui.collapsingHeader("Image packer")) {
+            ImGui.pushItemWidth(60);
+            ImGui.combo("width", packerWidth, packerSizes);
+            ImGui.sameLine();
+            ImGui.combo("height", packerHeight, packerSizes);
+            ImGui.dragInt("padding", packPadding.getData(), 1f, 0f, 100f);
+            ImGui.pushItemWidth(200);
+            ImGui.combo("strategy", strategy, strategyOptions);
+        }
+
+        if (ImGui.collapsingHeader("Border")) {
+            ImGui.pushItemWidth(60);
+            ImGui.dragInt("borerWidth", borderWidth.getData(), 1f, 0f, 100f);
+            ImGui.sameLine();
+            ImGui.sliderFloat("borderGamma", borderGamma.getData(), 1.0f, 2.2f);
+            ImGui.pushItemWidth(200);
+            ImGui.colorEdit4("borderColor", borderColor);
+            ImGui.checkbox("borderStraight", borderStraight);
+        }
+
+        if (ImGui.collapsingHeader("ShadowOffset")) {
+            ImGui.pushItemWidth(60);
+            ImGui.dragInt("offsetX", shadowOffsetX.getData(), 1f, -100f, 100f);
+            ImGui.sameLine();
+            ImGui.dragInt("offsetY", shadowOffsetY.getData(), 1f, -100f, 100f);
+            ImGui.pushItemWidth(200);
+            ImGui.colorEdit4("shadowColor", shadowColor);
+        }
+
+        if (ImGui.collapsingHeader("Spacing")) {
+            ImGui.pushItemWidth(60);
+            ImGui.dragInt("spaceX", spaceX.getData(), 1f, 0f, 100f);
+            ImGui.sameLine();
+            ImGui.pushItemWidth(60);
+            ImGui.dragInt("spaceY", spaceY.getData(), 1f, 0f, 100f);
+        }
+
+        if (ImGui.collapsingHeader("Padding")) {
+            ImGui.indent(50);
+            ImGui.pushItemWidth(60);
+            ImGui.dragInt("top", padTop.getData(), 1f, 0f, 100f);
+            ImGui.indent(-50);
+            ImGui.dragInt("left", padLeft.getData(), 1f, 0f, 100f);
+            ImGui.sameLine();
+            ImGui.dragInt("right", padRight.getData(), 1f, 0f, 100f);
+            ImGui.indent(50);
+            ImGui.dragInt("bottom", padBottom.getData(), 1f, 0f, 100f);
+            ImGui.indent(-50);
+        }
+
+        if (ImGui.collapsingHeader("Texture Filter")) {
+            ImGui.pushItemWidth(200);
+            ImGui.combo("minFilter", minFilter, minFilterOptions);
+            ImGui.combo("magFilter", magFilter, magFilterOptions);
+        }
+
+        ImGui.end();
+    }
+    private void showMenuBar() {
+        if (ImGui.beginMenuBar()) {
+            if (ImGui.beginMenu("File")) {
+                if (ImGui.menuItem("Load Font")) {
+                    loadFont();
+                }
+                if (ImGui.menuItem("Open", "Ctrl+O")) {
+                }
+                if (ImGui.beginMenu("Open Recent")) {
+                    ImGui.menuItem("fish_hat.c");
+                    ImGui.menuItem("fish_hat.inl");
+                    ImGui.menuItem("fish_hat.h");
+                    ImGui.endMenu();
+                }
+                if (ImGui.menuItem("Save", "Ctrl+S")) {
+                }
+                if (ImGui.menuItem("Save As..")) {
+                }
+
+                ImGui.endMenu();
+            }
+
+            ImGui.endMenuBar();
+        }
+    }
+
+    private void loadFont() {
+        try (MemoryStack stack = stackPush()) {
+            PointerBuffer aFilterPatterns = stack.mallocPointer(3);
+            aFilterPatterns.put(stack.UTF8("*.ttf"));
+            aFilterPatterns.put(stack.UTF8("*.ttc"));
+            aFilterPatterns.put(stack.UTF8("*.otf"));
+            aFilterPatterns.flip();
+            String filename = TinyFileDialogs.tinyfd_openFileDialog("Open Font File", "", aFilterPatterns,
+                    "Fonts (*.ttf, *.ttc, *.otf)", false);
+            if (filename != null) {
+                font.set(filename);
+            }
+        }
+    }
     private void getParameter() {
         PackStrategy packStrategy;
         if (strategy.get() == 0) {
@@ -343,7 +439,9 @@ public class Main extends SimpleApplication {
             packer = null;
         }
 
-        packer = new Packer(Image.Format.RGBA8, packerSize.get(), packerSize.get(), packPadding.get(),  false, packStrategy);
+        int width = Integer.parseInt(packerSizes[packerWidth.get()]);
+        int height = Integer.parseInt(packerSizes[packerHeight.get()]);
+        packer = new Packer(Image.Format.RGBA8, width, height, packPadding.get(), false, packStrategy);
 
         parameter.setPacker(packer);
         parameter.setSize(size.get());
@@ -373,7 +471,6 @@ public class Main extends SimpleApplication {
         parameter.setPadTop(padTop.get());
         parameter.setPadBottom(padBottom.get());
 
-        parameter.setGenMipMaps(genMipMaps.get());
         parameter.setMinFilter(Texture.MinFilter.valueOf(minFilterOptions[minFilter.get()]));
         parameter.setMagFilter(Texture.MagFilter.valueOf(magFilterOptions[magFilter.get()]));
 
@@ -387,10 +484,10 @@ public class Main extends SimpleApplication {
 
         generator = new FtFontGenerator(new File(font.get()), 0);
 
-        BitmapFont font = generator.generateFont(parameter);
+        BitmapFont bitmapFont = generator.generateFont(parameter);
 
         scene.detachAllChildren();
-        buildFtBitmapText(font);
+        buildFtBitmapText(bitmapFont);
 
     }
 
@@ -413,15 +510,15 @@ public class Main extends SimpleApplication {
         txt.setBox(new Rectangle(0, 0, 6, 5));
         txt.setQueueBucket(RenderQueue.Bucket.Transparent);
         txt.setSize( 0.5f );
-        txt.setText(TEXT);
+        txt.setText(text.get());
         scene.attachChild(txt);
 
         // show font images
         int pageSize = fnt.getPageSize();
         for (int i = 0; i < pageSize; i++) {
-            Geometry g2 = buildFontPage(fnt, i);
-            g2.setLocalTranslation(0, i * 6f, 0);
-            scene.attachChild(g2);
+            Geometry page = buildFontPage(fnt, i);
+            page.setLocalTranslation(0, i * 6f, 0);
+            scene.attachChild(page);
         }
 
         logger.info("scene:{}", scene.getChildren());

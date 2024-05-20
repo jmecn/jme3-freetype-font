@@ -31,7 +31,7 @@ public class FtFontParameter {
     /** Number of times to render the glyph. Useful with a shadow or border, so it doesn't show through the glyph. */
     private int renderCount = 2;
     /** Border width in pixels, 0 to disable */
-    private float borderWidth = 0;
+    private int borderWidth = 0;
     /** Border color; only used if borderWidth > 0 */
     private ColorRGBA borderColor = ColorRGBA.Black;
     /** true for straight (mitered), false for rounded borders */
@@ -168,11 +168,11 @@ public class FtFontParameter {
         this.renderCount = renderCount;
     }
 
-    public float getBorderWidth() {
+    public int getBorderWidth() {
         return borderWidth;
     }
 
-    public void setBorderWidth(float borderWidth) {
+    public void setBorderWidth(int borderWidth) {
         this.borderWidth = borderWidth;
     }
 
@@ -397,7 +397,7 @@ public class FtFontParameter {
             return false;
         }
         FtFontParameter parameter = (FtFontParameter) o;
-        return size == parameter.size && renderMode == parameter.renderMode && spread == parameter.spread && Float.compare(gamma, parameter.gamma) == 0 && renderCount == parameter.renderCount && Float.compare(borderWidth, parameter.borderWidth) == 0 && borderStraight == parameter.borderStraight && Float.compare(borderGamma, parameter.borderGamma) == 0 && shadowOffsetX == parameter.shadowOffsetX && shadowOffsetY == parameter.shadowOffsetY && spaceX == parameter.spaceX && spaceY == parameter.spaceY && padTop == parameter.padTop && padLeft == parameter.padLeft && padBottom == parameter.padBottom && padRight == parameter.padRight && kerning == parameter.kerning && genMipMaps == parameter.genMipMaps && useVertexColor == parameter.useVertexColor && incremental == parameter.incremental && hinting == parameter.hinting && Objects.equals(color, parameter.color) && Objects.equals(borderColor, parameter.borderColor) && Objects.equals(shadowColor, parameter.shadowColor) && Objects.equals(characters, parameter.characters) && Objects.equals(packer, parameter.packer) && minFilter == parameter.minFilter && magFilter == parameter.magFilter && Objects.equals(matDef, parameter.matDef) && Objects.equals(matDefName, parameter.matDefName) && Objects.equals(colorMapParamName, parameter.colorMapParamName) && Objects.equals(vertexColorParamName, parameter.vertexColorParamName);
+        return size == parameter.size && renderMode == parameter.renderMode && spread == parameter.spread && Float.compare(gamma, parameter.gamma) == 0 && renderCount == parameter.renderCount && borderWidth == parameter.borderWidth && borderStraight == parameter.borderStraight && Float.compare(borderGamma, parameter.borderGamma) == 0 && shadowOffsetX == parameter.shadowOffsetX && shadowOffsetY == parameter.shadowOffsetY && spaceX == parameter.spaceX && spaceY == parameter.spaceY && padTop == parameter.padTop && padLeft == parameter.padLeft && padBottom == parameter.padBottom && padRight == parameter.padRight && kerning == parameter.kerning && genMipMaps == parameter.genMipMaps && useVertexColor == parameter.useVertexColor && incremental == parameter.incremental && hinting == parameter.hinting && Objects.equals(color, parameter.color) && Objects.equals(borderColor, parameter.borderColor) && Objects.equals(shadowColor, parameter.shadowColor) && Objects.equals(characters, parameter.characters) && Objects.equals(packer, parameter.packer) && minFilter == parameter.minFilter && magFilter == parameter.magFilter && Objects.equals(matDef, parameter.matDef) && Objects.equals(matDefName, parameter.matDefName) && Objects.equals(colorMapParamName, parameter.colorMapParamName) && Objects.equals(vertexColorParamName, parameter.vertexColorParamName);
     }
 
     @Override

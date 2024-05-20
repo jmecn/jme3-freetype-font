@@ -114,11 +114,11 @@ public class FtFontKey extends AssetKey<BitmapFont> {
         delegate.setRenderCount(renderCount);
     }
 
-    public float getBorderWidth() {
+    public int getBorderWidth() {
         return delegate.getBorderWidth();
     }
 
-    public void setBorderWidth(float borderWidth) {
+    public void setBorderWidth(int borderWidth) {
         delegate.setBorderWidth(borderWidth);
     }
 

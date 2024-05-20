@@ -218,7 +218,7 @@ public class FtFontGenerator implements AutoCloseable {
         FtStroker stroker = null;
         if (parameter.getBorderWidth() > 0) {
             stroker = library.newStroker();
-            stroker.set((int)(parameter.getBorderWidth() * 64f),
+            stroker.set(FtLibrary.int26D6(parameter.getBorderWidth()),
                     parameter.isBorderStraight() ? FreeType.FT_STROKER_LINECAP_BUTT : FreeType.FT_STROKER_LINECAP_ROUND,
                     parameter.isBorderStraight() ? FreeType.FT_STROKER_LINEJOIN_MITER_FIXED : FreeType.FT_STROKER_LINEJOIN_ROUND,
                     0);
