@@ -15,6 +15,7 @@ import io.github.jmecn.font.delegate.BitmapTextDelegate;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.exception.FtRuntimeException;
 import io.github.jmecn.font.generator.enums.RenderMode;
+import io.github.jmecn.font.generator.enums.WritingScript;
 import io.github.jmecn.font.packer.*;
 import io.github.jmecn.font.packer.listener.FtFontMaterialAddListener;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
@@ -136,7 +137,7 @@ public class FtFontGenerator implements AutoCloseable {
         }
         BitmapFont font = new BitmapFont();
         font.setCharSet(data);
-        font.setRightToLeft(parameter.isRightToLeft());
+        font.setRightToLeft(parameter.getWritingScript() == WritingScript.RTL);
         return font;
     }
 

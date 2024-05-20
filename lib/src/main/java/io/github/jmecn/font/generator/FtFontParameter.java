@@ -7,6 +7,7 @@ import io.github.jmecn.font.CommonChars;
 import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.enums.Hinting;
 import io.github.jmecn.font.generator.enums.RenderMode;
+import io.github.jmecn.font.generator.enums.WritingScript;
 import io.github.jmecn.font.packer.Packer;
 
 import java.util.Objects;
@@ -16,7 +17,7 @@ import static org.lwjgl.util.freetype.FreeType.*;
 public class FtFontParameter {
     public static final int DEFAULT_FONT_SIZE = 16;
 
-    private boolean rightToLeft = false;
+    private WritingScript writingScript = WritingScript.LTR;
 
     /** The size in pixels */
     private int size = 16;
@@ -97,12 +98,12 @@ public class FtFontParameter {
      * {@link FtFontGenerator#MAX_SIZE}. */
     private boolean incremental = false;
 
-    public boolean isRightToLeft() {
-        return rightToLeft;
+    public WritingScript getWritingScript() {
+        return writingScript;
     }
 
-    public void setRightToLeft(boolean rightToLeft) {
-        this.rightToLeft = rightToLeft;
+    public void setWritingScript(WritingScript writingScript) {
+        this.writingScript = writingScript;
     }
 
     public int getSize() {
