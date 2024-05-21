@@ -49,8 +49,13 @@ import org.lwjgl.util.tinyfd.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.*;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Objects;
+import java.util.Properties;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
 
@@ -147,8 +152,6 @@ public class Main extends SimpleApplication {
 
         parameter = new FtFontParameter();
 
-        font.set("font/FreeSerif.ttf");
-
         packerWidth.set(1);
         packerHeight.set(1);
         packPadding.set(1);
@@ -156,7 +159,7 @@ public class Main extends SimpleApplication {
 
         renderModes = Arrays.stream(RenderMode.values()).map(RenderMode::name).toArray(String[]::new);
         hintings = Arrays.stream(Hinting.values()).map(Hinting::name).toArray(String[]::new);
-        strategyOptions = new String[] {GuillotineStrategy.class.getSimpleName(), SkylineStrategy.class.getSimpleName()};
+        strategyOptions = new String[] {"GuillotineStrategy", "SkylineStrategy"};
         minFilterOptions = Arrays.stream(Texture.MinFilter.values()).map(Texture.MinFilter::name).toArray(String[]::new);
         magFilterOptions = Arrays.stream(Texture.MagFilter.values()).map(Texture.MagFilter::name).toArray(String[]::new);
     }
@@ -259,10 +262,7 @@ public class Main extends SimpleApplication {
         ImFontGlyphRangesBuilder rangesBuilder = new ImFontGlyphRangesBuilder();          // Glyphs ranges provide
         rangesBuilder.addRanges(imGuiIO.getFonts().getGlyphRangesDefault());
         rangesBuilder.addRanges(imGuiIO.getFonts().getGlyphRangesCyrillic());
-        rangesBuilder.addRanges(imGuiIO.getFonts().getGlyphRangesJapanese());
         rangesBuilder.addText(CommonChars.SIMPLIFIED_CHINESE.getChars());
-        //rangesBuilder.addRanges(io.getFonts().getGlyphRangesChineseSimplifiedCommon()); // Seems broken
-        //rangesBuilder.addRanges(io.getFonts().getGlyphRangesChineseFull());             // Seems broken
 
         // Font config for custom fonts
         ImFontConfig imFontConfig = new ImFontConfig();
@@ -270,14 +270,21 @@ public class Main extends SimpleApplication {
 
         final short[] glyphRanges = rangesBuilder.buildRanges();
         //
-        ImFont imFont = imGuiIO.getFonts().addFontFromFileTTF("font/Noto_Serif_SC/NotoSerifSC-Regular.otf",
-                16f, imFontConfig, glyphRanges);
+        ImFont imFont = imGuiIO.getFonts().addFontFromMemoryTTF(getResourcesAsBytes("font/unifont-15.1.05.otf"), 12f, imFontConfig, glyphRanges);
         imGuiIO.getFonts().build();           // Build custom font
         imGuiIO.setFontDefault(imFont);       // Set custom font to default
 
         ImGuiJme3.refreshFontTexture();        // Don't forget to refresh the font texture!
 
         imFontConfig.destroy();               // Destroy the font config
+    }
+
+    private static byte[] getResourcesAsBytes(String resource) {
+        try {
+            return Files.readAllBytes(Paths.get(Objects.requireNonNull(Main.class.getClassLoader().getResource(resource)).toURI()));
+        } catch (IOException | URISyntaxException ignored) {
+        }
+        return null;
     }
 
     @Override
@@ -423,18 +430,11 @@ public class Main extends SimpleApplication {
         if (ImGui.beginMenuBar()) {
             if (ImGui.beginMenu("File")) {
                 if (ImGui.menuItem("Open", "Ctrl+O")) {
-                }
-                if (ImGui.beginMenu("Open Recent")) {
-                    ImGui.menuItem("fish_hat.c");
-                    ImGui.menuItem("fish_hat.inl");
-                    ImGui.menuItem("fish_hat.h");
-                    ImGui.endMenu();
+                    open();
                 }
                 if (ImGui.menuItem("Save", "Ctrl+S")) {
+                    save();
                 }
-                if (ImGui.menuItem("Save As..")) {
-                }
-
                 ImGui.endMenu();
             }
 
@@ -457,6 +457,10 @@ public class Main extends SimpleApplication {
         }
     }
     private void getParameter() {
+        if (font.getLength() == 0) {
+            return;
+        }
+
         PackStrategy packStrategy;
         if (strategy.get() == 0) {
             packStrategy = new GuillotineStrategy();
@@ -541,5 +545,188 @@ public class Main extends SimpleApplication {
         scene.attachChild(txt);
 
         logger.info("scene:{}", scene.getChildren());
+    }
+
+    private void open() {
+        // open *.presets file and load
+        try (MemoryStack stack = stackPush()) {
+            String filename = TinyFileDialogs.tinyfd_openFileDialog("Open Presets File", "", null,
+                    "Presets (*.presets)", false);
+            if (filename != null) {
+                open(new File(filename));
+            }
+        }
+    }
+
+    private void save() {
+        try (MemoryStack stack = stackPush()) {
+            PointerBuffer aFilterPatterns = stack.mallocPointer(3);
+            aFilterPatterns.put(stack.UTF8("*.presets"));
+            aFilterPatterns.flip();
+            String filename = TinyFileDialogs.tinyfd_saveFileDialog("Save Presets File", "", aFilterPatterns,
+                    "Presets (*.presets)");
+            if (filename != null) {
+                save(new File(filename));
+            }
+        }
+    }
+
+    private void open(File file) {
+
+        Properties properties = new OrderedProperties();
+        try (InputStream in = new FileInputStream(file)) {
+            properties.load(in);
+        } catch (IOException e) {
+            logger.error("open presets file {} error", file, e);
+            return;
+        }
+
+
+        setString(font, "font.file", properties);
+        setInt(packerWidth, "pack.width", properties);
+        setInt(packerHeight, "pack.height", properties);
+        setInt(packPadding, "pack.padding", properties);
+        setIndex(strategy, "pack.strategy", properties, strategyOptions);
+
+        setInt(size, "font.size", properties);
+        setBool(kerning, "font.kerning", properties);
+        setBool(incremental, "font.incremental", properties);
+
+        setIndex(renderMode, "render.mode", properties, renderModes);
+        setRGBA(color, "render.color", properties);
+        setFloat(gamma, "render.gamma", properties);
+        setInt(renderCount, "render.count", properties);
+        setInt(spread, "render.spread", properties);
+        setIndex(hinting, "render.hinting", properties, hintings);
+
+        setInt(borderWidth, "border.width", properties);
+        setRGBA(borderColor, "border.color", properties);
+        setFloat(borderGamma, "border.gamma", properties);
+        setBool(borderStraight, "border.straight", properties);
+
+        setInt(shadowOffsetX, "shadow.offsetX", properties);
+        setInt(shadowOffsetY, "shadow.offsetY", properties);
+        setRGBA(shadowColor, "shadow.color", properties);
+
+        setInt(spaceX, "space.x", properties);
+        setInt(spaceY, "space.y", properties);
+        setInt(padLeft, "padding.left", properties);
+        setInt(padRight, "padding.right", properties);
+        setInt(padTop, "padding.top", properties);
+        setInt(padBottom, "padding.bottom", properties);
+
+        setIndex(minFilter, "minFilter", properties, minFilterOptions);
+        setIndex(magFilter, "magFilter", properties, magFilterOptions);
+
+        setIndex(matDefId, "matDef", properties, matDefs);
+        setString(colorMapParamName, "colorMapParamName", properties);
+        setString(vertexColorParamName, "vertexColorParamName", properties);
+        setBool(useVertexColor, "useVertexColor", properties);
+
+    }
+
+    private void setIndex(ImInt imInt, String propertyName, Properties properties, String[] options) {
+        String value = properties.getProperty(propertyName);
+        if (value == null || value.trim().isEmpty()) {
+            return;
+        }
+        imInt.set(Arrays.asList(options).indexOf(value));
+    }
+
+    private void setString(ImString imString, String propertyName, Properties properties) {
+        String value = properties.getProperty(propertyName);
+        if (value == null || value.trim().isEmpty()) {
+            imString.set("");
+            return;
+        }
+        imString.set(value);
+    }
+
+    private void setInt(ImInt imInt, String propertyName, Properties properties) {
+        String value = properties.getProperty(propertyName);
+        if (value == null || value.trim().isEmpty()) {
+            return;
+        }
+        imInt.set(Integer.parseInt(value));
+    }
+
+    private void setFloat(ImFloat imFloat, String propertyName, Properties properties) {
+        String value = properties.getProperty(propertyName);
+        if (value == null || value.trim().isEmpty()) {
+            return;
+        }
+        imFloat.set(Float.parseFloat(value));
+    }
+
+    private void setBool(ImBoolean imBool, String propertyName, Properties properties) {
+        String value = properties.getProperty(propertyName);
+        if (value == null || value.trim().isEmpty()) {
+            return;
+        }
+        imBool.set(Boolean.parseBoolean(value));
+    }
+
+    private void setRGBA(float[] color, String propertyName, Properties properties) {
+        String value = properties.getProperty(propertyName);
+        if (value == null || value.trim().isEmpty()) {
+            return;
+        }
+        String[] rgba = properties.getProperty(propertyName).split(",");
+        color[0] = Float.parseFloat(rgba[0].trim());
+        color[1] = Float.parseFloat(rgba[1].trim());
+        color[2] = Float.parseFloat(rgba[2].trim());
+        color[3] = Float.parseFloat(rgba[3].trim());
+    }
+
+    private void save(File file) {
+        // save all the parameters to a *.presets file
+        Properties properties = new OrderedProperties();
+        properties.setProperty("pack.width", packerSizes[packerWidth.get()]);
+        properties.setProperty("pack.height", packerSizes[packerHeight.get()]);
+        properties.setProperty("pack.padding", String.valueOf(packPadding.get()));
+        properties.setProperty("pack.strategy", strategyOptions[strategy.get()]);
+
+        properties.setProperty("font.file", font.get());
+        properties.setProperty("font.size", String.valueOf(size.get()));
+        properties.setProperty("font.kerning", String.valueOf(kerning.get()));
+        properties.setProperty("font.incremental", String.valueOf(incremental.get()));
+        properties.setProperty("render.mode", renderModes[renderMode.get()]);
+        properties.setProperty("render.color", String.format("%f,%f,%f,%f", color[0], color[1], color[2], color[3]));
+        properties.setProperty("render.gamma", String.valueOf(gamma.get()));
+        properties.setProperty("render.count", String.valueOf(renderCount.get()));
+        properties.setProperty("render.spread", String.valueOf(spread.get()));
+        properties.setProperty("render.hinting", hintings[hinting.get()]);
+
+        properties.setProperty("border.width", String.valueOf(borderWidth.get()));
+        properties.setProperty("border.color", String.format("%f,%f,%f,%f", borderColor[0], borderColor[1], borderColor[2], borderColor[3]));
+        properties.setProperty("border.straight", String.valueOf(borderStraight.get()));
+        properties.setProperty("border.gamma", String.valueOf(borderGamma.get()));
+
+        properties.setProperty("shadow.offsetX", String.valueOf(shadowOffsetX.get()));
+        properties.setProperty("shadow.offsetY", String.valueOf(shadowOffsetY.get()));
+        properties.setProperty("shadow.color", String.format("%f,%f,%f,%f", shadowColor[0], shadowColor[1], shadowColor[2], shadowColor[3]));
+
+        properties.setProperty("space.x", String.valueOf(spaceX.get()));
+        properties.setProperty("space.y", String.valueOf(spaceY.get()));
+
+        properties.setProperty("padding.left", String.valueOf(padLeft.get()));
+        properties.setProperty("padding.right", String.valueOf(padRight.get()));
+        properties.setProperty("padding.top", String.valueOf(padTop.get()));
+        properties.setProperty("padding.bottom", String.valueOf(padBottom.get()));
+
+        properties.setProperty("texture.minFilter", minFilterOptions[minFilter.get()]);
+        properties.setProperty("texture.magFilter", magFilterOptions[magFilter.get()]);
+
+        properties.setProperty("material.matDefName", matDefs[matDefId.get()]);
+        properties.setProperty("material.colorMapParamName", colorMapParamName.get());
+        properties.setProperty("material.vertexColorParamName", vertexColorParamName.get());
+        properties.setProperty("material.useVertexColor", String.valueOf(useVertexColor.get()));
+
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            properties.store(fos, "Font Presets");
+            fos.flush();
+        } catch (IOException e) {
+            logger.error("save presets file error:{}", file, e);
+        }
     }
 }

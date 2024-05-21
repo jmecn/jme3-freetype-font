@@ -1,5 +1,6 @@
 plugins {
     id 'jme3-freetype-font.java-application-conventions'
+    id 'com.github.johnrengelman.shadow'  version '7.1.1'
 }
 
 ext.imguiVersion = '1.86.11'
@@ -42,4 +43,9 @@ dependencies {
 application {
     // Define the main class for the application.
     mainClass = 'io.github.jmecn.font.editor.Main'
+}
+
+shadowJar {
+    archiveBaseName.set('font-editor')  // jar 文件的基本名字
+    archiveClassifier.set('')  // jar 文件的额外标签，这里设为空
 }
