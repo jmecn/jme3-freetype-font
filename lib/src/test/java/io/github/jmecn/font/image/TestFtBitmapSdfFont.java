@@ -26,7 +26,6 @@ public class TestFtBitmapSdfFont {
 
             // set sdf properties
             library.setSdfSpread(4);
-            library.setSdfFlipSign(true);
 
             String text = "你好世界";
             List<Image> imageList = new ArrayList<>();

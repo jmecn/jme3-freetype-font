@@ -1,4 +1,4 @@
-package io.github.jmecn.font.harfbuzz;
+package io.github.jmecn.font.shaping;
 
 import io.github.jmecn.font.freetype.FtFace;
 import io.github.jmecn.font.freetype.FtLibrary;
@@ -126,7 +126,6 @@ class TestHarfbuzzLibrary {
 
             hb_face_t[i] = hb_ft_face_create_referenced(faces[i].address());
             hb_font_t[i] = hb_font_create(hb_face_t[i]);
-
        }
 
         // 顺序加载字符串，按照字体顺序来查找 glyphIndex，如果找不到就记下其位置，在下一个字体中查找，如果找不到就报错。
@@ -151,14 +150,12 @@ class TestHarfbuzzLibrary {
             hb_shape(hb_font_t[0], buf, null);
 
             hb_glyph_info_t.Buffer glyph_info = hb_buffer_get_glyph_infos(buf);
-            hb_glyph_position_t.Buffer glyph_pos = hb_buffer_get_glyph_positions(buf);
             int glyph_count = hb_buffer_get_length(buf);
             System.out.println("glyph_count=" + glyph_count);
             for (int i = 0; i < glyph_count; ++i) {
                 int codepoint = glyph_info.get(i).codepoint();
-                int x_advance = glyph_pos.get(i).x_advance() >> 6;
                 int glyphIndex = face.getCharIndex(codepoint);
-                System.out.printf("codepoint=0x%X, glyph_index=0x%X, x_advance=%d\n", codepoint, glyphIndex, x_advance);
+                System.out.printf("codepoint=0x%X, glyph_index=0x%X\n", codepoint, glyphIndex);
             }
 
             hb_buffer_destroy(buf);
@@ -174,4 +171,5 @@ class TestHarfbuzzLibrary {
 
         library.close();
     }
+
 }
