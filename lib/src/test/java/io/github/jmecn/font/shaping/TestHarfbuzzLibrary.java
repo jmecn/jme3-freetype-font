@@ -3,12 +3,17 @@ package io.github.jmecn.font.shaping;
 import io.github.jmecn.font.freetype.FtFace;
 import io.github.jmecn.font.freetype.FtLibrary;
 import org.junit.jupiter.api.Test;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.Configuration;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.freetype.FreeType;
 import org.lwjgl.util.harfbuzz.hb_glyph_info_t;
 import org.lwjgl.util.harfbuzz.hb_glyph_position_t;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import static org.lwjgl.util.harfbuzz.HarfBuzz.*;
 
@@ -67,6 +72,9 @@ class TestHarfbuzzLibrary {
 
         // Create  HarfBuzz buffer
         long buf = hb_buffer_create();
+        /* Call the setup_buffer first while the buffer is empty,
+         * as guess_segment_properties doesn't like glyphs in the buffer. */
+        hb_buffer_guess_segment_properties(buf);//
 
         // Set buffer to LTR direction, common script and default language
         // hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
@@ -111,7 +119,8 @@ class TestHarfbuzzLibrary {
 
         String[] fonts = new String[] {
                 "../font/FreeSerif.ttf",
-                "../font/Noto_Serif_SC/NotoSerifSC-Regular.otf"
+                "../font/Noto_Serif_SC/NotoSerifSC-Regular.otf",
+                "/System/Library/Fonts/Apple Color Emoji.ttc"
         };
         int fontCount = fonts.length;
 
@@ -129,7 +138,7 @@ class TestHarfbuzzLibrary {
        }
 
         // 顺序加载字符串，按照字体顺序来查找 glyphIndex，如果找不到就记下其位置，在下一个字体中查找，如果找不到就报错。
-        String text = "Hello, world! 你好，世界！👋";
+        String text = "Hello, world! 你好，世界！👋👨‍👩‍👧‍👦";
 
         // 迭代次数，最大不超过字体的数量
         for (int iteration = 0; iteration < fonts.length; iteration++) {
@@ -140,12 +149,15 @@ class TestHarfbuzzLibrary {
 
             // Create  HarfBuzz buffer
             long buf = hb_buffer_create();
+            /* Call the setup_buffer first while the buffer is empty,
+             * as guess_segment_properties doesn't like glyphs in the buffer. */
 
             hb_buffer_add_utf8(buf, text, 0, -1);
+            hb_buffer_set_content_type(buf, HB_BUFFER_CONTENT_TYPE_UNICODE);
             // Set buffer to LTR direction, common script and default language
             //hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
             //hb_buffer_set_script(buf, HB_SCRIPT_COMMON);
-            hb_buffer_set_language(buf, hb_language_from_string("zh"));
+            //hb_buffer_set_language(buf, hb_language_from_string("zh"));
 
             hb_shape(hb_font_t[0], buf, null);
 
@@ -160,7 +172,6 @@ class TestHarfbuzzLibrary {
 
             hb_buffer_destroy(buf);
         }
-
 
         //// release all resources
         for (int i = 0; i < fontCount; i++) {

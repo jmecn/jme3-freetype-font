@@ -51,4 +51,10 @@ class TestEmoji {
             System.out.printf("char=%c, charAt=0x%X, codepoint=0x%X isHighSurrogate=%b, isLowSurrogate=%b\n", c, (int)c, codepoint, Character.isHighSurrogate(c), Character.isLowSurrogate(c));
         }
     }
+
+    @Test void testEmoji() {
+        String name = "👨‍👩‍👧‍👦";
+        assertEquals(11, name.length());
+        assertEquals("\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66", name);
+    }
 }
