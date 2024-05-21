@@ -9,6 +9,7 @@
 |:-----------|:---------------------|
 | FreeType   | font raster library  |
 | Harfbuzz   | text shaping library |
+| ICU        | unicode support      |
 | Fontconfig | find best match font |
 
 ## algorithms
