@@ -28,6 +28,10 @@ public class Page {
     public Page(Packer packer) {
         int size = packer.pageWidth * packer.pageHeight * packer.format.getBitsPerPixel();
         ByteBuffer buffer = BufferUtils.createByteBuffer(size);
+
+        // in case the buffer is not filled with 0,
+        buffer.put(new byte[size]);
+        buffer.clear();
         image = new Image(packer.format, packer.pageWidth, packer.pageHeight, buffer, ColorSpace.Linear);
 
         rectangles = new HashMap<>();

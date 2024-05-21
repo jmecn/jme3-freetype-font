@@ -1,0 +1,35 @@
+#Font Presets
+#Tue May 21 22:03:28 CST 2024
+space.x=0
+padding.top=0
+space.y=0
+material.vertexColorParamName=VertexColor
+shadow.offsetX=0
+font.size=32
+font.file=font/Noto_Serif_SC/NotoSerifSC-Regular.otf
+shadow.color=0.000000,0.000000,0.000000,0.750000
+pack.strategy=SkylineStrategy
+material.colorMapParamName=ColorMap
+shadow.offsetY=0
+border.straight=false
+pack.height=256
+render.count=2
+texture.magFilter=Bilinear
+padding.left=0
+render.gamma=1.0
+padding.bottom=0
+render.hinting=NORMAL
+material.matDefName=Shaders/Font/SdFont.j3md
+material.useVertexColor=true
+render.color=1.000000,1.000000,1.000000,1.000000
+pack.width=256
+border.gamma=1.8
+font.kerning=true
+padding.right=0
+render.spread=2
+border.width=0
+font.incremental=true
+texture.minFilter=NearestNoMipMaps
+pack.padding=1
+render.mode=SDF
+border.color=0.000000,0.000000,0.000000,1.000000

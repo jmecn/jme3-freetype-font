@@ -92,6 +92,7 @@ public class TestBitmapText3D2 extends SimpleApplication {
         parameter.setSize(32);
         parameter.setRenderMode(RenderMode.SDF);
         parameter.setSpread(4);
+        parameter.setGamma(1.0f);
         parameter.setMatDef(matDef);
         parameter.setCharacters(TEXT);
 

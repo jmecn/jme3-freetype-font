@@ -82,9 +82,12 @@ public class Main extends SimpleApplication {
 
     private final Node scene;
 
+    /////////////// bitmapfont bitmaptext ////////////////
     private Packer packer;
     private FtFontGenerator generator;
     private final FtFontParameter parameter;
+    private BitmapFont bmfont;
+    private BitmapText bmtext;
 
     ImString font = new ImString();
 
@@ -145,6 +148,7 @@ public class Main extends SimpleApplication {
     ImString colorMapParamName = new ImString();
     ImString vertexColorParamName = new ImString();
     ImBoolean useVertexColor = new ImBoolean();
+
 
     public Main(AppState... states) {
         super(states);
@@ -218,8 +222,8 @@ public class Main extends SimpleApplication {
     public void simpleInitApp() {
         assetManager.registerLoader(FtFontLoader.class, "otf", "ttf");
 
-        rootNode.attachChild(scene);
-        scene.setLocalTranslation(-5, 5, 0);
+        guiNode.attachChild(scene);
+        scene.setLocalTranslation(380, 0, 0);
 
         // hide stats and profiler by default
         StatsAppState statsAppState = stateManager.getState(StatsAppState.class);
@@ -247,6 +251,7 @@ public class Main extends SimpleApplication {
         cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
         cam.setFov(60);
     }
+
 
     private void initImGui() {
         ImGuiJme3.initialize(this);
@@ -293,6 +298,12 @@ public class Main extends SimpleApplication {
         super.destroy();
     }
 
+    @Override
+    public void simpleUpdate(float tpf) {
+        if (bmtext != null) {
+            bmtext.setText(text.get());
+        }
+    }
     @Override
     public void simpleRender(RenderManager rm) {
         // Start the ImGui frame
@@ -350,17 +361,17 @@ public class Main extends SimpleApplication {
         ImGui.combo("render mode", renderMode, renderModes);
         if (renderMode.get() == RenderMode.SDF.ordinal()) {
             ImGui.sameLine();
-            ImGui.dragInt("spread", spread.getData(), 1f, FtLibrary.MIN_SPREAD, FtLibrary.MAX_SPREAD);
+            ImGui.sliderInt("spread", spread.getData(), FtLibrary.MIN_SPREAD, FtLibrary.MAX_SPREAD);
         }
         ImGui.combo("hinting", hinting, hintings);
-        ImGui.pushItemWidth(60);
-        ImGui.dragInt("font size", size.getData(), 1f, 1f, 9999f);
+        ImGui.pushItemWidth(100);
+        ImGui.inputInt("font size", size);
 
         ImGui.pushItemWidth(200);
         ImGui.colorEdit4("color", color);
-        ImGui.pushItemWidth(60);
-        ImGui.dragFloat("gamma", gamma.getData(), 0.001f, 1.0f, 2.2f);
-        ImGui.dragInt("render count", renderCount.getData(), 1f, 1f, 10f);
+        ImGui.pushItemWidth(100);
+        ImGui.inputFloat("gamma", gamma, 0.1f);
+        ImGui.sliderInt("render count", renderCount.getData(), 1, 10);
         ImGui.checkbox("kerning", kerning);
         ImGui.checkbox("incremental", incremental);
 
@@ -379,9 +390,10 @@ public class Main extends SimpleApplication {
 
         if (ImGui.collapsingHeader("Border")) {
             ImGui.pushItemWidth(60);
-            ImGui.dragInt("borerWidth", borderWidth.getData(), 1f, 0f, 100f);
+            ImGui.sliderInt("borerWidth", borderWidth.getData(), 0, 10);
             ImGui.sameLine();
-            ImGui.sliderFloat("borderGamma", borderGamma.getData(), 1.0f, 2.2f);
+            ImGui.pushItemWidth(100);
+            ImGui.inputFloat("borderGamma", borderGamma, 0.1f);
             ImGui.pushItemWidth(200);
             ImGui.colorEdit4("borderColor", borderColor);
             ImGui.checkbox("borderStraight", borderStraight);
@@ -389,31 +401,31 @@ public class Main extends SimpleApplication {
 
         if (ImGui.collapsingHeader("ShadowOffset")) {
             ImGui.pushItemWidth(60);
-            ImGui.dragInt("offsetX", shadowOffsetX.getData(), 1f, -100f, 100f);
+            ImGui.sliderInt("offsetX", shadowOffsetX.getData(), -10, 10);
             ImGui.sameLine();
-            ImGui.dragInt("offsetY", shadowOffsetY.getData(), 1f, -100f, 100f);
+            ImGui.sliderInt("offsetY", shadowOffsetY.getData(), -10, 10);
             ImGui.pushItemWidth(200);
             ImGui.colorEdit4("shadowColor", shadowColor);
         }
 
         if (ImGui.collapsingHeader("Spacing")) {
             ImGui.pushItemWidth(60);
-            ImGui.dragInt("spaceX", spaceX.getData(), 1f, 0f, 100f);
+            ImGui.sliderInt("spaceX", spaceX.getData(), 0, 100);
             ImGui.sameLine();
             ImGui.pushItemWidth(60);
-            ImGui.dragInt("spaceY", spaceY.getData(), 1f, 0f, 100f);
+            ImGui.sliderInt("spaceY", spaceY.getData(), 0, 100);
         }
 
         if (ImGui.collapsingHeader("Padding")) {
             ImGui.indent(50);
             ImGui.pushItemWidth(60);
-            ImGui.dragInt("top", padTop.getData(), 1f, 0f, 100f);
+            ImGui.sliderInt("top", padTop.getData(), 0, 10);
             ImGui.indent(-50);
-            ImGui.dragInt("left", padLeft.getData(), 1f, 0f, 100f);
+            ImGui.sliderInt("left", padLeft.getData(), 0, 10);
             ImGui.sameLine();
-            ImGui.dragInt("right", padRight.getData(), 1f, 0f, 100f);
+            ImGui.sliderInt("right", padRight.getData(), 0, 10);
             ImGui.indent(50);
-            ImGui.dragInt("bottom", padBottom.getData(), 1f, 0f, 100f);
+            ImGui.sliderInt("bottom", padBottom.getData(), 0, 10);
             ImGui.indent(-50);
         }
 
@@ -518,31 +530,33 @@ public class Main extends SimpleApplication {
         parameter.setMatDef(matDef);
 
         if (generator != null) {
-            // TODO clean up
             generator.close();
+            generator = null;
+        }
+
+        if (bmtext != null) {
+            bmtext.removeFromParent();
+            bmtext = null;
+        }
+
+        if (bmfont != null) {
+            bmfont = null;
         }
 
         generator = new FtFontGenerator(new File(font.get()), 0);
 
-        BitmapFont bitmapFont = generator.generateFont(parameter);
+        bmfont = generator.generateFont(parameter);
 
         scene.detachAllChildren();
-        buildFtBitmapText(bitmapFont);
+        buildFtBitmapText(bmfont);
     }
 
     private void buildFtBitmapText(BitmapFont fnt) {
-        Quad q = new Quad(20, 10);
-        Geometry g = new Geometry("quad", q);
-        g.setLocalTranslation(0, -10, -0.0001f);
-        g.setMaterial(assetManager.loadMaterial("Common/Materials/RedColor.j3m"));
-        scene.attachChild(g);
-
-        BitmapText txt = new BitmapText(fnt);
-        txt.setBox(new Rectangle(0, 0, 20, 10));
-        txt.setQueueBucket(RenderQueue.Bucket.Transparent);
-        txt.setSize(1f);
-        txt.setText(text.get());
-        scene.attachChild(txt);
+        bmtext = new BitmapText(fnt);
+        bmtext.setBox(new Rectangle(0, 0, 900, 720));
+        bmtext.setText(text.get());
+        bmtext.move(0, cam.getHeight(), 0);
+        scene.attachChild(bmtext);
 
         logger.info("scene:{}", scene.getChildren());
     }
@@ -583,8 +597,8 @@ public class Main extends SimpleApplication {
 
 
         setString(font, "font.file", properties);
-        setInt(packerWidth, "pack.width", properties);
-        setInt(packerHeight, "pack.height", properties);
+        setIndex(packerWidth, "pack.width", properties, packerSizes);
+        setIndex(packerHeight, "pack.height", properties, packerSizes);
         setInt(packPadding, "pack.padding", properties);
         setIndex(strategy, "pack.strategy", properties, strategyOptions);
 
@@ -618,10 +632,10 @@ public class Main extends SimpleApplication {
         setIndex(minFilter, "minFilter", properties, minFilterOptions);
         setIndex(magFilter, "magFilter", properties, magFilterOptions);
 
-        setIndex(matDefId, "matDef", properties, matDefs);
-        setString(colorMapParamName, "colorMapParamName", properties);
-        setString(vertexColorParamName, "vertexColorParamName", properties);
-        setBool(useVertexColor, "useVertexColor", properties);
+        setIndex(matDefId, "material.matDefName", properties, matDefs);
+        setString(colorMapParamName, "material.colorMapParamName", properties);
+        setString(vertexColorParamName, "material.vertexColorParamName", properties);
+        setBool(useVertexColor, "material.useVertexColor", properties);
 
     }
 

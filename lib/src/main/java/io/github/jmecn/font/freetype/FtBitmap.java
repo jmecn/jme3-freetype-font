@@ -68,17 +68,17 @@ public class FtBitmap {
     }
 
     public Image getImage(Image.Format format, ColorRGBA color, float gamma) {
-        Image pixmap = ImageUtils.ftBitmapToImage(this, color, gamma);
+        Image image = ImageUtils.ftBitmapToImage(this, color, gamma);
 
-        Image converted = pixmap;
-        if (format != pixmap.getFormat()) {
-            int capacity = pixmap.getWidth() *pixmap.getHeight() *format.getBitsPerPixel() / 8;
+        Image converted = image;
+        if (format != image.getFormat()) {
+            int capacity = image.getWidth() *image.getHeight() * format.getBitsPerPixel() / 8;
             ByteBuffer buffer = ByteBuffer.allocateDirect(capacity);
 
-            converted = new Image(format, pixmap.getWidth(), pixmap.getHeight(), buffer, ColorSpace.Linear);
+            converted = new Image(format, image.getWidth(), image.getHeight(), buffer, ColorSpace.Linear);
             // Draw
-            ImageUtils.drawImage(converted, pixmap, 0, 0);
-            pixmap.dispose();
+            ImageUtils.drawImage(converted, image, 0, 0);
+            image.dispose();
         }
         return converted;
     }

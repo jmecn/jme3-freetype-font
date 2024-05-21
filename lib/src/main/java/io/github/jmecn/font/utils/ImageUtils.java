@@ -36,10 +36,10 @@ public final class ImageUtils {
         int pixelMode = bitmap.getPixelMode();
         int rowBytes = Math.abs(bitmap.getPitch()); // We currently ignore negative pitch.
 
-        if (pixelMode == FT_PIXEL_MODE_GRAY && rowBytes == width && gamma == 1f && color.equals(ColorRGBA.White)) {
-            ByteBuffer data = BufferUtils.clone(src);
-            return new Image(Image.Format.Luminance8, width, rows, data, ColorSpace.Linear);
-        } else {
+//        if (pixelMode == FT_PIXEL_MODE_GRAY && rowBytes == width && gamma == 1f && color.equals(ColorRGBA.White)) {
+//            ByteBuffer data = BufferUtils.clone(src);
+//            return new Image(Image.Format.Luminance8, width, rows, data, ColorSpace.Linear);
+//        } else {
             image = newImage(Image.Format.RGBA8, width, rows);
             ByteBuffer data = image.getData(0);
 
@@ -73,11 +73,12 @@ public final class ImageUtils {
                     src.get(srcRow);
                     for (int x = 0; x < width; x++) {
                         int s = srcRow[x] & 0xFF;
+                        alpha = s;
                         if (s != 0 && s != 0xFF && gamma != 1f) {
                             // Inverse gamma.
-                            s = (int) (0xFF * Math.pow(s / 255f, gamma));
+                            alpha = (int) (0xFF * Math.pow(s / 255f, gamma));
                         }
-                        red = blue = green = alpha = s;
+                        red = blue = green = s;
                         // apply color and gamma correction
                         if (color.b >= 0f && color.b < 1f) {
                             blue = (int) (blue * color.b);
@@ -88,8 +89,8 @@ public final class ImageUtils {
                         if (color.r >= 0f && color.r < 1f) {
                             red = (int) (red * color.r);
                         }
-                        if (alpha != 0 && alpha != 255) {
-                            alpha = (int)(alpha * color.a);
+                        if (color.a >= 0f && color.a < 1f) {
+                            alpha = (int) (alpha * color.a);
                         }
                         dstRow[x] = (red << 24) | (green << 16) | (blue << 8) | alpha;
                     }
@@ -124,7 +125,7 @@ public final class ImageUtils {
                     dst.put(dstRow);
                 }
             }
-        }
+//        }
 
         return image;
     }
@@ -227,27 +228,13 @@ public final class ImageUtils {
         }
     }
 
-    static double fpart(double x) {
+    private static double fpart(double x) {
         return x - (int) x;
     }
-    static double rfpart(double x) {
+    private static double rfpart(double x) {
         return (int) (x + 1.0) - x;
     }
-    /*
-    // integer part of x
-function ipart(x) is
-    return floor(x)
 
-function round(x) is
-    return ipart(x + 0.5)
-
-// fractional part of x
-function fpart(x) is
-    return x - ipart(x)
-
-function rfpart(x) is
-    return 1 - fpart(x)
-     */
     private static void plot(ImageRaster raster, int x, int y, ColorRGBA c, double brightness) {
         if (x < 0 || y < 0 || x >= raster.getWidth() || y >= raster.getHeight()) {
             return;
