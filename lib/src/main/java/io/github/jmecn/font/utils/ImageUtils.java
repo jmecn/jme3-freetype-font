@@ -72,14 +72,15 @@ public final class ImageUtils {
                 for (int y = 0; y < rows; y++) {
                     src.get(srcRow);
                     for (int x = 0; x < width; x++) {
-                        int s = srcRow[x] & 0xFF;
-                        alpha = s;
-                        if (s != 0 && s != 0xFF && gamma != 1f) {
-                            // Inverse gamma.
-                            alpha = (int) (0xFF * Math.pow(s / 255f, gamma));
+                        red = blue = green = 0xFF;
+                        int gray = srcRow[x] & 0xFF;
+                        if (gray != 0 && gray != 0xFF && gamma != 1f) {
+                            // apply gamma correction
+                            alpha = (int) (0xFF * Math.pow(gray / 255f, gamma));
+                        } else {
+                            alpha = gray;
                         }
-                        red = blue = green = s;
-                        // apply color and gamma correction
+
                         if (color.b >= 0f && color.b < 1f) {
                             blue = (int) (blue * color.b);
                         }

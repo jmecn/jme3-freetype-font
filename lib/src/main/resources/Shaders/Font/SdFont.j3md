@@ -5,6 +5,7 @@ MaterialDef Font {
         Color Color
         Color Color (Color)
         Boolean VertexColor (UseVertexColor)
+        Boolean SdfUseAlpha
         // The glow color of the object
         Color GlowColor
         // Alpha threshold for fragment discarding
@@ -30,6 +31,7 @@ MaterialDef Font {
             HAS_COLOR : Color
             HAS_GLOWCOLOR : GlowColor
             DISCARD_ALPHA : AlphaDiscardThreshold
+            SDF_USE_ALPHA : SdfUseAlpha
         }
     }
 

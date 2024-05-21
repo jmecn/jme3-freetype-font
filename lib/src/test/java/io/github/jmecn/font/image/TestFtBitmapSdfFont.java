@@ -1,5 +1,6 @@
 package io.github.jmecn.font.image;
 
+import com.jme3.material.Materials;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import io.github.jmecn.font.freetype.*;
@@ -53,7 +54,7 @@ public class TestFtBitmapSdfFont {
                 }
             }
 
-            TestDisplay.run("Shaders/Font/SdFont.j3md", imageList.toArray(new Image[0]));
+            TestDisplay.run(Materials.UNSHADED, imageList.toArray(new Image[0]));
         }
     }
 }

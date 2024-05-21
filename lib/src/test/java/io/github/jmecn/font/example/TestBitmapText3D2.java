@@ -88,11 +88,10 @@ public class TestBitmapText3D2 extends SimpleApplication {
         MaterialDef matDef = assetManager.loadAsset(new AssetKey<>("Shaders/Font/SdFont.j3md"));
         FtFontGenerator generator = new FtFontGenerator(new File("font/FreeSerif.ttf"));
         FtFontParameter parameter = new FtFontParameter();
-        parameter.setPacker(new Packer(Image.Format.RGBA8, 256, 256, 0, false, new SkylineStrategy()));
-        parameter.setSize(32);
+        parameter.setPacker(new Packer(Image.Format.RGBA8, 256, 256, 1, false, new SkylineStrategy()));
+        parameter.setSize(24);
         parameter.setRenderMode(RenderMode.SDF);
-        parameter.setSpread(4);
-        parameter.setGamma(1.0f);
+        parameter.setSpread(2);
         parameter.setMatDef(matDef);
         parameter.setCharacters(TEXT);
 
@@ -134,8 +133,9 @@ public class TestBitmapText3D2 extends SimpleApplication {
         MaterialDef matDef = assetManager.loadAsset(new AssetKey<>("Common/MatDefs/Misc/Unshaded.j3md"));
         FtFontGenerator generator = new FtFontGenerator(new File("font/FreeSerif.ttf"));
         FtFontParameter parameter = new FtFontParameter();
-        parameter.setPacker(new Packer(Image.Format.RGBA8, 256, 256, 0, false, new SkylineStrategy()));
-        parameter.setSize(32);
+        parameter.setPacker(new Packer(Image.Format.RGBA8, 256, 256, 1, false, new SkylineStrategy()));
+        parameter.setSize(24);
+        parameter.setGamma(0.6f);
         parameter.setMatDef(matDef);
         parameter.setMagFilter(Texture.MagFilter.Bilinear);
         parameter.setMinFilter(Texture.MinFilter.NearestNoMipMaps);

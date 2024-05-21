@@ -156,6 +156,7 @@ public class TestGlyphMetrics extends SimpleApplication {
         Material material;
         if (glyph.getRenderMode() == FT_RENDER_MODE_SDF) {
             material = new Material(assetManager, "Shaders/Font/SdFont.j3md");
+            material.setBoolean("SdfUseAlpha", true);
         } else {
             material = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         }

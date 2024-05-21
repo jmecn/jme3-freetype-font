@@ -81,7 +81,7 @@ public class TestBitmapText3DSdf extends SimpleApplication {
         MaterialDef matDef = assetManager.loadAsset(new AssetKey<>("Shaders/Font/SdFont.j3md"));
         parameter.setMatDef(matDef);
         parameter.setSpread(2);
-        //parameter.setUseVertexColor(false);
+        parameter.setMinFilter(Texture.MinFilter.Trilinear);
         parameter.setColorMapParamName("ColorMap");
 
         BitmapFont fnt = generator.generateFont(parameter);

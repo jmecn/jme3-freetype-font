@@ -21,7 +21,11 @@ void main(void) {
     vec2 uv = vTexCoord.xy;
     vec4 color = vec4(1.0);
 
+    #ifdef SDF_USE_ALPHA
+    float dist = texture2D(m_ColorMap, uv).a;
+    #else
     float dist = texture2D(m_ColorMap, uv).r;
+    #endif
 
     float smoothing = fwidth(dist);
     //float smoothing = 0.7 * length(vec2(dFdx(dist), dFdy(dist)));
