@@ -51,7 +51,7 @@ public final class ImGuiJme3 {
 
         initialized = true;
 
-        logger.info("imgui is initialized");
+        logger.debug("imgui is initialized");
     }
 
     /**
@@ -123,7 +123,7 @@ public final class ImGuiJme3 {
      */
     public static void dispose() {
         if (!initialized) {
-            logger.info("imgui is not initialized.");
+            logger.debug("imgui is not initialized.");
             return;
         }
         imGuiGl3.dispose();
@@ -133,7 +133,7 @@ public final class ImGuiJme3 {
         initialized = false;
         windowHandle = 0L;
 
-        logger.info("imgui is disposed");
+        logger.debug("imgui is disposed");
     }
 
 }

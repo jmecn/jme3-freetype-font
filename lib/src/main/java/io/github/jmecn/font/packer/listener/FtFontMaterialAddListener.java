@@ -28,7 +28,6 @@ public class FtFontMaterialAddListener implements PageListener {
 
     @Override
     public void onPageAdded(Packer packer, PackStrategy strategy, Page page) {
-        logger.debug("New page detected: {}", page);
         Image image = page.getImage();
         data.addImage(image);
 

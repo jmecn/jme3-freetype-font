@@ -35,4 +35,21 @@ public class OrderedProperties extends Properties {
         }
         return set;
     }
+
+    @Override
+    public synchronized boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        OrderedProperties that = (OrderedProperties) o;
+        return keys.equals(that.keys);
+    }
+
+    @Override
+    public synchronized int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + keys.hashCode();
+        return result;
+    }
 }

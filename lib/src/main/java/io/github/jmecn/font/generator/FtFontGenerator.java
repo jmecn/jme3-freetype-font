@@ -465,7 +465,7 @@ public class FtFontGenerator implements AutoCloseable {
             if (parameter.getPadTop() > 0 || parameter.getPadLeft() > 0 || parameter.getPadBottom() > 0 || parameter.getPadRight() > 0) {
                 Image paddingImage = ImageUtils.newImage(mainImage.getFormat(), mainImage.getWidth() + parameter.getPadLeft() + parameter.getPadRight(),
                         mainImage.getHeight() + parameter.getPadTop() + parameter.getPadBottom());
-                ImageUtils.drawImage(paddingImage, mainImage, parameter.getPadLeft(), parameter.getPadRight());
+                ImageUtils.drawImage(paddingImage, mainImage, parameter.getPadLeft(), parameter.getPadTop());
                 mainImage.dispose();
                 mainImage = paddingImage;
             }
@@ -480,11 +480,22 @@ public class FtFontGenerator implements AutoCloseable {
             glyph.setWidth(0);
             glyph.setHeight(0);
         }
-        glyph.setXOffset(mainGlyph.getLeft());
-        glyph.setYOffset((int) baseLine - mainGlyph.getTop());
 
-        glyph.setXAdvance( FtLibrary.from26D6(metrics.getHoriAdvance()) + (int)parameter.getBorderWidth() + parameter.getSpaceX() );
-        glyph.setYAdvance( FtLibrary.from26D6(metrics.getVertAdvance()) + (int)parameter.getBorderWidth() + parameter.getSpaceY() );
+        // adjust padding
+        int left = mainGlyph.getLeft();
+        if (parameter.getPadLeft() > 0) {
+            left += parameter.getPadLeft();
+        }
+        int top = mainGlyph.getTop();
+        if (parameter.getPadTop() > 0) {
+            top += parameter.getPadTop();
+        }
+
+        glyph.setXOffset(left);
+        glyph.setYOffset((int) baseLine - top);
+
+        glyph.setXAdvance( FtLibrary.from26D6(metrics.getHoriAdvance()) + parameter.getBorderWidth() + parameter.getSpaceX() );
+        glyph.setYAdvance( FtLibrary.from26D6(metrics.getVertAdvance()) + parameter.getBorderWidth() + parameter.getSpaceY() );
         glyph.setFixedWidth(face.isFixedWidth());
 
         // bitmap position, for debug purpose
@@ -529,6 +540,7 @@ public class FtFontGenerator implements AutoCloseable {
             // glyph.setWidth(glyph.getWidth() - parameter.getSpread() * 2);
             // glyph.setHeight(glyph.getHeight() - parameter.getSpread() * 2);
         }
+
         mainImage.dispose();
         mainGlyph.close();
 

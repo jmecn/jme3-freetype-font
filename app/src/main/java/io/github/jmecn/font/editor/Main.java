@@ -343,21 +343,23 @@ public class Main extends SimpleApplication {
 
         if (ImGui.collapsingHeader(i18n.getString("font.title"))) {
             ImGui.pushItemWidth(100);
-            parameterChanged |= ImGui.dragScalar(i18n.getString("font.size"), ImGuiDataType.S32, size, 0.2f, MIN_FONT_SIZE, MAX_FONT_SIZE, "%d", ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoInput);
+            parameterChanged |= ImGui.dragScalar(i18n.getString("font.size"), ImGuiDataType.S32, size, 0.2f, MIN_FONT_SIZE, MAX_FONT_SIZE, "%d", ImGuiSliderFlags.AlwaysClamp);
             ImGui.popItemWidth();
+            ImGui.sameLine();
+            ImGui.pushButtonRepeat(true);
+            if (ImGui.arrowButton("##size.left", ImGuiDir.Left)) {
+                size.set(Math.max(size.get() - 1, MIN_FONT_SIZE));
+                parameterChanged = true;
+            }
+            ImGui.sameLine(0, ImGui.getStyle().getItemInnerSpacingX());
+            if (ImGui.arrowButton("##size.right", ImGuiDir.Right)) {
+                size.set(Math.min(size.get() + 1, MAX_FONT_SIZE));
+                parameterChanged = true;
+            }
+            ImGui.popButtonRepeat();
 
             parameterChanged |= ImGui.checkbox(i18n.getString("font.kerning"), kerning);
             parameterChanged |= ImGui.checkbox(i18n.getString("font.incremental"), incremental);
-        }
-
-        if (ImGui.collapsingHeader(i18n.getString("packer.title"))) {
-            ImGui.pushItemWidth(60);
-            parameterChanged |= ImGui.combo(i18n.getString("packer.width"), packerWidth, PACKER_SIZE_OPTIONS);
-            parameterChanged |= ImGui.combo(i18n.getString("packer.height"), packerHeight, PACKER_SIZE_OPTIONS);
-            parameterChanged |= ImGui.dragInt(i18n.getString("packer.padding"), packPadding.getData(), 1f, 0f, 100f);
-            ImGui.popItemWidth();
-            ImGui.pushItemWidth(120);
-            parameterChanged |= ImGui.combo(i18n.getString("packer.strategy"), strategy, STRATEGY_OPTIONS);
         }
 
         if (ImGui.collapsingHeader(i18n.getString("render.title"))) {
@@ -365,14 +367,14 @@ public class Main extends SimpleApplication {
             ImGui.pushItemWidth(80);
             parameterChanged |= ImGui.combo(i18n.getString("render.mode"), renderMode, RENDER_MODE_OPTIONS);
             if (renderMode.get() == RenderMode.SDF.ordinal()) {
-                parameterChanged |= ImGui.sliderInt(i18n.getString("render.spread"), spread.getData(), FtLibrary.MIN_SPREAD, FtLibrary.MAX_SPREAD);
+                parameterChanged |= ImGui.dragScalar(i18n.getString("render.spread"), ImGuiDataType.S32, spread, 0.2f, FtLibrary.MIN_SPREAD, FtLibrary.MAX_SPREAD, "%d", ImGuiSliderFlags.AlwaysClamp);
             }
             parameterChanged |= ImGui.combo(i18n.getString("render.hinting"), hinting, HINTING_OPTIONS);
             ImGui.popItemWidth();
             parameterChanged |= ImGui.colorEdit4(i18n.getString("render.color"), color, colorPickerFlags);
             ImGui.pushItemWidth(100);
             parameterChanged |= ImGui.inputFloat(i18n.getString("render.gamma"), gamma, 0.1f);
-            parameterChanged |= ImGui.sliderInt(i18n.getString("render.count"), renderCount.getData(), 1, 10);
+            parameterChanged |= ImGui.dragScalar(i18n.getString("render.count"), ImGuiDataType.S32, renderCount, 0.1f, 1, 4, "%d", ImGuiSliderFlags.AlwaysClamp);
             ImGui.popItemWidth();
         }
 
@@ -385,6 +387,11 @@ public class Main extends SimpleApplication {
             parameterChanged |= ImGui.inputText(i18n.getString("material.vertexColorParamName"), vertexColorParamName);
             ImGui.popItemWidth();
             parameterChanged |= ImGui.checkbox(i18n.getString("material.useVertexColor"), useVertexColor);
+
+            ImGui.pushItemWidth(120);
+            parameterChanged |= ImGui.combo(i18n.getString("texture.minFilter"), minFilter, MIN_FILTER_OPTIONS);
+            parameterChanged |= ImGui.combo(i18n.getString("texture.magFilter"), magFilter, MAG_FILTER_OPTIONS);
+            ImGui.popItemWidth();
         }
 
         if (ImGui.collapsingHeader(i18n.getString("border.title"))) {
@@ -424,13 +431,15 @@ public class Main extends SimpleApplication {
             ImGui.indent(-50);
         }
 
-        if (ImGui.collapsingHeader(i18n.getString("texture.title"))) {
-            ImGui.pushItemWidth(120);
-            parameterChanged |= ImGui.combo(i18n.getString("texture.minFilter"), minFilter, MIN_FILTER_OPTIONS);
-            parameterChanged |= ImGui.combo(i18n.getString("texture.magFilter"), magFilter, MAG_FILTER_OPTIONS);
+        if (ImGui.collapsingHeader(i18n.getString("packer.title"))) {
+            ImGui.pushItemWidth(60);
+            parameterChanged |= ImGui.combo(i18n.getString("packer.width"), packerWidth, PACKER_SIZE_OPTIONS);
+            parameterChanged |= ImGui.combo(i18n.getString("packer.height"), packerHeight, PACKER_SIZE_OPTIONS);
+            parameterChanged |= ImGui.dragInt(i18n.getString("packer.padding"), packPadding.getData(), 1f, 0f, 100f);
             ImGui.popItemWidth();
+            ImGui.pushItemWidth(120);
+            parameterChanged |= ImGui.combo(i18n.getString("packer.strategy"), strategy, STRATEGY_OPTIONS);
         }
-
         if (parameterChanged) {
             getParameter();
         }
@@ -460,12 +469,12 @@ public class Main extends SimpleApplication {
     }
 
     private void showTextWindow(ImBoolean open) {
-        if (!ImGui.begin(i18n.getString("text.title"), open, ImGuiWindowFlags.AlwaysAutoResize)) {
+        if (!ImGui.begin(i18n.getString("text.title"), open, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysAutoResize)) {
             ImGui.end();
             return;
         }
 
-        ImGui.inputTextMultiline("##text", content, 400, 100, ImGuiInputTextFlags.CallbackResize | ImGuiInputTextFlags.CallbackEdit);
+        ImGui.inputTextMultiline("##text", content, 400, 200, ImGuiInputTextFlags.CallbackResize | ImGuiInputTextFlags.CallbackEdit | ImGuiInputTextFlags.AllowTabInput);
         ImGui.end();
     }
 
@@ -575,7 +584,6 @@ public class Main extends SimpleApplication {
             }
             scene.attachChild(bitmapText);
             this.bmtext = bitmapText;
-            logger.info("scene:{}", scene.getChildren());
         });
     }
 
@@ -585,7 +593,6 @@ public class Main extends SimpleApplication {
         if (bmtext != null) {
             bmtext.setBox(rectangle);
             bmtext.setLocalTranslation(0, h, 0);
-            logger.info("local:{}, world:{}", bmtext.getLocalTranslation(), bmtext.getWorldTranslation());
         }
 
         super.reshape(w, h);

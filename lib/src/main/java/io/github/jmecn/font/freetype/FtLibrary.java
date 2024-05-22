@@ -3,7 +3,6 @@ package io.github.jmecn.font.freetype;
 import io.github.jmecn.font.exception.FtRuntimeException;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,9 +44,6 @@ public class FtLibrary implements AutoCloseable {
 
             FT_Library_Version(address, major, minor, patch);
             version = String.format("%d.%d.%d", major.get(0), minor.get(0), patch.get(0));
-            if (logger.isDebugEnabled()) {
-                logger.debug("Loaded FreeType {}", version);
-            }
             this.isClosed = false;
         }
     }
@@ -119,7 +115,7 @@ public class FtLibrary implements AutoCloseable {
         }
     }
 
-    public FtFace newFace(InputStream inputStream) throws IOException {
+    public FtFace newFace(InputStream inputStream) {
         return newFace(inputStream, 0);
     }
 
@@ -134,7 +130,6 @@ public class FtLibrary implements AutoCloseable {
                 bos.write(buffer, 0, len);
             }
         } catch (IOException e) {
-            logger.error("Failed reading font file", e);
             throw new FtRuntimeException("Read font data failed", e);
         }
 

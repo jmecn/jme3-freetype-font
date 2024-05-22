@@ -140,6 +140,10 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         Glyph glyph = charset.get(ch);
 
         if (glyph == null && generator != null) {
+            if (Character.isWhitespace(ch)) {
+                // don't cache whitespace
+                return null;
+            }
             generator.setPixelSizes(0, parameter.getSize());
             float baseline = (ascent + capHeight) / scaleY;
             glyph = generator.createGlyph((char) ch, parameter, stroker, baseline, packer);
