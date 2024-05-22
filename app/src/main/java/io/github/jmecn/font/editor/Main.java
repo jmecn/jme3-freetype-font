@@ -10,7 +10,6 @@ import com.jme3.font.BitmapText;
 import com.jme3.font.Rectangle;
 import com.jme3.material.MaterialDef;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Node;
@@ -36,7 +35,6 @@ import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.Page;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
-import io.github.jmecn.font.plugins.FtFontLoader;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.tinyfd.*;
@@ -44,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
@@ -56,10 +55,11 @@ import static io.github.jmecn.font.editor.Constant.*;
  * @author yanmaoyuan
  */
 public class Main extends SimpleApplication {
+
     public static void main(String[] args) {
         AppSettings settings = new AppSettings(true);
         settings.setResolution(Constant.WIDTH, Constant.HEIGHT);
-        settings.setTitle(i18n.getString("title"));
+        settings.setTitle(i18n.getString(TITLE));
         settings.setSamples(4);
         settings.setResizable(true);
 
@@ -70,7 +70,7 @@ public class Main extends SimpleApplication {
 
     static Logger logger = LoggerFactory.getLogger(Main.class);
 
-    static ResourceBundle i18n = ResourceBundle.getBundle("io.github.jmecn.font.editor/lang");
+    static I18n i18n = new I18n();
 
     private final Node scene;
     private Rectangle rectangle;
@@ -87,7 +87,7 @@ public class Main extends SimpleApplication {
     ImString font = new ImString();
 
     // here are menu
-    ImBoolean showImages = new ImBoolean();
+    ImBoolean showPages = new ImBoolean();
     ImBoolean showText = new ImBoolean();
 
     // here is all the FtFontParameters, for imgui
@@ -157,8 +157,8 @@ public class Main extends SimpleApplication {
 
         // packer
         if (packer != null) {
-            packerWidth.set(indexOf(PACKER_SIZE_OPTIONS, packer.getPageWidth()));
-            packerHeight.set(indexOf(PACKER_SIZE_OPTIONS, packer.getPageHeight()));
+            packerWidth.set(indexOf(PACKER_SIZE_OPTIONS, String.valueOf(packer.getPageWidth())));
+            packerHeight.set(indexOf(PACKER_SIZE_OPTIONS, String.valueOf(packer.getPageHeight())));
             packPadding.set(packer.getPadding());
             strategy.set(indexOf(STRATEGY_OPTIONS, packer.getPackStrategy().getClass().getSimpleName()));
         } else {
@@ -206,7 +206,6 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-        assetManager.registerLoader(FtFontLoader.class, "otf", "ttf");
 
         guiNode.attachChild(scene);
 
@@ -292,8 +291,8 @@ public class Main extends SimpleApplication {
 
         showParameterWindow();
 
-        if (showImages.get()) {
-            showImagesWindow(showImages);
+        if (showPages.get()) {
+            showImagesWindow(showPages);
         }
 
         if (showText.get()) {
@@ -305,32 +304,41 @@ public class Main extends SimpleApplication {
     }
 
     private void showParameterWindow() {
-        ImGui.begin(i18n.getString("main.title"), ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.AlwaysAutoResize);
+        ImGui.begin(i18n.getString(MAIN_TITLE), ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.AlwaysAutoResize);
 
         int colorPickerFlags = ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar;
         boolean parameterChanged = false;
 
         //////// menu bar /////////
         if (ImGui.beginMenuBar()) {
-            if (ImGui.beginMenu(i18n.getString("menu.file"))) {
-                if (ImGui.menuItem(i18n.getString("menu.file.load"), "Ctrl+F")) {
+            if (ImGui.beginMenu(i18n.getString(MENU_FILE))) {
+                if (ImGui.menuItem(i18n.getString(MENU_FILE_LOAD), "Ctrl+F")) {
                     loadFont();
                 }
-                if (ImGui.menuItem(i18n.getString("menu.file.open"), "Ctrl+O")) {
+                if (ImGui.menuItem(i18n.getString(MENU_FILE_OPEN), "Ctrl+O")) {
                     open();
                 }
-                if (ImGui.menuItem(i18n.getString("menu.file.save"), "Ctrl+S", false, presetFile != null)) {
+                if (ImGui.menuItem(i18n.getString(MENU_FILE_SAVE), "Ctrl+S", false, presetFile != null)) {
                     save(presetFile);
                 }
-                if (ImGui.menuItem(i18n.getString("menu.file.saveAs"))) {
+                if (ImGui.menuItem(i18n.getString(MENU_FILE_SAVE_AS))) {
                     saveAs();
                 }
                 ImGui.endMenu();
             }
 
-            if (ImGui.beginMenu(i18n.getString("menu.view"))) {
-                ImGui.menuItem(i18n.getString("menu.view.pages"), "F2", showImages);
-                ImGui.menuItem(i18n.getString("menu.view.text"), "F3", showText);
+            if (ImGui.beginMenu(i18n.getString(MENU_VIEW))) {
+                ImGui.menuItem(i18n.getString(MENU_VIEW_PAGES), "F2", showPages);
+                ImGui.menuItem(i18n.getString(MENU_VIEW_TEXT), "F3", showText);
+                ImGui.endMenu();
+            }
+
+            if (ImGui.beginMenu(i18n.getString(MENU_LANGUAGE))) {
+                for (Locale locale : I18n.SUPPORTED) {
+                    if (ImGui.menuItem(locale.getDisplayName(locale))) {
+                        i18n.setLocale(locale);
+                    }
+                }
                 ImGui.endMenu();
             }
             ImGui.endMenuBar();
@@ -338,12 +346,12 @@ public class Main extends SimpleApplication {
         ///////////////////////////
 
         ImGui.pushItemWidth(200);
-        ImGui.inputTextWithHint("##font", i18n.getString("font.file"), font, ImGuiInputTextFlags.ReadOnly);
+        ImGui.inputTextWithHint("##font", i18n.getString(FONT_FILE), font, ImGuiInputTextFlags.ReadOnly);
         ImGui.popItemWidth();
 
-        if (ImGui.collapsingHeader(i18n.getString("font.title"))) {
+        if (ImGui.collapsingHeader(i18n.getString(FONT_TITLE))) {
             ImGui.pushItemWidth(100);
-            parameterChanged |= ImGui.dragScalar(i18n.getString("font.size"), ImGuiDataType.S32, size, 0.2f, MIN_FONT_SIZE, MAX_FONT_SIZE, "%d", ImGuiSliderFlags.AlwaysClamp);
+            parameterChanged |= ImGui.dragScalar(i18n.getString(FONT_SIZE), ImGuiDataType.S32, size, 0.2f, MIN_FONT_SIZE, MAX_FONT_SIZE, "%d", ImGuiSliderFlags.AlwaysClamp);
             ImGui.popItemWidth();
             ImGui.sameLine();
             ImGui.pushButtonRepeat(true);
@@ -358,96 +366,96 @@ public class Main extends SimpleApplication {
             }
             ImGui.popButtonRepeat();
 
-            parameterChanged |= ImGui.checkbox(i18n.getString("font.kerning"), kerning);
-            parameterChanged |= ImGui.checkbox(i18n.getString("font.incremental"), incremental);
+            parameterChanged |= ImGui.checkbox(i18n.getString(FONT_KERNING), kerning);
+            parameterChanged |= ImGui.checkbox(i18n.getString(FONT_INCREMENTAL), incremental);
         }
 
-        if (ImGui.collapsingHeader(i18n.getString("render.title"))) {
+        if (ImGui.collapsingHeader(i18n.getString(RENDER_TITLE))) {
 
             ImGui.pushItemWidth(80);
-            parameterChanged |= ImGui.combo(i18n.getString("render.mode"), renderMode, RENDER_MODE_OPTIONS);
+            parameterChanged |= ImGui.combo(i18n.getString(RENDER_MODE), renderMode, RENDER_MODE_OPTIONS);
             if (renderMode.get() == RenderMode.SDF.ordinal()) {
-                parameterChanged |= ImGui.dragScalar(i18n.getString("render.spread"), ImGuiDataType.S32, spread, 0.2f, FtLibrary.MIN_SPREAD, FtLibrary.MAX_SPREAD, "%d", ImGuiSliderFlags.AlwaysClamp);
+                parameterChanged |= ImGui.dragScalar(i18n.getString(RENDER_SPREAD), ImGuiDataType.S32, spread, 0.2f, FtLibrary.MIN_SPREAD, FtLibrary.MAX_SPREAD, "%d", ImGuiSliderFlags.AlwaysClamp);
             }
-            parameterChanged |= ImGui.combo(i18n.getString("render.hinting"), hinting, HINTING_OPTIONS);
+            parameterChanged |= ImGui.combo(i18n.getString(RENDER_HINTING), hinting, HINTING_OPTIONS);
             ImGui.popItemWidth();
-            parameterChanged |= ImGui.colorEdit4(i18n.getString("render.color"), color, colorPickerFlags);
+            parameterChanged |= ImGui.colorEdit4(i18n.getString(RENDER_COLOR), color, colorPickerFlags);
             ImGui.pushItemWidth(100);
-            parameterChanged |= ImGui.inputFloat(i18n.getString("render.gamma"), gamma, 0.1f);
-            parameterChanged |= ImGui.dragScalar(i18n.getString("render.count"), ImGuiDataType.S32, renderCount, 0.1f, 1, 4, "%d", ImGuiSliderFlags.AlwaysClamp);
+            parameterChanged |= ImGui.inputFloat(i18n.getString(RENDER_GAMMA), gamma, 0.1f);
+            parameterChanged |= ImGui.dragScalar(i18n.getString(RENDER_COUNT), ImGuiDataType.S32, renderCount, 0.1f, 1, 4, "%d", ImGuiSliderFlags.AlwaysClamp);
             ImGui.popItemWidth();
         }
 
-        if (ImGui.collapsingHeader(i18n.getString("material.title"))) {
+        if (ImGui.collapsingHeader(i18n.getString(MATERIAL_TITLE))) {
             ImGui.pushItemWidth(160);
-            parameterChanged |= ImGui.combo(i18n.getString("material.matDefName"), matDefId, MAT_DEF_OPTIONS);
+            parameterChanged |= ImGui.combo(i18n.getString(MATERIAL_DEFINE), matDefId, MAT_DEF_OPTIONS);
             ImGui.popItemWidth();
             ImGui.pushItemWidth(120);
-            parameterChanged |= ImGui.inputText(i18n.getString("material.colorMapParamName"), colorMapParamName);
-            parameterChanged |= ImGui.inputText(i18n.getString("material.vertexColorParamName"), vertexColorParamName);
+            parameterChanged |= ImGui.inputText(i18n.getString(MATERIAL_COLOR_MAP), colorMapParamName);
+            parameterChanged |= ImGui.inputText(i18n.getString(MATERIAL_VERTEX_COLOR), vertexColorParamName);
             ImGui.popItemWidth();
-            parameterChanged |= ImGui.checkbox(i18n.getString("material.useVertexColor"), useVertexColor);
+            parameterChanged |= ImGui.checkbox(i18n.getString(MATERIAL_USE_VERTEX_COLOR), useVertexColor);
 
             ImGui.pushItemWidth(120);
-            parameterChanged |= ImGui.combo(i18n.getString("texture.minFilter"), minFilter, MIN_FILTER_OPTIONS);
-            parameterChanged |= ImGui.combo(i18n.getString("texture.magFilter"), magFilter, MAG_FILTER_OPTIONS);
+            parameterChanged |= ImGui.combo(i18n.getString(TEXTURE_MIN_FILTER), minFilter, MIN_FILTER_OPTIONS);
+            parameterChanged |= ImGui.combo(i18n.getString(TEXTURE_MAG_FILTER), magFilter, MAG_FILTER_OPTIONS);
             ImGui.popItemWidth();
         }
 
-        if (ImGui.collapsingHeader(i18n.getString("border.title"))) {
+        if (ImGui.collapsingHeader(i18n.getString(BORDER_TITLE))) {
             ImGui.pushItemWidth(100);
-            parameterChanged |= ImGui.sliderInt(i18n.getString("border.width"), borderWidth.getData(), 0, 10);
-            parameterChanged |= ImGui.inputFloat(i18n.getString("border.gamma"), borderGamma, 0.1f);
+            parameterChanged |= ImGui.sliderInt(i18n.getString(BORDER_WIDTH), borderWidth.getData(), 0, 10);
+            parameterChanged |= ImGui.inputFloat(i18n.getString(BORDER_GAMMA), borderGamma, 0.1f);
             ImGui.popItemWidth();
-            parameterChanged |= ImGui.colorEdit4(i18n.getString("border.color"), borderColor, colorPickerFlags);
-            parameterChanged |= ImGui.checkbox(i18n.getString("border.straight"), borderStraight);
+            parameterChanged |= ImGui.colorEdit4(i18n.getString(BORDER_COLOR), borderColor, colorPickerFlags);
+            parameterChanged |= ImGui.checkbox(i18n.getString(BORDER_STRAIGHT), borderStraight);
         }
 
-        if (ImGui.collapsingHeader(i18n.getString("shadow.title"))) {
+        if (ImGui.collapsingHeader(i18n.getString(SHADOW_TITLE))) {
             ImGui.pushItemWidth(60);
-            parameterChanged |= ImGui.sliderInt(i18n.getString("shadow.offsetX"), shadowOffsetX.getData(), -10, 10);
-            parameterChanged |= ImGui.sliderInt(i18n.getString("shadow.offsetY"), shadowOffsetY.getData(), -10, 10);
+            parameterChanged |= ImGui.sliderInt(i18n.getString(SHADOW_OFFSET_X), shadowOffsetX.getData(), -10, 10);
+            parameterChanged |= ImGui.sliderInt(i18n.getString(SHADOW_OFFSET_Y), shadowOffsetY.getData(), -10, 10);
             ImGui.popItemWidth();
-            parameterChanged |= ImGui.colorEdit4(i18n.getString("shadow.color"), shadowColor, colorPickerFlags);
+            parameterChanged |= ImGui.colorEdit4(i18n.getString(SHADOW_COLOR), shadowColor, colorPickerFlags);
         }
 
-        if (ImGui.collapsingHeader(i18n.getString("space.title"))) {
+        if (ImGui.collapsingHeader(i18n.getString(SPACE_TITLE))) {
             ImGui.pushItemWidth(60);
-            parameterChanged |= ImGui.sliderInt(i18n.getString("space.x"), spaceX.getData(), 0, 100);
-            parameterChanged |= ImGui.sliderInt(i18n.getString("space.y"), spaceY.getData(), 0, 100);
+            parameterChanged |= ImGui.sliderInt(i18n.getString(SPACE_X), spaceX.getData(), 0, 100);
+            parameterChanged |= ImGui.sliderInt(i18n.getString(SPACE_Y), spaceY.getData(), 0, 100);
             ImGui.popItemWidth();
         }
 
-        if (ImGui.collapsingHeader(i18n.getString("padding.title"))) {
+        if (ImGui.collapsingHeader(i18n.getString(PADDING_TITLE))) {
             ImGui.indent(50);
             ImGui.pushItemWidth(60);
-            parameterChanged |= ImGui.sliderInt(i18n.getString("padding.top"), padTop.getData(), 0, 10);
+            parameterChanged |= ImGui.sliderInt(i18n.getString(PADDING_TOP), padTop.getData(), 0, 10);
             ImGui.indent(-50);
-            parameterChanged |= ImGui.sliderInt(i18n.getString("padding.left"), padLeft.getData(), 0, 10);
+            parameterChanged |= ImGui.sliderInt(i18n.getString(PADDING_LEFT), padLeft.getData(), 0, 10);
             ImGui.sameLine();
-            parameterChanged |= ImGui.sliderInt(i18n.getString("padding.right"), padRight.getData(), 0, 10);
+            parameterChanged |= ImGui.sliderInt(i18n.getString(PADDING_RIGHT), padRight.getData(), 0, 10);
             ImGui.indent(50);
-            parameterChanged |= ImGui.sliderInt(i18n.getString("padding.bottom"), padBottom.getData(), 0, 10);
+            parameterChanged |= ImGui.sliderInt(i18n.getString(PADDING_BOTTOM), padBottom.getData(), 0, 10);
             ImGui.indent(-50);
         }
 
-        if (ImGui.collapsingHeader(i18n.getString("packer.title"))) {
+        if (ImGui.collapsingHeader(i18n.getString(PACK_TITLE))) {
             ImGui.pushItemWidth(60);
-            parameterChanged |= ImGui.combo(i18n.getString("packer.width"), packerWidth, PACKER_SIZE_OPTIONS);
-            parameterChanged |= ImGui.combo(i18n.getString("packer.height"), packerHeight, PACKER_SIZE_OPTIONS);
-            parameterChanged |= ImGui.dragInt(i18n.getString("packer.padding"), packPadding.getData(), 1f, 0f, 100f);
+            parameterChanged |= ImGui.combo(i18n.getString(PACK_WIDTH), packerWidth, PACKER_SIZE_OPTIONS);
+            parameterChanged |= ImGui.combo(i18n.getString(PACK_HEIGHT), packerHeight, PACKER_SIZE_OPTIONS);
+            parameterChanged |= ImGui.dragInt(i18n.getString(PACK_PADDING), packPadding.getData(), 1f, 0f, 100f);
             ImGui.popItemWidth();
             ImGui.pushItemWidth(120);
-            parameterChanged |= ImGui.combo(i18n.getString("packer.strategy"), strategy, STRATEGY_OPTIONS);
+            parameterChanged |= ImGui.combo(i18n.getString(PACK_STRATEGY), strategy, STRATEGY_OPTIONS);
         }
         if (parameterChanged) {
-            getParameter();
+            refreshParameter();
         }
         ImGui.end();
     }
 
     private void showImagesWindow(ImBoolean open) {
-        if (!ImGui.begin(i18n.getString("images.title"), open, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysUseWindowPadding)) {
+        if (!ImGui.begin(i18n.getString(IMAGES_TITLE), open, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysUseWindowPadding)) {
             ImGui.end();
             return;
         }
@@ -455,21 +463,21 @@ public class Main extends SimpleApplication {
         if (packer != null && (ImGui.beginTabBar("#images", ImGuiTabBarFlags.None))) {
             int i = 0;
             for (Page page : packer.getPages()) {
-                if (ImGui.beginTabItem("image#" + i++)) {
+                if (ImGui.beginTabItem("#" + i++)) {
                     ImGui.image(page.getImage().getId(), page.getImage().getWidth(), page.getImage().getHeight(), 0f, 1f, 1f, 0f);
                     ImGui.endTabItem();
                 }
             }
             ImGui.endTabBar();
         } else {
-            ImGui.text(i18n.getString("images.empty"));
+            ImGui.text(i18n.getString(IMAGES_EMPTY));
         }
 
         ImGui.end();
     }
 
     private void showTextWindow(ImBoolean open) {
-        if (!ImGui.begin(i18n.getString("text.title"), open, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysAutoResize)) {
+        if (!ImGui.begin(i18n.getString(TEXT_TITLE), open, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysAutoResize)) {
             ImGui.end();
             return;
         }
@@ -485,18 +493,34 @@ public class Main extends SimpleApplication {
             aFilterPatterns.put(stack.UTF8("*.ttc"));
             aFilterPatterns.put(stack.UTF8("*.otf"));
             aFilterPatterns.flip();
-            String filename = TinyFileDialogs.tinyfd_openFileDialog("Open Font File", "", aFilterPatterns,
-                    "Fonts (*.ttf, *.ttc, *.otf)", false);
+            String filename = TinyFileDialogs.tinyfd_openFileDialog(i18n.getString(DIALOG_FONT_OPEN), "", aFilterPatterns,
+                    i18n.getString(DIALOG_FONT_DESC), false);
             if (filename != null) {
-                font.set(filename);
-
-                getParameter();
+                refreshGenerator(filename);
+                refreshParameter();
             }
         }
     }
 
-    private void getParameter() {
-        if (font.getLength() == 0) {
+    private void refreshGenerator(String filename) {
+        if (filename != null && !filename.isEmpty()) {
+            if (filename.equals(font.get())) {
+                return;// not changed
+            }
+            font.set(filename);
+
+            fontFile = new File(filename);
+            if (generator != null) {
+                generator.close();
+                generator = null;
+            }
+
+            generator = new FtFontGenerator(fontFile, 0);
+        }
+    }
+
+    private void refreshParameter() {
+        if (generator == null) {
             return;
         }
 
@@ -556,16 +580,9 @@ public class Main extends SimpleApplication {
         MaterialDef matDef = assetManager.loadAsset(new AssetKey<>(parameter.getMatDefName()));
         parameter.setMatDef(matDef);
 
-        if (generator != null) {
-            generator.close();
-            generator = null;
-        }
-
         if (bmfont != null) {
             bmfont = null;
         }
-
-        generator = new FtFontGenerator(new File(font.get()), 0);
 
         bmfont = generator.generateFont(parameter);
 
@@ -599,26 +616,37 @@ public class Main extends SimpleApplication {
     }
 
     private void open() {
-        // open *.presets file and load
-        String filename = TinyFileDialogs.tinyfd_openFileDialog("Open Font Properties", "", null,
-                "Presets (*.properties)", false);
-        if (filename != null) {
-            File file = new File(filename);
-            try {
-                open(file);
-                getParameter();
-                presetFile = file;
-            } catch (Exception e) {
-                logger.error("open file failed", e);
+        // open *.properties file and load
+        try (MemoryStack stack = stackPush()) {
+            PointerBuffer aFilterPatterns = stack.mallocPointer(1);
+            aFilterPatterns.put(stack.UTF8("*.properties"));
+            aFilterPatterns.flip();
+            String filename = TinyFileDialogs.tinyfd_openFileDialog(i18n.getString(DIALOG_PRESET_OPEN), "",
+                    aFilterPatterns, i18n.getString(DIALOG_PRESET_DESC), false);
+            if (filename != null) {
+                File file = new File(filename);
+                try {
+                    open(file);
+                    refreshParameter();
+                    presetFile = file;
+                } catch (Exception e) {
+                    logger.error("open file failed", e);
+                }
             }
         }
 
     }
 
     private void saveAs() {
-        String filename = TinyFileDialogs.tinyfd_saveFileDialog("Save Font Properties", "", null, "Presets (*.properties)");
-        if (filename != null) {
-            save(new File(filename));
+        try (MemoryStack stack = stackPush()) {
+            PointerBuffer aFilterPatterns = stack.mallocPointer(1);
+            aFilterPatterns.put(stack.UTF8("*.properties"));
+            aFilterPatterns.flip();
+            String filename = TinyFileDialogs.tinyfd_saveFileDialog(i18n.getString(DIALOG_PRESET_SAVE), "",
+                    aFilterPatterns, i18n.getString(DIALOG_PRESET_DESC));
+            if (filename != null) {
+                save(new File(filename));
+            }
         }
     }
 
@@ -632,61 +660,55 @@ public class Main extends SimpleApplication {
             return;
         }
 
-        setString(font, "font.file", properties);
-        setIndex(packerWidth, "pack.width", properties, PACKER_SIZE_OPTIONS);
-        setIndex(packerHeight, "pack.height", properties, PACKER_SIZE_OPTIONS);
-        setInt(packPadding, "pack.padding", properties);
-        setIndex(strategy, "pack.strategy", properties, STRATEGY_OPTIONS);
+        String fontFilename = properties.getProperty(FONT_FILE);
+        refreshGenerator(fontFilename);
+        font.set(fontFilename);
 
-        setInt(size, "font.size", properties);
-        setBool(kerning, "font.kerning", properties);
-        setBool(incremental, "font.incremental", properties);
+        setIndex(packerWidth, PACK_WIDTH, properties, PACKER_SIZE_OPTIONS);
+        setIndex(packerHeight, PACK_HEIGHT, properties, PACKER_SIZE_OPTIONS);
+        setInt(packPadding, PACK_PADDING, properties);
+        setIndex(strategy, PACK_STRATEGY, properties, STRATEGY_OPTIONS);
 
-        setIndex(renderMode, "render.mode", properties, RENDER_MODE_OPTIONS);
-        setRGBA(color, "render.color", properties);
-        setFloat(gamma, "render.gamma", properties);
-        setInt(renderCount, "render.count", properties);
-        setInt(spread, "render.spread", properties);
-        setIndex(hinting, "render.hinting", properties, HINTING_OPTIONS);
+        setInt(size, FONT_SIZE, properties);
+        setBool(kerning, FONT_KERNING, properties);
+        setBool(incremental, FONT_INCREMENTAL, properties);
 
-        setInt(borderWidth, "border.width", properties);
-        setRGBA(borderColor, "border.color", properties);
-        setFloat(borderGamma, "border.gamma", properties);
-        setBool(borderStraight, "border.straight", properties);
+        setIndex(hinting, RENDER_HINTING, properties, HINTING_OPTIONS);
+        setIndex(renderMode, RENDER_MODE, properties, RENDER_MODE_OPTIONS);
+        setInt(spread, RENDER_SPREAD, properties);
+        setRGBA(color, RENDER_COLOR, properties);
+        setFloat(gamma, RENDER_GAMMA, properties);
+        setInt(renderCount, RENDER_COUNT, properties);
 
-        setInt(shadowOffsetX, "shadow.offsetX", properties);
-        setInt(shadowOffsetY, "shadow.offsetY", properties);
-        setRGBA(shadowColor, "shadow.color", properties);
+        setInt(borderWidth, BORDER_WIDTH, properties);
+        setRGBA(borderColor, BORDER_COLOR, properties);
+        setFloat(borderGamma, BORDER_GAMMA, properties);
+        setBool(borderStraight, BORDER_STRAIGHT, properties);
 
-        setInt(spaceX, "space.x", properties);
-        setInt(spaceY, "space.y", properties);
-        setInt(padLeft, "padding.left", properties);
-        setInt(padRight, "padding.right", properties);
-        setInt(padTop, "padding.top", properties);
-        setInt(padBottom, "padding.bottom", properties);
+        setInt(shadowOffsetX, SHADOW_OFFSET_X, properties);
+        setInt(shadowOffsetY, SHADOW_OFFSET_Y, properties);
+        setRGBA(shadowColor, SHADOW_COLOR, properties);
 
-        setIndex(minFilter, "minFilter", properties, MIN_FILTER_OPTIONS);
-        setIndex(magFilter, "magFilter", properties, MAG_FILTER_OPTIONS);
+        setInt(spaceX, SPACE_X, properties);
+        setInt(spaceY, SPACE_Y, properties);
 
-        setIndex(matDefId, "material.matDefName", properties, MAT_DEF_OPTIONS);
-        setString(colorMapParamName, "material.colorMapParamName", properties);
-        setString(vertexColorParamName, "material.vertexColorParamName", properties);
-        setBool(useVertexColor, "material.useVertexColor", properties);
+        setInt(padLeft, PADDING_LEFT, properties);
+        setInt(padRight, PADDING_RIGHT, properties);
+        setInt(padTop, PADDING_TOP, properties);
+        setInt(padBottom, PADDING_BOTTOM, properties);
 
+        setIndex(minFilter, TEXTURE_MIN_FILTER, properties, MIN_FILTER_OPTIONS);
+        setIndex(magFilter, TEXTURE_MAG_FILTER, properties, MAG_FILTER_OPTIONS);
+
+        setIndex(matDefId, MATERIAL_DEFINE, properties, MAT_DEF_OPTIONS);
+        setString(colorMapParamName, MATERIAL_COLOR_MAP, properties);
+        setString(vertexColorParamName, MATERIAL_VERTEX_COLOR, properties);
+        setBool(useVertexColor, MATERIAL_USE_VERTEX_COLOR, properties);
     }
 
     private int indexOf(String[] options, String value) {
         for (int i = 0; i < options.length; i++) {
             if (options[i].equals(value)) {
-                return i;
-            }
-        }
-        return 0;
-    }
-
-    private int indexOf(String[] options, Object value) {
-        for (int i = 0; i < options.length; i++) {
-            if (options[i].equals(String.valueOf(value))) {
                 return i;
             }
         }
@@ -754,46 +776,47 @@ public class Main extends SimpleApplication {
     private void save(File file) {
         // save all the parameters to a *.presets file
         Properties properties = new OrderedProperties();
-        properties.setProperty("pack.width", String.valueOf(packer.getPageWidth()));
-        properties.setProperty("pack.height", String.valueOf(packer.getPageHeight()));
-        properties.setProperty("pack.padding", String.valueOf(packer.getPadding()));
-        properties.setProperty("pack.strategy", packer.getPackStrategy().getClass().getSimpleName());
+        properties.setProperty(PACK_WIDTH, String.valueOf(packer.getPageWidth()));
+        properties.setProperty(PACK_HEIGHT, String.valueOf(packer.getPageHeight()));
+        properties.setProperty(PACK_PADDING, String.valueOf(packer.getPadding()));
+        properties.setProperty(PACK_STRATEGY, packer.getPackStrategy().getClass().getSimpleName());
 
-        properties.setProperty("font.file", font.get());
-        properties.setProperty("font.size", String.valueOf(parameter.getSize()));
-        properties.setProperty("font.kerning", String.valueOf(parameter.isKerning()));
-        properties.setProperty("font.incremental", String.valueOf(parameter.isIncremental()));
-        properties.setProperty("render.mode", parameter.getRenderMode().name());
-        properties.setProperty("render.color", String.format("%08X", parameter.getColor().asIntRGBA()));
-        properties.setProperty("render.gamma", String.valueOf(parameter.getGamma()));
-        properties.setProperty("render.count", String.valueOf(parameter.getRenderCount()));
-        properties.setProperty("render.spread", String.valueOf(parameter.getSpread()));
-        properties.setProperty("render.hinting",parameter.getHinting().name());
+        properties.setProperty(Constant.FONT_FILE, font.get());
+        properties.setProperty(FONT_SIZE, String.valueOf(parameter.getSize()));
+        properties.setProperty(FONT_KERNING, String.valueOf(parameter.isKerning()));
+        properties.setProperty(FONT_INCREMENTAL, String.valueOf(parameter.isIncremental()));
 
-        properties.setProperty("border.width", String.valueOf(parameter.getBorderWidth()));
-        properties.setProperty("border.color", String.format("%08X", parameter.getBorderColor().asIntRGBA()));
-        properties.setProperty("border.straight", String.valueOf(parameter.isBorderStraight()));
-        properties.setProperty("border.gamma", String.valueOf(parameter.getBorderGamma()));
+        properties.setProperty(RENDER_HINTING,parameter.getHinting().name());
+        properties.setProperty(RENDER_MODE, parameter.getRenderMode().name());
+        properties.setProperty(RENDER_SPREAD, String.valueOf(parameter.getSpread()));
+        properties.setProperty(RENDER_COLOR, String.format("%08X", parameter.getColor().asIntRGBA()));
+        properties.setProperty(RENDER_GAMMA, String.valueOf(parameter.getGamma()));
+        properties.setProperty(RENDER_COUNT, String.valueOf(parameter.getRenderCount()));
 
-        properties.setProperty("shadow.offsetX", String.valueOf(parameter.getShadowOffsetX()));
-        properties.setProperty("shadow.offsetY", String.valueOf(parameter.getShadowOffsetY()));
-        properties.setProperty("shadow.color", String.format("%08X", parameter.getShadowColor().asIntRGBA()));
+        properties.setProperty(BORDER_WIDTH, String.valueOf(parameter.getBorderWidth()));
+        properties.setProperty(BORDER_COLOR, String.format("%08X", parameter.getBorderColor().asIntRGBA()));
+        properties.setProperty(BORDER_GAMMA, String.valueOf(parameter.getBorderGamma()));
+        properties.setProperty(BORDER_STRAIGHT, String.valueOf(parameter.isBorderStraight()));
 
-        properties.setProperty("space.x", String.valueOf(parameter.getSpaceX()));
-        properties.setProperty("space.y", String.valueOf(parameter.getSpaceY()));
+        properties.setProperty(SHADOW_OFFSET_X, String.valueOf(parameter.getShadowOffsetX()));
+        properties.setProperty(SHADOW_OFFSET_Y, String.valueOf(parameter.getShadowOffsetY()));
+        properties.setProperty(SHADOW_COLOR, String.format("%08X", parameter.getShadowColor().asIntRGBA()));
 
-        properties.setProperty("padding.left", String.valueOf(parameter.getPadLeft()));
-        properties.setProperty("padding.right", String.valueOf(parameter.getPadRight()));
-        properties.setProperty("padding.top", String.valueOf(parameter.getPadTop()));
-        properties.setProperty("padding.bottom", String.valueOf(parameter.getPadBottom()));
+        properties.setProperty(SPACE_X, String.valueOf(parameter.getSpaceX()));
+        properties.setProperty(SPACE_Y, String.valueOf(parameter.getSpaceY()));
 
-        properties.setProperty("texture.minFilter", parameter.getMinFilter().name());
-        properties.setProperty("texture.magFilter", parameter.getMagFilter().name());
+        properties.setProperty(PADDING_LEFT, String.valueOf(parameter.getPadLeft()));
+        properties.setProperty(PADDING_RIGHT, String.valueOf(parameter.getPadRight()));
+        properties.setProperty(PADDING_TOP, String.valueOf(parameter.getPadTop()));
+        properties.setProperty(PADDING_BOTTOM, String.valueOf(parameter.getPadBottom()));
 
-        properties.setProperty("material.matDefName", parameter.getMatDefName());
-        properties.setProperty("material.colorMapParamName", parameter.getColorMapParamName());
-        properties.setProperty("material.vertexColorParamName", parameter.getVertexColorParamName());
-        properties.setProperty("material.useVertexColor", String.valueOf(parameter.isUseVertexColor()));
+        properties.setProperty(TEXTURE_MIN_FILTER, parameter.getMinFilter().name());
+        properties.setProperty(TEXTURE_MAG_FILTER, parameter.getMagFilter().name());
+
+        properties.setProperty(MATERIAL_DEFINE, parameter.getMatDefName());
+        properties.setProperty(MATERIAL_COLOR_MAP, parameter.getColorMapParamName());
+        properties.setProperty(MATERIAL_VERTEX_COLOR, parameter.getVertexColorParamName());
+        properties.setProperty(MATERIAL_USE_VERTEX_COLOR, String.valueOf(parameter.isUseVertexColor()));
 
         try (FileOutputStream fos = new FileOutputStream(file)) {
             properties.store(fos, "Font Presets");
