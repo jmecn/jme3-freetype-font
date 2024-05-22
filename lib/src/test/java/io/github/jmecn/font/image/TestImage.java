@@ -19,7 +19,7 @@ import java.util.List;
  * @author yanmaoyuan
  */
 public class TestImage {
-    public static final String FONT = "font/Noto_Serif_SC/NotoSerifSC-Regular.otf";
+    public static final String FONT = "font/NotoSerifSC-Regular.otf";
 
     static Logger logger = LoggerFactory.getLogger(TestImage.class);
     public static void main(String[] args) throws Exception {

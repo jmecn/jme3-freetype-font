@@ -21,7 +21,7 @@ import java.io.File;
  */
 public class TestGenerateImage {
 
-    static final String FONT = "font/Noto_Serif_SC/NotoSerifSC-Regular.otf";
+    static final String FONT = "font/NotoSerifSC-Regular.otf";
     static final String XIN = "guān zì zài pú sà 。\n" +
             "观 自 在 菩 萨 。\n" +
             "xíng shēn bō rě bō luó mì duō shí 。\n" +

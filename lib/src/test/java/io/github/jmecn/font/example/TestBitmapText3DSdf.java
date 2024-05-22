@@ -72,7 +72,7 @@ public class TestBitmapText3DSdf extends SimpleApplication {
         viewPort.setBackgroundColor(ColorRGBA.DarkGray);
 
 
-        FtFontGenerator generator = new FtFontGenerator(new File("font/Noto_Serif_SC/NotoSerifSC-Regular.otf"));
+        FtFontGenerator generator = new FtFontGenerator(new File("font/NotoSerifSC-Regular.otf"));
         FtFontParameter parameter = new FtFontParameter();
         parameter.setSize(32);
         parameter.setCharacters(TEXT);

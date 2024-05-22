@@ -211,7 +211,10 @@ public class FtFontGenerator implements AutoCloseable {
                 break;
             }
         }
-        if (!bitmapped && data.capHeight == 1) throw new FtRuntimeException("No cap character found in font");
+        if (!bitmapped && data.capHeight == 1) {
+            logger.warn("No cap character found in font");
+            // throw new FtRuntimeException("No cap character found in font");
+        }
 
         data.ascent -= data.capHeight;
         data.down = -data.lineHeight;

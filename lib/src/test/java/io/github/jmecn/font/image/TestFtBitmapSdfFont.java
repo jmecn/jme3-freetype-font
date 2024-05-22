@@ -21,7 +21,7 @@ public class TestFtBitmapSdfFont {
 
     public static void main(String[] args) {
         try (FtLibrary library = new FtLibrary()) {
-            FtFace face = library.newFace("font/Noto_Serif_SC/NotoSerifSC-Regular.otf", 0);
+            FtFace face = library.newFace("font/NotoSerifSC-Regular.otf", 0);
             // face.setPixelSize(0, 16);
             face.setCharSize(0, FtLibrary.int26D6(16), 300, 300);
 

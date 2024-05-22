@@ -1,7 +1,6 @@
 package io.github.jmecn.font.editor;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * desc:
@@ -15,11 +14,6 @@ public class OrderedProperties extends Properties {
     public synchronized Object setProperty(String key, String value) {
         keys.add(key);
         return super.setProperty(key, value);
-    }
-
-    @Override
-    public Set<String> stringPropertyNames() {
-        return keys.stream().map(Object::toString).collect(Collectors.toSet());
     }
 
     @Override

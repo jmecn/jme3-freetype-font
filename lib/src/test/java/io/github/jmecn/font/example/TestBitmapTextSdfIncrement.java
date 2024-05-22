@@ -95,7 +95,7 @@ public class TestBitmapTextSdfIncrement extends SimpleApplication {
         cam.setLocation(new Vector3f(4.029617f, -0.91866726f, 7.771896f));
         cam.setRotation(new Quaternion(-2.4323443E-5f, 0.99996126f, -0.0029299273f, -0.008300816f));
 
-        FtFontGenerator generator = new FtFontGenerator(new File("font/Noto_Serif_SC/NotoSerifSC-Regular.otf"));
+        FtFontGenerator generator = new FtFontGenerator(new File("font/NotoSerifSC-Regular.otf"));
 
         // define a small texture size so it would be easier to generate new page
         Packer packer = new Packer(Image.Format.RGBA8, 256, 256, 1, false, new SkylineStrategy());

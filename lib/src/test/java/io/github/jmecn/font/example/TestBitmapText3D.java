@@ -72,7 +72,7 @@ public class TestBitmapText3D extends SimpleApplication {
 
         MaterialDef matDef = assetManager.loadAsset(new AssetKey<>("Common/MatDefs/Misc/Unshaded.j3md"));
 
-        FtFontGenerator generator = new FtFontGenerator(new File("font/Noto_Serif_SC/NotoSerifSC-Regular.otf"));
+        FtFontGenerator generator = new FtFontGenerator(new File("font/NotoSerifSC-Regular.otf"));
         FtFontParameter parameter = new FtFontParameter();
         parameter.setSize(16);
         parameter.setMatDef(matDef);

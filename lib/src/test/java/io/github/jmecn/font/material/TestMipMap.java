@@ -28,7 +28,7 @@ import java.io.File;
  */
 public class TestMipMap extends SimpleApplication {
 
-    static final String FONT = "font/Noto_Serif_SC/NotoSerifSC-Regular.otf";
+    static final String FONT = "font/NotoSerifSC-Regular.otf";
     public static void main(String[] args) throws Exception {
         AppSettings settings = new AppSettings(true);
         settings.setResolution(1280, 720);

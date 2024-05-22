@@ -33,7 +33,7 @@ class TestFreeTypeLibrary {
 
     @Test void loadFontStream() {
         try (FtLibrary library = new FtLibrary()){
-            FileInputStream is = new FileInputStream(new File("../font/Noto_Serif_SC/NotoSerifSC-Regular.otf"));
+            FileInputStream is = new FileInputStream(new File("../font/NotoSerifSC-Regular.otf"));
             FtFace face = library.newFace(is);
             is.close();
 

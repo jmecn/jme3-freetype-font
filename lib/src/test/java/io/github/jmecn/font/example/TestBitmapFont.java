@@ -67,7 +67,7 @@ public class TestBitmapFont extends SimpleApplication {
         assetManager.registerLocator("font", FileLocator.class);
         assetManager.registerLoader(FtFontLoader.class, "otf");
 
-        BitmapFont fnt = assetManager.loadAsset(new FtFontKey("Noto_Serif_SC/NotoSerifSC-Regular.otf", 17));
+        BitmapFont fnt = assetManager.loadAsset(new FtFontKey("NotoSerifSC-Regular.otf", 17));
 
         txt = new BitmapText(fnt);
         txt.setBox(new Rectangle(0, 0, settings.getWidth(), settings.getHeight()));

@@ -44,9 +44,9 @@ public class TestGlyphMetrics extends SimpleApplication {
         settings.setSamples(4);
 
         TestGlyph[] params = {
-                new TestGlyph("font/Noto_Serif_SC/NotoSerifSC-Regular.otf", 64, 'g', FT_RENDER_MODE_SDF).setGamma(1f),
-                new TestGlyph("font/Noto_Serif_SC/NotoSerifSC-Regular.otf", 64, 'g', FT_RENDER_MODE_NORMAL),
-                new TestGlyph("font/Noto_Serif_SC/NotoSerifSC-Regular.otf", 64, 'g', FT_RENDER_MODE_MONO).setMagFilter(Texture.MagFilter.Nearest),
+                new TestGlyph("font/NotoSerifSC-Regular.otf", 64, '东', FT_RENDER_MODE_SDF).setGamma(1f),
+                new TestGlyph("font/NotoSerifSC-Regular.otf", 64, '东', FT_RENDER_MODE_NORMAL),
+                new TestGlyph("font/NotoSerifSC-Regular.otf", 64, '东', FT_RENDER_MODE_MONO).setMagFilter(Texture.MagFilter.Nearest),
         };
         TestGlyphMetrics app = new TestGlyphMetrics(params);
         app.setSettings(settings);
@@ -135,7 +135,7 @@ public class TestGlyphMetrics extends SimpleApplication {
                 for (float scale : SCALES) {
                     Geometry copy = geom.clone();
                     copy.scale(scale);
-                    copy.move(i * 32, 0, i);
+                    copy.move(i * 64, 0, i);
                     node.attachChild(copy);
                 }
             }

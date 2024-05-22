@@ -58,7 +58,7 @@ class TestHarfbuzzLibrary {
         Configuration.HARFBUZZ_LIBRARY_NAME.set(FreeType.getLibrary());
 
         FtLibrary library = new FtLibrary();
-        FtFace face = library.newFace("../font/Noto_Serif_SC/NotoSerifSC-Regular.otf");
+        FtFace face = library.newFace("../font/NotoSerifSC-Regular.otf");
         face.setPixelSize(0, 16);
 
         long hb_face_t;
@@ -119,7 +119,7 @@ class TestHarfbuzzLibrary {
 
         String[] fonts = new String[] {
                 "../font/FreeSerif.ttf",
-                "../font/Noto_Serif_SC/NotoSerifSC-Regular.otf",
+                "../font/NotoSerifSC-Regular.otf",
                 "/System/Library/Fonts/Apple Color Emoji.ttc"
         };
         int fontCount = fonts.length;

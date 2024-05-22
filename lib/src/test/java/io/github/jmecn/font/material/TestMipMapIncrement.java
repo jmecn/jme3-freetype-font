@@ -95,7 +95,7 @@ public class TestMipMapIncrement extends SimpleApplication {
 
         MaterialDef matDef = assetManager.loadAsset(new AssetKey<>("Common/MatDefs/Misc/Unshaded.j3md"));
 
-        FtFontGenerator generator = new FtFontGenerator(new File("font/Noto_Serif_SC/NotoSerifSC-Regular.otf"));
+        FtFontGenerator generator = new FtFontGenerator(new File("font/NotoSerifSC-Regular.otf"));
 
         // define a small texture size so it would be easier to generate new page
         Packer packer = new Packer(Image.Format.RGBA8, 128, 128, 1, false, new SkylineStrategy());

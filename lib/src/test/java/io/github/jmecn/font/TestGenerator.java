@@ -16,7 +16,7 @@ import java.io.File;
 public class TestGenerator {
     static Logger logger = LoggerFactory.getLogger(TestGenerator.class);
 
-    public static final String FONT = "../font/Noto_Serif_SC/NotoSerifSC-Regular.otf";
+    public static final String FONT = "../font/NotoSerifSC-Regular.otf";
     @Test void main() throws Exception {
         try (FtFontGenerator generator = new FtFontGenerator(new File(FONT))) {
             FtFontParameter parameter = new FtFontParameter();

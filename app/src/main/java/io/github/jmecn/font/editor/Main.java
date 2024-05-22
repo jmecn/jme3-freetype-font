@@ -9,8 +9,8 @@ import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.font.Rectangle;
 import com.jme3.material.MaterialDef;
-import com.jme3.material.Materials;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Node;
@@ -20,15 +20,12 @@ import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 import imgui.*;
-import imgui.flag.ImGuiInputTextFlags;
-import imgui.flag.ImGuiTabBarFlags;
-import imgui.flag.ImGuiWindowFlags;
+import imgui.flag.*;
 import imgui.type.ImBoolean;
 import imgui.type.ImFloat;
 import imgui.type.ImInt;
 import imgui.type.ImString;
 import io.github.jmecn.font.CommonChars;
-import io.github.jmecn.font.editor.app.LightState;
 import io.github.jmecn.font.freetype.FtLibrary;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
@@ -47,17 +44,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ResourceBundle;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
+import static io.github.jmecn.font.editor.Constant.*;
 
 /**
  * desc:
@@ -67,9 +58,10 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 public class Main extends SimpleApplication {
     public static void main(String[] args) {
         AppSettings settings = new AppSettings(true);
-        settings.setResolution(1280, 720);
-        settings.setTitle("Freetype font editor");
+        settings.setResolution(Constant.WIDTH, Constant.HEIGHT);
+        settings.setTitle(i18n.getString("title"));
         settings.setSamples(4);
+        settings.setResizable(true);
 
         Main app = new Main(new StatsAppState(), new DetailedProfilerState());
         app.setSettings(settings);
@@ -77,16 +69,15 @@ public class Main extends SimpleApplication {
     }
 
     static Logger logger = LoggerFactory.getLogger(Main.class);
-    static final String TEXT = "ABCDEFGHIKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-=_+[]\\;',./{}|:<>?\n" +
-            "jMonkeyEngine is a modern developer friendly game engine written primarily in Java.\n";
 
-    private final ExecutorService threadPool = Executors.newFixedThreadPool(1);
-    // this is an indicator for loading font. max 1
-    private final AtomicInteger loadCount = new AtomicInteger(0);
+    static ResourceBundle i18n = ResourceBundle.getBundle("io.github.jmecn.font.editor/lang");
 
     private final Node scene;
+    private Rectangle rectangle;
 
     /////////////// bitmapfont bitmaptext ////////////////
+    private File fontFile;// current font file
+    private File presetFile;// current preset file
     private Packer packer;
     private FtFontGenerator generator;
     private final FtFontParameter parameter;
@@ -95,25 +86,25 @@ public class Main extends SimpleApplication {
 
     ImString font = new ImString();
 
+    // here are menu
+    ImBoolean showImages = new ImBoolean();
+    ImBoolean showText = new ImBoolean();
+
     // here is all the FtFontParameters, for imgui
     ImInt size = new ImInt();
     ImInt renderMode = new ImInt();
-    String[] renderModes;
 
     ImInt spread = new ImInt();
     ImInt hinting = new ImInt();
-    String[] hintings;
     ImBoolean kerning = new ImBoolean();
     ImBoolean incremental = new ImBoolean();
-    ImString content = new ImString();
+    ImString content = new ImString(Constant.TEXT);
 
     // packer
     ImInt packerWidth = new ImInt();
     ImInt packerHeight = new ImInt();
-    String[] packerSizes = new String[]{"128", "256", "512", "1024", "2048", "4096"};
     ImInt packPadding = new ImInt();
     ImInt strategy = new ImInt();// 0 - SkylineStrategy, 1 -
-    String[] strategyOptions;
 
     // color
     float[] color = new float[4];// rgba
@@ -141,13 +132,10 @@ public class Main extends SimpleApplication {
 
     // texture
     ImInt minFilter = new ImInt();
-    String[] minFilterOptions;
     ImInt magFilter = new ImInt();
-    String[] magFilterOptions;
 
     // materials
     ImInt matDefId = new ImInt();
-    String[] matDefs;
     ImString colorMapParamName = new ImString();
     ImString vertexColorParamName = new ImString();
     ImBoolean useVertexColor = new ImBoolean();
@@ -158,20 +146,7 @@ public class Main extends SimpleApplication {
         scene = new Node("freetype-font");
 
         parameter = new FtFontParameter();
-
-        strategyOptions = new String[] {
-                GuillotineStrategy.class.getSimpleName(),
-                SkylineStrategy.class.getSimpleName()
-        };
-        matDefs = new String[] {
-                Materials.UNSHADED,
-                "Shaders/Font/SdFont.j3md"
-        };
-
-        renderModes = Arrays.stream(RenderMode.values()).map(RenderMode::name).toArray(String[]::new);
-        hintings = Arrays.stream(Hinting.values()).map(Hinting::name).toArray(String[]::new);
-        minFilterOptions = Arrays.stream(Texture.MinFilter.values()).map(Texture.MinFilter::name).toArray(String[]::new);
-        magFilterOptions = Arrays.stream(Texture.MagFilter.values()).map(Texture.MagFilter::name).toArray(String[]::new);
+        rectangle = new Rectangle(0, 0, WIDTH, HEIGHT);
     }
 
     /**
@@ -182,20 +157,15 @@ public class Main extends SimpleApplication {
 
         // packer
         if (packer != null) {
-            packerWidth.set(packer.getPageWidth());
-            packerHeight.set(packer.getPageHeight());
+            packerWidth.set(indexOf(PACKER_SIZE_OPTIONS, packer.getPageWidth()));
+            packerHeight.set(indexOf(PACKER_SIZE_OPTIONS, packer.getPageHeight()));
             packPadding.set(packer.getPadding());
-            int index = Arrays.asList(strategyOptions).indexOf(packer.getPackStrategy().getClass().getSimpleName());
-            if (index > -1) {
-                strategy.set(index);
-            } else {
-                strategy.set(0);
-            }
+            strategy.set(indexOf(STRATEGY_OPTIONS, packer.getPackStrategy().getClass().getSimpleName()));
         } else {
-            packerWidth.set(256);
-            packerHeight.set(256);
+            packerWidth.set(1);
+            packerHeight.set(1);
             packPadding.set(1);
-            strategy.set(0);
+            strategy.set(1);
         }
 
         renderMode.set(parameter.getRenderMode().ordinal());
@@ -203,8 +173,6 @@ public class Main extends SimpleApplication {
         hinting.set(parameter.getHinting().ordinal());
         kerning.set(parameter.isKerning());
         incremental.set(parameter.isIncremental());
-
-        content.set(TEXT);
 
         color = parameter.getColor().toArray(color);
         gamma.set(parameter.getGamma());
@@ -230,24 +198,17 @@ public class Main extends SimpleApplication {
         minFilter.set(parameter.getMinFilter().ordinal());
         magFilter.set(parameter.getMagFilter().ordinal());
 
-        int index = Arrays.asList(matDefs).indexOf(parameter.getMatDefName());
-        if (index > -1) {
-            matDefId.set(index);
-        } else {
-            matDefId.set(0);
-        }
+        matDefId.set(indexOf(MAT_DEF_OPTIONS, parameter.getMatDefName()));
         colorMapParamName.set(parameter.getColorMapParamName());
         vertexColorParamName.set(parameter.getVertexColorParamName());
         useVertexColor.set(parameter.isUseVertexColor());
     }
-
 
     @Override
     public void simpleInitApp() {
         assetManager.registerLoader(FtFontLoader.class, "otf", "ttf");
 
         guiNode.attachChild(scene);
-        scene.setLocalTranslation(380, 0, 0);
 
         // hide stats and profiler by default
         StatsAppState statsAppState = stateManager.getState(StatsAppState.class);
@@ -267,9 +228,6 @@ public class Main extends SimpleApplication {
         initImGui();
         setParameter();
 
-        ///// init app state /////
-        stateManager.attach(new LightState());
-
         // init camera
         cam.setLocation(new Vector3f(0f, 3f, 20f));
         cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
@@ -279,42 +237,34 @@ public class Main extends SimpleApplication {
 
     private void initImGui() {
         ImGuiJme3.initialize(this);
+
         ImGui.getIO().setIniFilename(null);
         // Load custom font
-        ImGuiIO imGuiIO = ImGui.getIO();
+        ImGuiIO io = ImGui.getIO();
 
-        imGuiIO.getFonts().addFontDefault(); // Add default font for latin glyphs
+        io.getFonts().addFontDefault(); // Add default font for latin glyphs
 
         // You can use the ImFontGlyphRangesBuilder helper to create glyph ranges based on text input.
         // For example: for a game where your script is known, if you can feed your entire script to it (using addText) and only build the characters the game needs.
         // Here we are using it just to combine all required glyphs in one place
         ImFontGlyphRangesBuilder rangesBuilder = new ImFontGlyphRangesBuilder();          // Glyphs ranges provide
-        rangesBuilder.addRanges(imGuiIO.getFonts().getGlyphRangesDefault());
-        rangesBuilder.addRanges(imGuiIO.getFonts().getGlyphRangesCyrillic());
+        rangesBuilder.addRanges(io.getFonts().getGlyphRangesDefault());
+        rangesBuilder.addRanges(io.getFonts().getGlyphRangesCyrillic());
         rangesBuilder.addText(CommonChars.SIMPLIFIED_CHINESE.getChars());
 
         // Font config for custom fonts
         ImFontConfig imFontConfig = new ImFontConfig();
+        imFontConfig.setSizePixels(12);
         imFontConfig.setMergeMode(true);      // Merge Default, Cyrillic, Japanese ranges and manual specific chars
 
         final short[] glyphRanges = rangesBuilder.buildRanges();
-        //
-        ImFont imFont = imGuiIO.getFonts().addFontFromMemoryTTF(getResourcesAsBytes("font/unifont-15.1.05.otf"), 12f, imFontConfig, glyphRanges);
-        imGuiIO.getFonts().build();           // Build custom font
-        imGuiIO.setFontDefault(imFont);       // Set custom font to default
+        ImFont imFont = io.getFonts().addFontFromFileTTF("font/NotoSerifSC-Regular.otf", 16, imFontConfig, glyphRanges);
+        io.getFonts().build();           // Build custom font
+        io.setFontDefault(imFont);       // Set custom font to default
 
         ImGuiJme3.refreshFontTexture();        // Don't forget to refresh the font texture!
 
         imFontConfig.destroy();               // Destroy the font config
-    }
-
-    private static byte[] getResourcesAsBytes(String resource) {
-        try {
-            return Files.readAllBytes(Paths.get(Objects.requireNonNull(Main.class.getClassLoader().getResource(resource)).toURI()));
-        } catch (IOException | URISyntaxException e) {
-            logger.error("Failed to read resource: {}", resource, e);
-        }
-        return new byte[0];
     }
 
     @Override
@@ -340,155 +290,183 @@ public class Main extends SimpleApplication {
         // Start the ImGui frame
         ImGuiJme3.startFrame();
 
-        ImGui.setNextWindowSize(360, 0);
-        ImGui.setNextWindowPos(0, 0);
         showParameterWindow();
+
+        if (showImages.get()) {
+            showImagesWindow(showImages);
+        }
+
+        if (showText.get()) {
+            showTextWindow(showText);
+        }
 
         // End the ImGui frame
         ImGuiJme3.endFrame();
     }
 
     private void showParameterWindow() {
-        ImGui.begin("FtFontParameters", ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar);
+        ImGui.begin(i18n.getString("main.title"), ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.AlwaysAutoResize);
 
+        int colorPickerFlags = ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar;
         boolean parameterChanged = false;
 
-        showMenuBar();
-
-        ImGui.pushItemWidth(300);
-        ImGui.inputText("##font", font, ImGuiInputTextFlags.ReadOnly);
-        if (ImGui.button("Load Font")) {
-            loadFont();
-        }
-        ImGui.sameLine();
-        if (ImGui.button("Preview")) {
-            getParameter();
-        }
-
-        if (ImGui.collapsingHeader("Image packer")) {
-            ImGui.pushItemWidth(60);
-            parameterChanged |= ImGui.combo("width", packerWidth, packerSizes);
-            ImGui.sameLine();
-            parameterChanged |= ImGui.combo("height", packerHeight, packerSizes);
-            parameterChanged |= ImGui.dragInt("padding", packPadding.getData(), 1f, 0f, 100f);
-            ImGui.pushItemWidth(200);
-            parameterChanged |= ImGui.combo("strategy", strategy, strategyOptions);
-        }
-
-        if (packer != null && ImGui.collapsingHeader("Font Pages")
-                && (ImGui.beginTabBar("Images", ImGuiTabBarFlags.None))) {
-            //// blow we display the font images
-            int i = 0;
-            for (Page page : packer.getPages()) {
-                if (ImGui.beginTabItem("page#" + i++)) {
-                    ImGui.image(page.getImage().getId(), page.getImage().getWidth(), page.getImage().getHeight(), 0f, 1f, 1f, 0f);
-                    ImGui.endTabItem();
+        //////// menu bar /////////
+        if (ImGui.beginMenuBar()) {
+            if (ImGui.beginMenu(i18n.getString("menu.file"))) {
+                if (ImGui.menuItem(i18n.getString("menu.file.load"), "Ctrl+F")) {
+                    loadFont();
                 }
+                if (ImGui.menuItem(i18n.getString("menu.file.open"), "Ctrl+O")) {
+                    open();
+                }
+                if (ImGui.menuItem(i18n.getString("menu.file.save"), "Ctrl+S", false, presetFile != null)) {
+                    save(presetFile);
+                }
+                if (ImGui.menuItem(i18n.getString("menu.file.saveAs"))) {
+                    saveAs();
+                }
+                ImGui.endMenu();
             }
-            ImGui.endTabBar();
-        }
 
-        ImGui.separator();
-        ImGui.text("General");
-        ImGui.pushItemWidth(80);
-        parameterChanged |= ImGui.combo("render mode", renderMode, renderModes);
-        if (renderMode.get() == RenderMode.SDF.ordinal()) {
-            ImGui.sameLine();
-            parameterChanged |= ImGui.sliderInt("spread", spread.getData(), FtLibrary.MIN_SPREAD, FtLibrary.MAX_SPREAD);
+            if (ImGui.beginMenu(i18n.getString("menu.view"))) {
+                ImGui.menuItem(i18n.getString("menu.view.pages"), "F2", showImages);
+                ImGui.menuItem(i18n.getString("menu.view.text"), "F3", showText);
+                ImGui.endMenu();
+            }
+            ImGui.endMenuBar();
         }
-        parameterChanged |= ImGui.combo("hinting", hinting, hintings);
-        ImGui.pushItemWidth(100);
-        parameterChanged |= ImGui.inputInt("font size", size);
+        ///////////////////////////
 
         ImGui.pushItemWidth(200);
-        parameterChanged |= ImGui.colorEdit4("color", color);
-        ImGui.pushItemWidth(100);
-        parameterChanged |= ImGui.inputFloat("gamma", gamma, 0.1f);
-        parameterChanged |= ImGui.sliderInt("render count", renderCount.getData(), 1, 10);
-        parameterChanged |= ImGui.checkbox("kerning", kerning);
-        parameterChanged |= ImGui.checkbox("incremental", incremental);
+        ImGui.inputTextWithHint("##font", i18n.getString("font.file"), font, ImGuiInputTextFlags.ReadOnly);
+        ImGui.popItemWidth();
 
-        if (ImGui.collapsingHeader("Material Def")) {
-            ImGui.pushItemWidth(280);
-            parameterChanged |= ImGui.combo("MatDef", matDefId, matDefs);
-            ImGui.pushItemWidth(120);
-            parameterChanged |= ImGui.inputText("ColorMapParamName", colorMapParamName);
-            parameterChanged |= ImGui.inputText("VertexColorParamName", vertexColorParamName);
-            parameterChanged |= ImGui.checkbox("UseVertexColor", useVertexColor);
-        }
-
-        if (ImGui.collapsingHeader("Text")) {
-            ImGui.inputTextMultiline("##text", content, 300, 100, ImGuiInputTextFlags.CallbackResize | ImGuiInputTextFlags.CallbackEdit);
-        }
-
-        if (ImGui.collapsingHeader("Border")) {
-            ImGui.pushItemWidth(60);
-            parameterChanged |= ImGui.sliderInt("borerWidth", borderWidth.getData(), 0, 10);
-            ImGui.sameLine();
+        if (ImGui.collapsingHeader(i18n.getString("font.title"))) {
             ImGui.pushItemWidth(100);
-            parameterChanged |= ImGui.inputFloat("borderGamma", borderGamma, 0.1f);
-            ImGui.pushItemWidth(200);
-            parameterChanged |= ImGui.colorEdit4("borderColor", borderColor);
-            parameterChanged |= ImGui.checkbox("borderStraight", borderStraight);
+            parameterChanged |= ImGui.dragScalar(i18n.getString("font.size"), ImGuiDataType.S32, size, 0.2f, MIN_FONT_SIZE, MAX_FONT_SIZE, "%d", ImGuiSliderFlags.AlwaysClamp | ImGuiSliderFlags.NoInput);
+            ImGui.popItemWidth();
+
+            parameterChanged |= ImGui.checkbox(i18n.getString("font.kerning"), kerning);
+            parameterChanged |= ImGui.checkbox(i18n.getString("font.incremental"), incremental);
         }
 
-        if (ImGui.collapsingHeader("ShadowOffset")) {
+        if (ImGui.collapsingHeader(i18n.getString("packer.title"))) {
             ImGui.pushItemWidth(60);
-            parameterChanged |= ImGui.sliderInt("offsetX", shadowOffsetX.getData(), -10, 10);
-            ImGui.sameLine();
-            parameterChanged |= ImGui.sliderInt("offsetY", shadowOffsetY.getData(), -10, 10);
-            ImGui.pushItemWidth(200);
-            parameterChanged |= ImGui.colorEdit4("shadowColor", shadowColor);
+            parameterChanged |= ImGui.combo(i18n.getString("packer.width"), packerWidth, PACKER_SIZE_OPTIONS);
+            parameterChanged |= ImGui.combo(i18n.getString("packer.height"), packerHeight, PACKER_SIZE_OPTIONS);
+            parameterChanged |= ImGui.dragInt(i18n.getString("packer.padding"), packPadding.getData(), 1f, 0f, 100f);
+            ImGui.popItemWidth();
+            ImGui.pushItemWidth(120);
+            parameterChanged |= ImGui.combo(i18n.getString("packer.strategy"), strategy, STRATEGY_OPTIONS);
         }
 
-        if (ImGui.collapsingHeader("Spacing")) {
-            ImGui.pushItemWidth(60);
-            parameterChanged |= ImGui.sliderInt("spaceX", spaceX.getData(), 0, 100);
-            ImGui.sameLine();
-            ImGui.pushItemWidth(60);
-            parameterChanged |= ImGui.sliderInt("spaceY", spaceY.getData(), 0, 100);
+        if (ImGui.collapsingHeader(i18n.getString("render.title"))) {
+
+            ImGui.pushItemWidth(80);
+            parameterChanged |= ImGui.combo(i18n.getString("render.mode"), renderMode, RENDER_MODE_OPTIONS);
+            if (renderMode.get() == RenderMode.SDF.ordinal()) {
+                parameterChanged |= ImGui.sliderInt(i18n.getString("render.spread"), spread.getData(), FtLibrary.MIN_SPREAD, FtLibrary.MAX_SPREAD);
+            }
+            parameterChanged |= ImGui.combo(i18n.getString("render.hinting"), hinting, HINTING_OPTIONS);
+            ImGui.popItemWidth();
+            parameterChanged |= ImGui.colorEdit4(i18n.getString("render.color"), color, colorPickerFlags);
+            ImGui.pushItemWidth(100);
+            parameterChanged |= ImGui.inputFloat(i18n.getString("render.gamma"), gamma, 0.1f);
+            parameterChanged |= ImGui.sliderInt(i18n.getString("render.count"), renderCount.getData(), 1, 10);
+            ImGui.popItemWidth();
         }
 
-        if (ImGui.collapsingHeader("Padding")) {
+        if (ImGui.collapsingHeader(i18n.getString("material.title"))) {
+            ImGui.pushItemWidth(160);
+            parameterChanged |= ImGui.combo(i18n.getString("material.matDefName"), matDefId, MAT_DEF_OPTIONS);
+            ImGui.popItemWidth();
+            ImGui.pushItemWidth(120);
+            parameterChanged |= ImGui.inputText(i18n.getString("material.colorMapParamName"), colorMapParamName);
+            parameterChanged |= ImGui.inputText(i18n.getString("material.vertexColorParamName"), vertexColorParamName);
+            ImGui.popItemWidth();
+            parameterChanged |= ImGui.checkbox(i18n.getString("material.useVertexColor"), useVertexColor);
+        }
+
+        if (ImGui.collapsingHeader(i18n.getString("border.title"))) {
+            ImGui.pushItemWidth(100);
+            parameterChanged |= ImGui.sliderInt(i18n.getString("border.width"), borderWidth.getData(), 0, 10);
+            parameterChanged |= ImGui.inputFloat(i18n.getString("border.gamma"), borderGamma, 0.1f);
+            ImGui.popItemWidth();
+            parameterChanged |= ImGui.colorEdit4(i18n.getString("border.color"), borderColor, colorPickerFlags);
+            parameterChanged |= ImGui.checkbox(i18n.getString("border.straight"), borderStraight);
+        }
+
+        if (ImGui.collapsingHeader(i18n.getString("shadow.title"))) {
+            ImGui.pushItemWidth(60);
+            parameterChanged |= ImGui.sliderInt(i18n.getString("shadow.offsetX"), shadowOffsetX.getData(), -10, 10);
+            parameterChanged |= ImGui.sliderInt(i18n.getString("shadow.offsetY"), shadowOffsetY.getData(), -10, 10);
+            ImGui.popItemWidth();
+            parameterChanged |= ImGui.colorEdit4(i18n.getString("shadow.color"), shadowColor, colorPickerFlags);
+        }
+
+        if (ImGui.collapsingHeader(i18n.getString("space.title"))) {
+            ImGui.pushItemWidth(60);
+            parameterChanged |= ImGui.sliderInt(i18n.getString("space.x"), spaceX.getData(), 0, 100);
+            parameterChanged |= ImGui.sliderInt(i18n.getString("space.y"), spaceY.getData(), 0, 100);
+            ImGui.popItemWidth();
+        }
+
+        if (ImGui.collapsingHeader(i18n.getString("padding.title"))) {
             ImGui.indent(50);
             ImGui.pushItemWidth(60);
-            parameterChanged |= ImGui.sliderInt("top", padTop.getData(), 0, 10);
+            parameterChanged |= ImGui.sliderInt(i18n.getString("padding.top"), padTop.getData(), 0, 10);
             ImGui.indent(-50);
-            parameterChanged |= ImGui.sliderInt("left", padLeft.getData(), 0, 10);
+            parameterChanged |= ImGui.sliderInt(i18n.getString("padding.left"), padLeft.getData(), 0, 10);
             ImGui.sameLine();
-            parameterChanged |= ImGui.sliderInt("right", padRight.getData(), 0, 10);
+            parameterChanged |= ImGui.sliderInt(i18n.getString("padding.right"), padRight.getData(), 0, 10);
             ImGui.indent(50);
-            parameterChanged |= ImGui.sliderInt("bottom", padBottom.getData(), 0, 10);
+            parameterChanged |= ImGui.sliderInt(i18n.getString("padding.bottom"), padBottom.getData(), 0, 10);
             ImGui.indent(-50);
         }
 
-        if (ImGui.collapsingHeader("Texture Filter")) {
-            ImGui.pushItemWidth(200);
-            parameterChanged |= ImGui.combo("minFilter", minFilter, minFilterOptions);
-            parameterChanged |= ImGui.combo("magFilter", magFilter, magFilterOptions);
+        if (ImGui.collapsingHeader(i18n.getString("texture.title"))) {
+            ImGui.pushItemWidth(120);
+            parameterChanged |= ImGui.combo(i18n.getString("texture.minFilter"), minFilter, MIN_FILTER_OPTIONS);
+            parameterChanged |= ImGui.combo(i18n.getString("texture.magFilter"), magFilter, MAG_FILTER_OPTIONS);
+            ImGui.popItemWidth();
         }
 
         if (parameterChanged) {
-            logger.info("changed");
             getParameter();
         }
         ImGui.end();
     }
 
-    private void showMenuBar() {
-        if (ImGui.beginMenuBar()) {
-            if (ImGui.beginMenu("File")) {
-                if (ImGui.menuItem("Open", "Ctrl+O")) {
-                    open();
-                }
-                if (ImGui.menuItem("Save", "Ctrl+S")) {
-                    save();
-                }
-                ImGui.endMenu();
-            }
-
-            ImGui.endMenuBar();
+    private void showImagesWindow(ImBoolean open) {
+        if (!ImGui.begin(i18n.getString("images.title"), open, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysUseWindowPadding)) {
+            ImGui.end();
+            return;
         }
+
+        if (packer != null && (ImGui.beginTabBar("#images", ImGuiTabBarFlags.None))) {
+            int i = 0;
+            for (Page page : packer.getPages()) {
+                if (ImGui.beginTabItem("image#" + i++)) {
+                    ImGui.image(page.getImage().getId(), page.getImage().getWidth(), page.getImage().getHeight(), 0f, 1f, 1f, 0f);
+                    ImGui.endTabItem();
+                }
+            }
+            ImGui.endTabBar();
+        } else {
+            ImGui.text(i18n.getString("images.empty"));
+        }
+
+        ImGui.end();
+    }
+
+    private void showTextWindow(ImBoolean open) {
+        if (!ImGui.begin(i18n.getString("text.title"), open, ImGuiWindowFlags.AlwaysAutoResize)) {
+            ImGui.end();
+            return;
+        }
+
+        ImGui.inputTextMultiline("##text", content, 400, 100, ImGuiInputTextFlags.CallbackResize | ImGuiInputTextFlags.CallbackEdit);
+        ImGui.end();
     }
 
     private void loadFont() {
@@ -525,18 +503,18 @@ public class Main extends SimpleApplication {
             packer = null;
         }
 
-        int width = Integer.parseInt(packerSizes[packerWidth.get()]);
-        int height = Integer.parseInt(packerSizes[packerHeight.get()]);
+        int width = Integer.parseInt(PACKER_SIZE_OPTIONS[packerWidth.get()]);
+        int height = Integer.parseInt(PACKER_SIZE_OPTIONS[packerHeight.get()]);
         packer = new Packer(Image.Format.RGBA8, width, height, packPadding.get(), false, packStrategy);
 
         parameter.setPacker(packer);
         parameter.setSize(size.get());
-        parameter.setRenderMode(RenderMode.valueOf(renderModes[renderMode.get()]));
+        parameter.setRenderMode(RenderMode.valueOf(RENDER_MODE_OPTIONS[renderMode.get()]));
         parameter.setColor(new ColorRGBA(color[0], color[1], color[2], color[3]));
         parameter.setGamma(gamma.get());
         parameter.setRenderCount(renderCount.get());
         parameter.setSpread(spread.get());
-        parameter.setHinting(Hinting.valueOf(hintings[hinting.get()]));
+        parameter.setHinting(Hinting.valueOf(HINTING_OPTIONS[hinting.get()]));
         parameter.setKerning(kerning.get());
         parameter.setIncremental(incremental.get());
 
@@ -557,10 +535,10 @@ public class Main extends SimpleApplication {
         parameter.setPadTop(padTop.get());
         parameter.setPadBottom(padBottom.get());
 
-        parameter.setMinFilter(Texture.MinFilter.valueOf(minFilterOptions[minFilter.get()]));
-        parameter.setMagFilter(Texture.MagFilter.valueOf(magFilterOptions[magFilter.get()]));
+        parameter.setMinFilter(Texture.MinFilter.valueOf(MIN_FILTER_OPTIONS[minFilter.get()]));
+        parameter.setMagFilter(Texture.MagFilter.valueOf(MAG_FILTER_OPTIONS[magFilter.get()]));
 
-        String matDefName = matDefs[matDefId.get()];
+        String matDefName = MAT_DEF_OPTIONS[matDefId.get()];
         parameter.setMatDefName(matDefName);
         parameter.setColorMapParamName(colorMapParamName.get());
         parameter.setVertexColorParamName(vertexColorParamName.get());
@@ -587,7 +565,7 @@ public class Main extends SimpleApplication {
 
     private void buildFtBitmapText(BitmapFont fnt) {
         BitmapText bitmapText = new BitmapText(fnt);
-        bitmapText.setBox(new Rectangle(0, 0, 900, 720));
+        bitmapText.setBox(rectangle);
         bitmapText.setText(content.get());
         bitmapText.move(0, cam.getHeight(), 0);
 
@@ -601,45 +579,39 @@ public class Main extends SimpleApplication {
         });
     }
 
-    private void open() {
-        if (loadCount.get() >= 1) {
-            return;
+    @Override
+    public void reshape(int w, int h) {
+        rectangle = new Rectangle(0, 0, w, h);
+        if (bmtext != null) {
+            bmtext.setBox(rectangle);
+            bmtext.setLocalTranslation(0, h, 0);
+            logger.info("local:{}, world:{}", bmtext.getLocalTranslation(), bmtext.getWorldTranslation());
         }
+
+        super.reshape(w, h);
+    }
+
+    private void open() {
         // open *.presets file and load
-        try (MemoryStack stack = stackPush()) {
-            String filename = TinyFileDialogs.tinyfd_openFileDialog("Open Presets File", "", null,
-                    "Presets (*.presets)", false);
-            if (filename != null) {
-                threadPool.submit(() -> {
-                    loadCount.getAndAdd(1);
-                    open(new File(filename));
-                    getParameter();
-                    loadCount.getAndAdd(-1);
-                });
+        String filename = TinyFileDialogs.tinyfd_openFileDialog("Open Font Properties", "", null,
+                "Presets (*.properties)", false);
+        if (filename != null) {
+            File file = new File(filename);
+            try {
+                open(file);
+                getParameter();
+                presetFile = file;
+            } catch (Exception e) {
+                logger.error("open file failed", e);
             }
         }
 
     }
 
-    private void save() {
-        if (loadCount.get() >= 1) {
-            return;
-        }
-
-        try (MemoryStack stack = stackPush()) {
-            PointerBuffer aFilterPatterns = stack.mallocPointer(3);
-            aFilterPatterns.put(stack.UTF8("*.presets"));
-            aFilterPatterns.flip();
-            String filename = TinyFileDialogs.tinyfd_saveFileDialog("Save Presets File", "", aFilterPatterns,
-                    "Presets (*.presets)");
-
-            if (filename != null) {
-                threadPool.submit(() -> {
-                    loadCount.getAndAdd(1);
-                    save(new File(filename));
-                    loadCount.getAndAdd(-1);
-                });
-            }
+    private void saveAs() {
+        String filename = TinyFileDialogs.tinyfd_saveFileDialog("Save Font Properties", "", null, "Presets (*.properties)");
+        if (filename != null) {
+            save(new File(filename));
         }
     }
 
@@ -654,21 +626,21 @@ public class Main extends SimpleApplication {
         }
 
         setString(font, "font.file", properties);
-        setIndex(packerWidth, "pack.width", properties, packerSizes);
-        setIndex(packerHeight, "pack.height", properties, packerSizes);
+        setIndex(packerWidth, "pack.width", properties, PACKER_SIZE_OPTIONS);
+        setIndex(packerHeight, "pack.height", properties, PACKER_SIZE_OPTIONS);
         setInt(packPadding, "pack.padding", properties);
-        setIndex(strategy, "pack.strategy", properties, strategyOptions);
+        setIndex(strategy, "pack.strategy", properties, STRATEGY_OPTIONS);
 
         setInt(size, "font.size", properties);
         setBool(kerning, "font.kerning", properties);
         setBool(incremental, "font.incremental", properties);
 
-        setIndex(renderMode, "render.mode", properties, renderModes);
+        setIndex(renderMode, "render.mode", properties, RENDER_MODE_OPTIONS);
         setRGBA(color, "render.color", properties);
         setFloat(gamma, "render.gamma", properties);
         setInt(renderCount, "render.count", properties);
         setInt(spread, "render.spread", properties);
-        setIndex(hinting, "render.hinting", properties, hintings);
+        setIndex(hinting, "render.hinting", properties, HINTING_OPTIONS);
 
         setInt(borderWidth, "border.width", properties);
         setRGBA(borderColor, "border.color", properties);
@@ -686,14 +658,32 @@ public class Main extends SimpleApplication {
         setInt(padTop, "padding.top", properties);
         setInt(padBottom, "padding.bottom", properties);
 
-        setIndex(minFilter, "minFilter", properties, minFilterOptions);
-        setIndex(magFilter, "magFilter", properties, magFilterOptions);
+        setIndex(minFilter, "minFilter", properties, MIN_FILTER_OPTIONS);
+        setIndex(magFilter, "magFilter", properties, MAG_FILTER_OPTIONS);
 
-        setIndex(matDefId, "material.matDefName", properties, matDefs);
+        setIndex(matDefId, "material.matDefName", properties, MAT_DEF_OPTIONS);
         setString(colorMapParamName, "material.colorMapParamName", properties);
         setString(vertexColorParamName, "material.vertexColorParamName", properties);
         setBool(useVertexColor, "material.useVertexColor", properties);
 
+    }
+
+    private int indexOf(String[] options, String value) {
+        for (int i = 0; i < options.length; i++) {
+            if (options[i].equals(value)) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    private int indexOf(String[] options, Object value) {
+        for (int i = 0; i < options.length; i++) {
+            if (options[i].equals(String.valueOf(value))) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     private void setIndex(ImInt imInt, String propertyName, Properties properties, String[] options) {
@@ -701,7 +691,7 @@ public class Main extends SimpleApplication {
         if (value == null || value.trim().isEmpty()) {
             return;
         }
-        imInt.set(Arrays.asList(options).indexOf(value));
+        imInt.set(indexOf(options, value));
     }
 
     private void setString(ImString imString, String propertyName, Properties properties) {
@@ -742,10 +732,7 @@ public class Main extends SimpleApplication {
         if (value == null || value.trim().isEmpty()) {
             return;
         }
-        if (value.length() == 8) {
-            value = "0x" + value;
-        }
-        int c = Integer.parseInt(value, 16);
+        int c = (int) Long.parseLong(value, 16);
         int red = (c >> 24) & 0xFF;
         int green = (c >> 16) & 0xFF;
         int blue = (c >> 8) & 0xFF;
@@ -808,4 +795,5 @@ public class Main extends SimpleApplication {
             logger.error("save presets file error:{}", file, e);
         }
     }
+
 }
