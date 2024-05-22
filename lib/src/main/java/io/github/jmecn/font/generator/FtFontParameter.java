@@ -10,6 +10,7 @@ import io.github.jmecn.font.generator.enums.RenderMode;
 import io.github.jmecn.font.generator.enums.WritingScript;
 import io.github.jmecn.font.packer.Packer;
 
+import java.io.OutputStream;
 import java.util.Objects;
 
 import static org.lwjgl.util.freetype.FreeType.*;

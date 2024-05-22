@@ -121,7 +121,7 @@ public class FtFontGenerator implements AutoCloseable {
         this.pixelWidth = pixelWidth;
         this.pixelHeight = pixelHeight;
         if (!bitmapped && !face.setPixelSize(pixelWidth, pixelHeight)) {
-            throw new FtRuntimeException("Can't set pixel size for font");
+            logger.warn("Can't set pixel size for font, pixelWidth:{}, pixelHeight:{}", pixelWidth, pixelHeight);
         }
     }
 
@@ -358,7 +358,7 @@ public class FtFontGenerator implements AutoCloseable {
     }
 
     /** @return null if glyph was not found. */
-    public Glyph createGlyph(char c, FtFontParameter parameter, FtStroker stroker, float baseLine, Packer packer) {
+    public synchronized Glyph createGlyph(char c, FtFontParameter parameter, FtStroker stroker, float baseLine, Packer packer) {
 
         boolean missing = face.getCharIndex(c) == 0 && c != 0;
         if (missing) {

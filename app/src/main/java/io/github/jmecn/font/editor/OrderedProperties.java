@@ -32,4 +32,13 @@ public class OrderedProperties extends Properties {
         keys.add(key);
         return super.put(key, value);
     }
+
+    @Override
+    public Set<Map.Entry<Object, Object>> entrySet() {
+        Set<Map.Entry<Object, Object>> set = new LinkedHashSet<>();
+        for (Object key : keys) {
+            set.add(new AbstractMap.SimpleEntry<>(key, get(key)));
+        }
+        return set;
+    }
 }
