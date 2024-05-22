@@ -44,7 +44,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.Locale;
 import java.util.Properties;
-import java.util.ResourceBundle;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static io.github.jmecn.font.editor.Constant.*;
@@ -74,15 +73,13 @@ public class Main extends SimpleApplication {
 
     private final Node scene;
     private Rectangle rectangle;
+    private BitmapFont bmfont;
+    private BitmapText bmtext;
 
-    /////////////// bitmapfont bitmaptext ////////////////
-    private File fontFile;// current font file
     private File presetFile;// current preset file
     private Packer packer;
     private FtFontGenerator generator;
     private final FtFontParameter parameter;
-    private BitmapFont bmfont;
-    private BitmapText bmtext;
 
     ImString font = new ImString();
 
@@ -310,39 +307,7 @@ public class Main extends SimpleApplication {
         boolean parameterChanged = false;
 
         //////// menu bar /////////
-        if (ImGui.beginMenuBar()) {
-            if (ImGui.beginMenu(i18n.getString(MENU_FILE))) {
-                if (ImGui.menuItem(i18n.getString(MENU_FILE_LOAD), "Ctrl+F")) {
-                    loadFont();
-                }
-                if (ImGui.menuItem(i18n.getString(MENU_FILE_OPEN), "Ctrl+O")) {
-                    open();
-                }
-                if (ImGui.menuItem(i18n.getString(MENU_FILE_SAVE), "Ctrl+S", false, presetFile != null)) {
-                    save(presetFile);
-                }
-                if (ImGui.menuItem(i18n.getString(MENU_FILE_SAVE_AS))) {
-                    saveAs();
-                }
-                ImGui.endMenu();
-            }
-
-            if (ImGui.beginMenu(i18n.getString(MENU_VIEW))) {
-                ImGui.menuItem(i18n.getString(MENU_VIEW_PAGES), "F2", showPages);
-                ImGui.menuItem(i18n.getString(MENU_VIEW_TEXT), "F3", showText);
-                ImGui.endMenu();
-            }
-
-            if (ImGui.beginMenu(i18n.getString(MENU_LANGUAGE))) {
-                for (Locale locale : I18n.SUPPORTED) {
-                    if (ImGui.menuItem(locale.getDisplayName(locale))) {
-                        i18n.setLocale(locale);
-                    }
-                }
-                ImGui.endMenu();
-            }
-            ImGui.endMenuBar();
-        }
+        showMenu();
         ///////////////////////////
 
         ImGui.pushItemWidth(200);
@@ -454,6 +419,51 @@ public class Main extends SimpleApplication {
         ImGui.end();
     }
 
+    private void showMenu() {
+        if (ImGui.beginMenuBar()) {
+            showFileMenu();
+
+            if (ImGui.beginMenu(i18n.getString(MENU_VIEW))) {
+                ImGui.menuItem(i18n.getString(MENU_VIEW_PAGES), "F2", showPages);
+                ImGui.menuItem(i18n.getString(MENU_VIEW_TEXT), "F3", showText);
+                ImGui.endMenu();
+            }
+
+            if (ImGui.beginMenu(i18n.getString(MENU_LANGUAGE))) {
+                for (Locale locale : I18n.SUPPORTED) {
+                    if (ImGui.menuItem(locale.getDisplayName(locale))) {
+                        i18n.setLocale(locale);
+                        this.getContext().setTitle(i18n.getString(TITLE));
+                    }
+                }
+                ImGui.endMenu();
+            }
+            ImGui.endMenuBar();
+        }
+    }
+
+    private void showFileMenu() {
+        if (ImGui.beginMenu(i18n.getString(MENU_FILE))) {
+            if (ImGui.menuItem(i18n.getString(MENU_FILE_LOAD), "Ctrl+F")) {
+                loadFont();
+            }
+            if (ImGui.menuItem(i18n.getString(MENU_FILE_OPEN), "Ctrl+O")) {
+                open();
+            }
+            if (ImGui.menuItem(i18n.getString(MENU_FILE_SAVE), "Ctrl+S")) {
+                if (presetFile != null) {
+                    save(presetFile);
+                } else {
+                    saveAs();
+                }
+            }
+            if (ImGui.menuItem(i18n.getString(MENU_FILE_SAVE_AS))) {
+                saveAs();
+            }
+            ImGui.endMenu();
+        }
+    }
+
     private void showImagesWindow(ImBoolean open) {
         if (!ImGui.begin(i18n.getString(IMAGES_TITLE), open, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysUseWindowPadding)) {
             ImGui.end();
@@ -509,7 +519,7 @@ public class Main extends SimpleApplication {
             }
             font.set(filename);
 
-            fontFile = new File(filename);
+            File fontFile = new File(filename);
             if (generator != null) {
                 generator.close();
                 generator = null;
