@@ -481,18 +481,8 @@ public class FtFontGenerator implements AutoCloseable {
             glyph.setHeight(0);
         }
 
-        // adjust padding
-        int left = mainGlyph.getLeft();
-        if (parameter.getPadLeft() > 0) {
-            left += parameter.getPadLeft();
-        }
-        int top = mainGlyph.getTop();
-        if (parameter.getPadTop() > 0) {
-            top += parameter.getPadTop();
-        }
-
-        glyph.setXOffset(left);
-        glyph.setYOffset((int) baseLine - top);
+        glyph.setXOffset(mainGlyph.getLeft());
+        glyph.setYOffset((int) baseLine - mainGlyph.getTop());
 
         glyph.setXAdvance( FtLibrary.from26D6(metrics.getHoriAdvance()) + parameter.getBorderWidth() + parameter.getSpaceX() );
         glyph.setYAdvance( FtLibrary.from26D6(metrics.getVertAdvance()) + parameter.getBorderWidth() + parameter.getSpaceY() );
@@ -533,6 +523,15 @@ public class FtFontGenerator implements AutoCloseable {
         glyph.setX(rect.getX());
         glyph.setY(rect.getY());
 
+        // adjust padding
+        if (parameter.getPadLeft() > 0) {
+            glyph.setX(glyph.getX() + parameter.getPadLeft());
+        }
+        if (parameter.getPadTop() > 0) {
+            glyph.setY(glyph.getY() + parameter.getPadTop());
+        }
+
+        // adjust spread
         if (parameter.getRenderMode() == RenderMode.SDF) {
             // No need to make the rectangle smaller, just apply alpha discard to the distance-field font shader.
             // glyph.setX(rect.getX() + parameter.getSpread());
