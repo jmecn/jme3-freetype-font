@@ -46,9 +46,18 @@ dependencies {
 application {
     // Define the main class for the application.
     mainClass = 'io.github.jmecn.font.editor.Main'
-}
 
-//shadowJar {
-//    archiveBaseName.set('font-editor')
-//    archiveClassifier.set('')
-//}
+    applicationDefaultJvmArgs = ["-XstartOnFirstThread"]
+
+    applicationDistribution.from('../preset') {
+        into ('preset')
+    }
+    applicationDistribution.from('../font') {
+        into ('font')
+        include "NotoSerifSC-Regular.otf"
+        include "NotoSansSC-Regular.ttf"
+        include "unifont-15.1.05.otf"
+        include "FreeSerif.ttf"
+        include "OFL.txt"
+    }
+}
