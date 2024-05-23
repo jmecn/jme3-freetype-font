@@ -38,11 +38,14 @@ class TestEmoji {
         }
     }
 
-    @Test void test() {
-        String text = "\uD83E\uDDD1\uD83E\uDDD1\uD83C\uDFFD\uD83E\uDDD1\uD83C\uDFFB";
+    @Test void testFitzpatrickModifier() {
+        String text = "\uD83E\uDDD1\uD83E\uDDD1\uD83C\uDFFB\uD83E\uDDD1\uD83C\uDFFC\uD83E\uDDD1\uD83C\uDFFD\uD83E\uDDD1\uD83C\uDFFE\uD83E\uDDD1\uD83C\uDFFF";
         System.out.println(text);
-        System.out.println("\uD83C\uDFFD");
         System.out.println("\uD83C\uDFFB");
+        System.out.println("\uD83C\uDFFC");
+        System.out.println("\uD83C\uDFFD");
+        System.out.println("\uD83C\uDFFE");
+        System.out.println("\uD83C\uDFFF");
 
         // print all chars
         for (int i = 0; i < text.length(); i++) {
@@ -52,9 +55,13 @@ class TestEmoji {
         }
     }
 
-    @Test void testEmoji() {
+    @Test void testEmojiZwj() {
         String name = "👨‍👩‍👧‍👦";
         assertEquals(11, name.length());
         assertEquals("\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66", name);
+        System.out.println("\uD83D\uDC68");
+        System.out.println("\uD83D\uDC69");
+        System.out.println("\uD83D\uDC67");
+        System.out.println("\uD83D\uDC66");
     }
 }

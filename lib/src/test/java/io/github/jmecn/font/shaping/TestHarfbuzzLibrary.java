@@ -131,7 +131,7 @@ class TestHarfbuzzLibrary {
 
         for (int i = 0; i < fontCount; i++) {
             faces[i] = library.newFace(fonts[i]);
-            faces[i].setPixelSize(0, 16);
+            faces[i].selectBestPixelSize(32);
 
             hb_face_t[i] = hb_ft_face_create_referenced(faces[i].address());
             hb_font_t[i] = hb_font_create(hb_face_t[i]);
