@@ -25,6 +25,14 @@ public class BitmapFontDelegate {
             throw new FtRuntimeException("Failed to init BitmapTextDelegate", e);
         }
     }
+
+    /**
+     * This is delegate method for BitmapFont::getPage(int index)
+     *
+     * @param obj the BitmapFont instance
+     * @param args page index
+     * @return the material of this page
+     */
     public static Material getPage(@This Object obj, @AllArguments Object ... args) {
         BitmapFont font = (BitmapFont) obj;
         int index = (int) args[0];
@@ -41,6 +49,11 @@ public class BitmapFontDelegate {
         }
     }
 
+    /**
+     * This is delegate method for BitmapFont::getPageSize()
+     * @param obj the BitmapFont instance
+     * @return the pageSize
+     */
     public static int getPageSize(@This Object obj) {
         BitmapFont font = (BitmapFont) obj;
         if (font.getCharSet() instanceof FtBitmapCharacterSet) {

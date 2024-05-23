@@ -4,6 +4,7 @@ import com.jme3.app.DetailedProfilerState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.app.state.AppState;
+import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetKey;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
@@ -35,6 +36,7 @@ import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.Page;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
 import io.github.jmecn.font.packer.strategy.SkylineStrategy;
+import io.github.jmecn.font.utils.FileUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.tinyfd.*;
@@ -254,7 +256,12 @@ public class Main extends SimpleApplication {
         imFontConfig.setMergeMode(true);      // Merge Default, Cyrillic, Japanese ranges and manual specific chars
 
         final short[] glyphRanges = rangesBuilder.buildRanges();
-        ImFont imFont = io.getFonts().addFontFromFileTTF("font/NotoSerifSC-Regular.otf", 16, imFontConfig, glyphRanges);
+
+        // read all bytes
+        AssetInfo assetInfo = assetManager.locateAsset(new AssetKey<>("font/NotoSerifSC-Regular.otf"));
+        byte[] data = FileUtils.readAllBytes(assetInfo.openStream());
+
+        ImFont imFont = io.getFonts().addFontFromMemoryTTF(data, 16, imFontConfig, glyphRanges);
         io.getFonts().build();           // Build custom font
         io.setFontDefault(imFont);       // Set custom font to default
 

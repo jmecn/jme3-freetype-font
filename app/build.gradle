@@ -1,6 +1,6 @@
 plugins {
     id 'jme3-freetype-font.java-application-conventions'
-    //id 'com.github.johnrengelman.shadow'  version '7.1.1'
+    id 'com.github.johnrengelman.shadow'  version '8.1.1'
 }
 
 ext.imguiVersion = '1.86.11'
@@ -48,16 +48,4 @@ application {
     mainClass = 'io.github.jmecn.font.editor.Main'
 
     applicationDefaultJvmArgs = ["-XstartOnFirstThread"]
-
-    applicationDistribution.from('../preset') {
-        into ('preset')
-    }
-    applicationDistribution.from('../font') {
-        into ('font')
-        include "NotoSerifSC-Regular.otf"
-        include "NotoSansSC-Regular.ttf"
-        include "unifont-15.1.05.otf"
-        include "FreeSerif.ttf"
-        include "OFL.txt"
-    }
 }
