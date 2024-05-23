@@ -139,12 +139,12 @@ public final class ImageUtils {
     /**
      * Xiaolin Wu's line algorithm
      *
-     * @param destination
-     * @param x0
-     * @param y0
-     * @param x1
-     * @param y1
-     * @param color
+     * @param destination the destination image
+     * @param x0 start point x
+     * @param y0 start point y
+     * @param x1 end point x
+     * @param y1 end point y
+     * @param color rgba
      */
     public static void drawLine(Image destination, int x0, int y0, int x1, int y1, ColorRGBA color) {
         ImageRaster writer = ImageRaster.create(destination);

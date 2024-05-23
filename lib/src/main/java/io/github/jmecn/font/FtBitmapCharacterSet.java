@@ -110,7 +110,10 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         return glyphs.get(0);
     }
 
-    /** Returns true if the font has the glyph, or if the font has a {@link #missingGlyph}. */
+    /**
+     * @param ch the character to check.
+     * @return true if the font has the glyph, or if the font has a {@link #missingGlyph}.
+     */
     public boolean hasGlyph(char ch) {
         if (missingGlyph != null) {
             return true;
@@ -178,8 +181,13 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         return glyphs;
     }
 
-    /** Returns the first valid glyph index to use to wrap to the next line, starting at the specified start index and
-     * (typically) moving toward the beginning of the glyphs array. */
+    /**
+     * Returns the first valid glyph index to use to wrap to the next line, starting at the specified start index and
+     * (typically) moving toward the beginning of the glyphs array.
+     * @param glyphs The glyphs to search.
+     * @param start The index to start searching from.
+     * @return The index of the glyph to wrap to, or -1 if no wrap is needed.
+     */
     public int getWrapIndex (List<BitmapCharacter> glyphs, int start) {
         int i = start - 1;
         Object[] glyphsItems = glyphs.toArray();
@@ -212,8 +220,12 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         }
     }
 
-    /** Scales the font by the specified amounts on both axes
-     * @throws IllegalArgumentException if scaleX or scaleY is zero. */
+    /**
+     * Scales the font by the specified amounts on both axes
+     * @param scaleX the x scale
+     * @param scaleY the y scale
+     * @throws IllegalArgumentException if scaleX or scaleY is zero.
+     */
     public void setScale (float scaleX, float scaleY) {
         if (scaleX == 0) throw new IllegalArgumentException("scaleX cannot be 0.");
         if (scaleY == 0) throw new IllegalArgumentException("scaleY cannot be 0.");
@@ -234,17 +246,22 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         this.scaleY = scaleY;
     }
 
-    /** Scales the font by the specified amount in both directions.
+    /**
+     * Scales the font by the specified amount in both directions.
      * @see #setScale(float, float)
-     * @throws IllegalArgumentException if scaleX or scaleY is zero. */
-    public void setScale (float scaleXY) {
+     * @param scaleXY the scale to apply in both directions.
+     * @throws IllegalArgumentException if scaleX or scaleY is zero.
+     */
+    public void setScale(float scaleXY) {
         setScale(scaleXY, scaleXY);
     }
 
-    /** Sets the font's scale relative to the current scale.
+    /**
+     * Sets the font's scale relative to the current scale.
      * @see #setScale(float, float)
+     * @param amount the amount to scale.
      * @throws IllegalArgumentException if the resulting scale is zero. */
-    public void scale (float amount) {
+    public void scale(float amount) {
         setScale(scaleX + amount, scaleY + amount);
     }
 

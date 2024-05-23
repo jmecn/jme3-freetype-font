@@ -117,6 +117,11 @@ public class FtFontGenerator implements AutoCloseable {
         return bitmapped;
     }
 
+    /**
+     * Set the pixel size of the font.
+     * @param pixelWidth the pixel width
+     * @param pixelHeight the pixel height
+     */
     public void setPixelSizes(int pixelWidth, int pixelHeight) {
         this.pixelWidth = pixelWidth;
         this.pixelHeight = pixelHeight;
@@ -125,10 +130,21 @@ public class FtFontGenerator implements AutoCloseable {
         }
     }
 
+    /**
+     * Generate a font.
+     * @param parameter the font parameter
+     * @return a font
+     */
     public BitmapFont generateFont(FtFontParameter parameter) {
         return generateFont(parameter, new FtBitmapCharacterSet());
     }
 
+    /**
+     * Generate a font.
+     * @param parameter the font parameter
+     * @param data character glyph data
+     * @return a font
+     */
     public BitmapFont generateFont(FtFontParameter parameter, FtBitmapCharacterSet data) {
         generateData(parameter, data);
 
@@ -141,6 +157,11 @@ public class FtFontGenerator implements AutoCloseable {
         return font;
     }
 
+    /**
+     * Generate a font.
+     * @param parameter the font parameter
+     * @return character glyph data
+     */
     public FtBitmapCharacterSet generateData(FtFontParameter parameter) {
         return generateData(parameter, new FtBitmapCharacterSet());
     }
@@ -337,6 +358,13 @@ public class FtFontGenerator implements AutoCloseable {
         return packer;
     }
 
+    /**
+     * Generate kerning.
+     * @param parameter font parameter
+     * @param data character glyph data
+     * @param characters characters
+     * @param charactersLength character length
+     */
     public void generateKerning(FtFontParameter parameter, FtBitmapCharacterSet data, char[] characters, int charactersLength) {
         if (parameter.isKerning()) {
             for (int i = 0; i < charactersLength; i++) {
@@ -360,15 +388,23 @@ public class FtFontGenerator implements AutoCloseable {
         }
     }
 
-    /** @return null if glyph was not found. */
-    public synchronized Glyph createGlyph(char c, FtFontParameter parameter, FtStroker stroker, float baseLine, Packer packer) {
+    /**
+     *
+     * @param charCode character code
+     * @param parameter font parameter
+     * @param stroker stroker
+     * @param baseLine base line
+     * @param packer packer
+     * @return null if glyph was not found.
+     */
+    public synchronized Glyph createGlyph(char charCode, FtFontParameter parameter, FtStroker stroker, float baseLine, Packer packer) {
 
-        boolean missing = face.getCharIndex(c) == 0 && c != 0;
+        boolean missing = face.getCharIndex(charCode) == 0 && charCode != 0;
         if (missing) {
             return null;
         }
 
-        if (!face.loadChar(c, parameter.getLoadFlags())) {
+        if (!face.loadChar(charCode, parameter.getLoadFlags())) {
             return null;
         }
 
@@ -383,7 +419,7 @@ public class FtFontGenerator implements AutoCloseable {
             mainGlyph = main.toBitmap(parameter.getRenderMode().getMode());
         } catch (FtRuntimeException e) {
             main.close();
-            logger.error("Couldn't render codepoint: {}, char:{}", (int) c, c, e);
+            logger.error("Couldn't render charCode: {}, char:{}", (int) charCode, charCode, e);
             return null;
         }
         FtBitmap mainBitmap = mainGlyph.getBitmap();
@@ -472,7 +508,7 @@ public class FtFontGenerator implements AutoCloseable {
         }
 
         FtGlyphMetrics metrics = slot.getMetrics();
-        Glyph glyph = new Glyph(c);
+        Glyph glyph = new Glyph(charCode);
         if (mainImage != null) {
             glyph.setWidth(mainImage.getWidth());
             glyph.setHeight(mainImage.getHeight());

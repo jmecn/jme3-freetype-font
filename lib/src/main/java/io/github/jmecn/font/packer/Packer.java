@@ -75,13 +75,21 @@ public class Packer implements AutoCloseable {
         }
     }
 
+    /**
+     * Sort the images by area.
+     * @param images The images to sort.
+     */
     public void sort(List<Rectangle> images) {
         packStrategy.sort(images);
     }
 
 
-    /** Inserts the pixmap without a name. It cannot be looked up by name.
-     * @see #pack(String, Image) */
+    /**
+     * Inserts the pixmap without a name. It cannot be looked up by name.
+     * @see #pack(String, Image)
+     * @param image The image to pack.
+     * @return Rectangle describing the area the image was rendered to.
+     */
     public synchronized Rectangle pack(Image image) {
         return pack(null, image);
     }
@@ -90,6 +98,7 @@ public class Packer implements AutoCloseable {
      * Inserts the image. If name was not null, you can later retrieve the image's position in the output image via
      * {@link #getRect(String)}.
      * @param name If null, the image cannot be looked up by name.
+     * @param image The image to pack.
      * @return Rectangle describing the area the image was rendered to.
      * @throws RuntimeException in case the image did not fit due to the page size being too small or providing a duplicate name.
      */

@@ -61,8 +61,8 @@ public class FtGlyph implements AutoCloseable {
 
     /**
      * The mode how the values of FT_Glyph_Get_CBox are returned.
-     * @param bBoxMode
-     * @return
+     * @param bBoxMode The mode how the values of FT_Glyph_Get_CBox are returned.
+     * @return bbox
      */
     public FT_BBox getBBox(int bBoxMode) {
         FT_BBox bBox = FT_BBox.create();
@@ -79,6 +79,7 @@ public class FtGlyph implements AutoCloseable {
      * @param renderMode An enumeration that describes how the data is rendered.
      * @param origin A pointer to a vector used to translate the glyph image before rendering. Can be 0 (if no translation). The origin is expressed in 26.6 pixels.
      * @param destroy A boolean that indicates that the original glyph image should be destroyed by this function. It is never destroyed in case of error.
+     * @return new glyph bitmap
      */
     public FtBitmapGlyph toBitmap(int renderMode, FT_Vector origin, boolean destroy) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
