@@ -5,16 +5,20 @@ plugins {
 
 dependencies {
     api "org.lwjgl:lwjgl-freetype:$lwjglVersion"
+    api "org.lwjgl:lwjgl-harfbuzz:$lwjglVersion"
     api "org.jmonkeyengine:jme3-core:$jme3Version"
     api 'org.slf4j:slf4j-api:1.7.36'
     api 'net.bytebuddy:byte-buddy:1.8.0'
     api 'net.bytebuddy:byte-buddy-agent:1.8.0'
 
-    testImplementation "org.lwjgl:lwjgl::$lwjglNatives"
-    testImplementation "org.lwjgl:lwjgl-freetype::$lwjglNatives"
-    testImplementation "org.lwjgl:lwjgl-harfbuzz:$lwjglVersion"
-    // harfbuzz native is not needed when integrated with freetype
-    // testImplementation "org.lwjgl:lwjgl-harfbuzz::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-freetype:$lwjglVersion:natives-windows"
+    runtimeOnly "org.lwjgl:lwjgl-freetype:$lwjglVersion:natives-windows-x86"
+    runtimeOnly "org.lwjgl:lwjgl-freetype:$lwjglVersion:natives-windows-arm64"
+    runtimeOnly "org.lwjgl:lwjgl-freetype:$lwjglVersion:natives-linux"
+    runtimeOnly "org.lwjgl:lwjgl-freetype:$lwjglVersion:natives-linux-arm32"
+    runtimeOnly "org.lwjgl:lwjgl-freetype:$lwjglVersion:natives-macos"
+    runtimeOnly "org.lwjgl:lwjgl-freetype:$lwjglVersion:natives-macos-arm64"
+
     testImplementation "org.jmonkeyengine:jme3-lwjgl3:$jme3Version"
     testImplementation "org.jmonkeyengine:jme3-desktop:$jme3Version"
     testImplementation 'ch.qos.logback:logback-classic:1.2.13'

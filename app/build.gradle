@@ -1,6 +1,6 @@
 plugins {
     id 'jme3-freetype-font.java-application-conventions'
-    id 'com.github.johnrengelman.shadow'  version '7.1.1'
+    //id 'com.github.johnrengelman.shadow'  version '7.1.1'
 }
 
 ext.imguiVersion = '1.86.11'
@@ -18,26 +18,29 @@ switch (org.gradle.internal.os.OperatingSystem.current()) {
 }
 
 dependencies {
-    implementation project(':jme3-freetype-font')
-    implementation "org.projectlombok:lombok:1.18.20"
-    implementation "com.google.guava:guava:32.0.0-jre"
 
-    implementation "org.lwjgl:lwjgl:$lwjglVersion"
-    implementation "org.lwjgl:lwjgl-freetype:$lwjglVersion"
-    implementation "org.lwjgl:lwjgl-tinyfd:$lwjglVersion"
-
-    implementation "org.lwjgl:lwjgl:$lwjglVersion:$lwjglNatives"
-    implementation "org.lwjgl:lwjgl-freetype:$lwjglVersion:$lwjglNatives"
-    implementation "org.lwjgl:lwjgl-tinyfd:$lwjglVersion:$lwjglNatives"
+    implementation "org.jmonkeyengine:jme3-core:$jme3Version"
     implementation "org.jmonkeyengine:jme3-lwjgl3:$jme3Version"
     implementation "org.jmonkeyengine:jme3-desktop:$jme3Version"
+
+    implementation project(':jme3-freetype-font')
+
+    implementation "org.projectlombok:lombok:1.18.20"
+    implementation "com.google.guava:guava:32.0.0-jre"
     implementation 'ch.qos.logback:logback-classic:1.2.13'
 
     // imgui-java
     implementation "io.github.spair:imgui-java-binding:$imguiVersion"
     implementation "io.github.spair:imgui-java-lwjgl3:$imguiVersion"
-    implementation "io.github.spair:imgui-java-$imguiFreetype-ft:$imguiVersion"
+    implementation "io.github.spair:imgui-java-natives-macos-ft:$imguiVersion"
+    implementation "io.github.spair:imgui-java-natives-linux-ft:$imguiVersion"
+    implementation "io.github.spair:imgui-java-natives-windows-ft:$imguiVersion"
 
+    // tinyfd
+    implementation "org.lwjgl:lwjgl-tinyfd:$lwjglVersion"
+    implementation "org.lwjgl:lwjgl-tinyfd:$lwjglVersion:natives-macos"
+    implementation "org.lwjgl:lwjgl-tinyfd:$lwjglVersion:natives-linux"
+    implementation "org.lwjgl:lwjgl-tinyfd:$lwjglVersion:natives-windows"
 }
 
 application {
@@ -45,7 +48,7 @@ application {
     mainClass = 'io.github.jmecn.font.editor.Main'
 }
 
-shadowJar {
-    archiveBaseName.set('font-editor')  // jar 文件的基本名字
-    archiveClassifier.set('')  // jar 文件的额外标签，这里设为空
-}
+//shadowJar {
+//    archiveBaseName.set('font-editor')
+//    archiveClassifier.set('')
+//}
