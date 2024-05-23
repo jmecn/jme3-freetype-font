@@ -3,7 +3,7 @@
 **Freetype bitmap font plugins for [jMonkeyEngine3](https://github.com/jMonkeyEngine/jmonkeyengine).**
 
 [![CI](https://github.com/jmecn/jme3-freetype-font/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/jmecn/jme3-freetype-font/actions/workflows/build.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.jmecn/jme3-freetype-font?logo=apache-maven)](https://search.maven.org/search?q=g:io.github.jmecn%20AND%20a:jme3-freetype-font-*)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.jmecn/jme3-freetype-font?logo=apache-maven)](https://search.maven.org/search?q=g:io.github.jmecn%20AND%20a:jme3-freetype-font)
 [![binding javadoc](https://javadoc.io/badge2/io.github.jmecn/jme3-freetype-font/javadoc_binding.svg?logo=java)](https://javadoc.io/doc/io.github.jmecn/jme3-freetype-font)
 
 ---
