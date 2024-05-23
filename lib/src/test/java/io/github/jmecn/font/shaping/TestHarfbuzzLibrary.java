@@ -120,7 +120,7 @@ class TestHarfbuzzLibrary {
         String[] fonts = new String[] {
                 "../font/FreeSerif.ttf",
                 "../font/NotoSerifSC-Regular.otf",
-                "/System/Library/Fonts/Apple Color Emoji.ttc"
+                "../font/NotoColorEmoji-Regular.ttf"
         };
         int fontCount = fonts.length;
 
