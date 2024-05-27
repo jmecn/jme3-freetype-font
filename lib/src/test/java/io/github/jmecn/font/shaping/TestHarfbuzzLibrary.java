@@ -3,17 +3,12 @@ package io.github.jmecn.font.shaping;
 import io.github.jmecn.font.freetype.FtFace;
 import io.github.jmecn.font.freetype.FtLibrary;
 import org.junit.jupiter.api.Test;
-import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.Configuration;
-import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.freetype.FreeType;
 import org.lwjgl.util.harfbuzz.hb_glyph_info_t;
 import org.lwjgl.util.harfbuzz.hb_glyph_position_t;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 
 import static org.lwjgl.util.harfbuzz.HarfBuzz.*;
 import static org.lwjgl.util.harfbuzz.OpenType.*;
