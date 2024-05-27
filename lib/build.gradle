@@ -19,6 +19,14 @@ dependencies {
     runtimeOnly "org.lwjgl:lwjgl-freetype:$lwjglVersion:natives-macos"
     runtimeOnly "org.lwjgl:lwjgl-freetype:$lwjglVersion:natives-macos-arm64"
 
+    testImplementation "org.lwjgl:lwjgl-harfbuzz:$lwjglVersion:natives-windows"
+    testImplementation "org.lwjgl:lwjgl-harfbuzz:$lwjglVersion:natives-windows-x86"
+    testImplementation "org.lwjgl:lwjgl-harfbuzz:$lwjglVersion:natives-linux"
+    testImplementation "org.lwjgl:lwjgl-harfbuzz:$lwjglVersion:natives-linux-arm32"
+    testImplementation "org.lwjgl:lwjgl-harfbuzz:$lwjglVersion:natives-linux-arm64"
+    testImplementation "org.lwjgl:lwjgl-harfbuzz:$lwjglVersion:natives-macos"
+    testImplementation "org.lwjgl:lwjgl-harfbuzz:$lwjglVersion:natives-macos-arm64"
+
     testImplementation "org.jmonkeyengine:jme3-lwjgl3:$jme3Version"
     testImplementation "org.jmonkeyengine:jme3-desktop:$jme3Version"
     testImplementation 'ch.qos.logback:logback-classic:1.2.13'

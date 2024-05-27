@@ -16,6 +16,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import static org.lwjgl.util.harfbuzz.HarfBuzz.*;
+import static org.lwjgl.util.harfbuzz.OpenType.*;
 
 /**
  * desc:
@@ -74,19 +75,18 @@ class TestHarfbuzzLibrary {
         long buf = hb_buffer_create();
         /* Call the setup_buffer first while the buffer is empty,
          * as guess_segment_properties doesn't like glyphs in the buffer. */
-        hb_buffer_guess_segment_properties(buf);//
 
         // Set buffer to LTR direction, common script and default language
-        // hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
-        // hb_buffer_set_script(buf, HB_SCRIPT_COMMON);
-        // hb_buffer_set_language(buf, hb_language_get_default());
+        hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
+        hb_buffer_set_script(buf, HB_SCRIPT_COMMON);
+        hb_buffer_set_language(buf, hb_language_from_string("zh"));
 
         // Add text and layout it
         hb_buffer_add_utf8(buf, TEXT, 0, -1);
         hb_shape(hb_ft_font, buf, null);
 
         // Get buffer data
-        int        glyph_count = hb_buffer_get_length (buf);
+        int glyph_count = hb_buffer_get_length (buf);
         hb_glyph_info_t.Buffer     glyph_info   = hb_buffer_get_glyph_infos(buf);
         hb_glyph_position_t.Buffer glyph_pos    = hb_buffer_get_glyph_positions(buf);
 
@@ -96,8 +96,9 @@ class TestHarfbuzzLibrary {
         for (int i = 0; i < glyph_count; ++i) {
             int codepoint = glyph_info.get(i).codepoint();
             int x_advance = glyph_pos.get(i).x_advance() >> 6;
+            int glyphIndex = face.getCharIndex(codepoint);
             string_width_in_pixels += x_advance;
-            System.out.printf("codepoint=0x%X, x_advance=%d\n", codepoint, x_advance);
+            System.out.printf("codepoint=0x%X, x_advance=%d, glyphIndex=0x%X\n", codepoint, x_advance, glyphIndex);
         }
 
         System.out.printf("string_width=%d \n", string_width_in_pixels);
@@ -183,4 +184,63 @@ class TestHarfbuzzLibrary {
         library.close();
     }
 
+    @Test void testHarfbuzzEmojiZwj() {
+        String text = "👨‍👩‍👧‍👦";
+        // init lwjgl3 harfbuzz with freetype
+        Configuration.HARFBUZZ_LIBRARY_NAME.set(FreeType.getLibrary());
+
+        // load 2 fonts, english first and chinese second
+        FtLibrary library = new FtLibrary();
+
+        String fonts = "../font/NotoColorEmoji-Regular.ttf";
+        FtFace face = library.newFace(fonts, 0);
+        face.setPixelSize(0, FONT_SIZE);
+        face.selectCharmap(FreeType.FT_ENCODING_UNICODE);
+
+        // loading from FT
+        // For Harfbuzz, load using OpenType (HarfBuzz FT does not support bitmap font)
+        long hb_blob_t = hb_blob_create_from_file(fonts);
+        long hb_face_t = hb_face_create(hb_blob_t, 0);
+        logger.info("hasSvg:{}, hasPng:{}", hb_ot_color_has_svg(hb_face_t), hb_ot_color_has_png(hb_face_t));
+
+        hb_blob_destroy(hb_blob_t);
+        long hb_font_t = hb_font_create(hb_face_t);
+        hb_ot_font_set_funcs(hb_font_t);
+        hb_font_set_scale(hb_font_t, FONT_SIZE << 6, FONT_SIZE << 6);
+
+        // Create  HarfBuzz buffer
+        long buf = hb_buffer_create();
+
+        hb_buffer_add_utf8(buf, text, 0, -1);
+        ///hb_buffer_set_content_type(buf, HB_BUFFER_CONTENT_TYPE_UNICODE);
+
+        // Set buffer to LTR direction, common script and default language
+        hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
+        hb_buffer_set_script(buf, HB_SCRIPT_LATIN);
+        hb_buffer_set_language(buf, hb_language_from_string("en"));
+        // hb_buffer_guess_segment_properties(buf);
+
+        hb_shape(hb_font_t, buf, null);
+
+        hb_glyph_info_t.Buffer glyph_info = hb_buffer_get_glyph_infos(buf);
+        hb_glyph_position_t.Buffer glyph_position = hb_buffer_get_glyph_positions(buf);
+
+        int glyph_count = hb_buffer_get_length(buf);
+        System.out.println("glyph_count=" + glyph_count);
+        for (int i = 0; i < glyph_count; ++i) {
+            int codepoint = glyph_info.get(i).codepoint();
+            glyph_position.get(i).x_advance();
+            int glyphIndex = face.getCharIndex(codepoint);
+            boolean load = face.loadGlyph(glyphIndex, FreeType.FT_LOAD_DEFAULT);
+            System.out.printf("codepoint=0x%X, glyph_index=0x%X, load=%b\n", codepoint, glyphIndex, load);
+        }
+
+        hb_buffer_destroy(buf);
+        hb_font_destroy(hb_font_t);
+        hb_face_destroy(hb_face_t);
+
+        face.close();
+
+        library.close();
+    }
 }

@@ -25,7 +25,7 @@ import static org.lwjgl.util.harfbuzz.OpenType.hb_ot_font_set_funcs;
 public class TestEmojiImage {
 
     static final String APPLE_EMOJI = "/System/Library/Fonts/Apple Color Emoji.ttc";
-    static final String TEXT = "🙋👋🍰🐒";
+    static final String TEXT = "🙋👋🍰🐒" + "👨‍👩‍👧‍👦";
 
     public static void main(String[] args) {
         // init lwjgl3 harfbuzz with freetype
@@ -54,9 +54,9 @@ public class TestEmojiImage {
             long buf = hb_buffer_create();
 
             // Set buffer to LTR direction, common script and default language
-            // hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
-            // hb_buffer_set_script(buf, HB_SCRIPT_COMMON);
-            // hb_buffer_set_language(buf, hb_language_get_default());
+            hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
+            hb_buffer_set_script(buf, HB_SCRIPT_COMMON);
+            hb_buffer_set_language(buf, hb_language_from_string("en"));
 
             // Add text and layout it
             hb_buffer_add_utf8(buf, TEXT, 0, -1);
@@ -72,12 +72,14 @@ public class TestEmojiImage {
                 int glyphIndex = face.getCharIndex(codepoint);
                 if (glyphIndex == 0) {
                     System.err.printf("char not found, codepoint:0x%X\n", codepoint);
-                    continue;
+                    // continue;
                 } else {
                     System.out.printf("char found, codepoint:0x%X, glyphIndex:%d\n", codepoint, glyphIndex);
                 }
+                System.out.printf("codepoint=0x%08X, glyphIndex=0x%08X\n", codepoint, glyphIndex);
                 // load glyph
-                if (face.loadGlyph(glyphIndex, FT_LOAD_DEFAULT | FT_LOAD_COLOR)) {
+                if (face.loadGlyph(codepoint, FT_LOAD_DEFAULT | FT_LOAD_COLOR)) {
+                    System.out.println("load glyph success, codepoint:" + codepoint + ", glyphIndex:" + glyphIndex);
                     // get glyph
                     FtGlyphSlot slot = face.getGlyph();
                     FtGlyphMetrics metrics = slot.getMetrics();
@@ -94,6 +96,8 @@ public class TestEmojiImage {
                     }
                     Image image = ImageUtils.ftBitmapToImage(bitmap, ColorRGBA.White, 1.8f);
                     imageList.add(image);
+                } else {
+                    System.err.println("load glyph failed, codepoint:" + codepoint + ", glyphIndex:" + glyphIndex);
                 }
             }
 
