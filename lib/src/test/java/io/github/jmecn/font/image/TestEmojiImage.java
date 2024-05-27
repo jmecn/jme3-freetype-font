@@ -25,7 +25,7 @@ import static org.lwjgl.util.harfbuzz.OpenType.hb_ot_font_set_funcs;
 public class TestEmojiImage {
 
     static final String APPLE_EMOJI = "/System/Library/Fonts/Apple Color Emoji.ttc";
-    static final String TEXT = "🙋👋🍰🐒" + "👨‍👩‍👧‍👦";
+    static final String TEXT = "🙋\uD83E\uDDD1\uD83E\uDDD1\uD83C\uDFFB\uD83E\uDDD1\uD83C\uDFFC\uD83E\uDDD1\uD83C\uDFFD\uD83E\uDDD1\uD83C\uDFFE\uD83E\uDDD1\uD83C\uDFFF🍰🐒" + "👨‍👩‍👧‍👦";
 
     public static void main(String[] args) {
         // init lwjgl3 harfbuzz with freetype
@@ -68,18 +68,15 @@ public class TestEmojiImage {
             System.out.printf("glyph_count:%d\n", glyph_count);
 
             for (int i = 0; i < glyph_count; i++) {
-                int codepoint = glyph_info.get(i).codepoint();
-                int glyphIndex = face.getCharIndex(codepoint);
+                int glyphIndex = glyph_info.get(i).codepoint();
                 if (glyphIndex == 0) {
-                    System.err.printf("char not found, codepoint:0x%X\n", codepoint);
-                    // continue;
+                    System.err.printf("char not found, glyphIndex:0x%X\n", glyphIndex);
+                    continue;
                 } else {
-                    System.out.printf("char found, codepoint:0x%X, glyphIndex:%d\n", codepoint, glyphIndex);
+                    System.out.printf("char found, glyphIndex:0x%X\n", glyphIndex);
                 }
-                System.out.printf("codepoint=0x%08X, glyphIndex=0x%08X\n", codepoint, glyphIndex);
                 // load glyph
-                if (face.loadGlyph(codepoint, FT_LOAD_DEFAULT | FT_LOAD_COLOR)) {
-                    System.out.println("load glyph success, codepoint:" + codepoint + ", glyphIndex:" + glyphIndex);
+                if (face.loadGlyph(glyphIndex, FT_LOAD_DEFAULT | FT_LOAD_COLOR)) {
                     // get glyph
                     FtGlyphSlot slot = face.getGlyph();
                     FtGlyphMetrics metrics = slot.getMetrics();
@@ -97,7 +94,7 @@ public class TestEmojiImage {
                     Image image = ImageUtils.ftBitmapToImage(bitmap, ColorRGBA.White, 1.8f);
                     imageList.add(image);
                 } else {
-                    System.err.println("load glyph failed, codepoint:" + codepoint + ", glyphIndex:" + glyphIndex);
+                    System.err.println("load glyph failed, glyphIndex:" + glyphIndex);
                 }
             }
 
