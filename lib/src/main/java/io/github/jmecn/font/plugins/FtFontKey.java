@@ -10,8 +10,12 @@ import io.github.jmecn.font.generator.enums.Hinting;
 import io.github.jmecn.font.generator.enums.RenderMode;
 import io.github.jmecn.font.generator.enums.WritingScript;
 import io.github.jmecn.font.packer.Packer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.*;
 import java.util.Objects;
+import java.util.Properties;
 
 /**
  * A delegate class to set FtFontParameter.
@@ -19,6 +23,8 @@ import java.util.Objects;
  * @author yanmaoyuan
  */
 public class FtFontKey extends AssetKey<BitmapFont> {
+
+    static Logger logger = LoggerFactory.getLogger(FtFontKey.class);
 
     private final FtFontParameter delegate;
 
@@ -348,5 +354,29 @@ public class FtFontKey extends AssetKey<BitmapFont> {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), delegate);
+    }
+
+    public void loadProperties(File file) {
+        try (FileInputStream inputStream = new FileInputStream(file)) {
+            loadProperties(inputStream);
+        } catch (IOException e) {
+            logger.error("Failed to load properties", e);
+        }
+    }
+    public void loadProperties(InputStream inputStream) {
+        Properties properties = new Properties();
+        try {
+            properties.load(inputStream);
+            loadProperties(properties);
+        } catch (IOException e) {
+            logger.error("Failed to load properties", e);
+        }
+    }
+
+    public void loadProperties(Properties properties) {
+        String fontFile = properties.getProperty(FtFontParameter.FONT_FILE);
+        this.name = reducePath(fontFile);
+        this.extension = getExtension(this.name);
+        delegate.loadProperties(properties);
     }
 }

@@ -44,7 +44,7 @@ import static org.lwjgl.util.freetype.FreeType.*;
 public class FtFontGenerator implements AutoCloseable {
     static Logger logger = LoggerFactory.getLogger(FtFontGenerator.class);
 
-    public static final int MAX_SIZE = 1024;
+    public static int maxTextureSize = 1024;// this value can be changed due to the GPU GL_MAX_TEXTURE_SIZE
     public static final int MIN_SIZE = 64;
 
     static {
@@ -66,12 +66,14 @@ public class FtFontGenerator implements AutoCloseable {
                 .load(BitmapFont.class.getClassLoader(), fromInstalledAgent());
     }
 
+    public static void setMaxTextureSize(int maxTextureSize) {
+        FtFontGenerator.maxTextureSize = maxTextureSize;
+    }
+
     FtLibrary library;
     FtFace face;
     boolean bitmapped;
     private String name;
-    private int pixelWidth;
-    private int pixelHeight;
 
     public FtFontGenerator(File file) {
         this(file, 0);
@@ -123,8 +125,6 @@ public class FtFontGenerator implements AutoCloseable {
      * @param pixelHeight the pixel height
      */
     public void setPixelSizes(int pixelWidth, int pixelHeight) {
-        this.pixelWidth = pixelWidth;
-        this.pixelHeight = pixelHeight;
         if (!bitmapped && !face.setPixelSize(pixelWidth, pixelHeight)) {
             logger.warn("Can't set pixel size for font, pixelWidth:{}, pixelHeight:{}", pixelWidth, pixelHeight);
         }
@@ -337,13 +337,13 @@ public class FtFontGenerator implements AutoCloseable {
         int size;
         PackStrategy packStrategy;
         if (parameter.isIncremental()) {
-            size = MAX_SIZE;
+            size = maxTextureSize;
             packStrategy = new GuillotineStrategy();
         } else {
             int maxGlyphHeight = data.getLineHeight();
             size = FastMath.nearestPowerOfTwo((int)Math.sqrt(maxGlyphHeight * maxGlyphHeight * (double) charactersLength));
-            if (MAX_SIZE > 0) {
-                size = (int) FastMath.clamp(size, MIN_SIZE, MAX_SIZE);
+            if (maxTextureSize > 0) {
+                size = (int) FastMath.clamp(size, MIN_SIZE, maxTextureSize);
             }
             packStrategy = new SkylineStrategy();
         }

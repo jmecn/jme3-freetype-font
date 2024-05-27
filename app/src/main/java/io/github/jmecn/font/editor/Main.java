@@ -12,6 +12,8 @@ import com.jme3.font.Rectangle;
 import com.jme3.material.MaterialDef;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Caps;
+import com.jme3.renderer.Limits;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -205,6 +207,10 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        boolean supportTextureArray = getRenderer().getCaps().contains(Caps.TextureArray);
+        Integer textureSize = getRenderer().getLimits().get(Limits.TextureSize);
+        logger.info("textureArray:{}, textureSize:{}", supportTextureArray, textureSize);
+        FtFontGenerator.setMaxTextureSize(Math.min(textureSize, 4096));
 
         guiNode.attachChild(scene);
 
@@ -791,50 +797,10 @@ public class Main extends SimpleApplication {
     }
 
     private void save(File file) {
-        // save all the parameters to a *.presets file
+        // save all the parameters to a *.properties file
         Properties properties = new OrderedProperties();
-        properties.setProperty(PACK_WIDTH, String.valueOf(packer.getPageWidth()));
-        properties.setProperty(PACK_HEIGHT, String.valueOf(packer.getPageHeight()));
-        properties.setProperty(PACK_PADDING, String.valueOf(packer.getPadding()));
-        properties.setProperty(PACK_STRATEGY, packer.getPackStrategy().getClass().getSimpleName());
-
         properties.setProperty(Constant.FONT_FILE, font.get());
-        properties.setProperty(FONT_SIZE, String.valueOf(parameter.getSize()));
-        properties.setProperty(FONT_KERNING, String.valueOf(parameter.isKerning()));
-        properties.setProperty(FONT_INCREMENTAL, String.valueOf(parameter.isIncremental()));
-
-        properties.setProperty(RENDER_HINTING,parameter.getHinting().name());
-        properties.setProperty(RENDER_MODE, parameter.getRenderMode().name());
-        properties.setProperty(RENDER_SPREAD, String.valueOf(parameter.getSpread()));
-        properties.setProperty(RENDER_COLOR, String.format("%08X", parameter.getColor().asIntRGBA()));
-        properties.setProperty(RENDER_GAMMA, String.valueOf(parameter.getGamma()));
-        properties.setProperty(RENDER_COUNT, String.valueOf(parameter.getRenderCount()));
-
-        properties.setProperty(BORDER_WIDTH, String.valueOf(parameter.getBorderWidth()));
-        properties.setProperty(BORDER_COLOR, String.format("%08X", parameter.getBorderColor().asIntRGBA()));
-        properties.setProperty(BORDER_GAMMA, String.valueOf(parameter.getBorderGamma()));
-        properties.setProperty(BORDER_STRAIGHT, String.valueOf(parameter.isBorderStraight()));
-
-        properties.setProperty(SHADOW_OFFSET_X, String.valueOf(parameter.getShadowOffsetX()));
-        properties.setProperty(SHADOW_OFFSET_Y, String.valueOf(parameter.getShadowOffsetY()));
-        properties.setProperty(SHADOW_COLOR, String.format("%08X", parameter.getShadowColor().asIntRGBA()));
-
-        properties.setProperty(SPACE_X, String.valueOf(parameter.getSpaceX()));
-        properties.setProperty(SPACE_Y, String.valueOf(parameter.getSpaceY()));
-
-        properties.setProperty(PADDING_LEFT, String.valueOf(parameter.getPadLeft()));
-        properties.setProperty(PADDING_RIGHT, String.valueOf(parameter.getPadRight()));
-        properties.setProperty(PADDING_TOP, String.valueOf(parameter.getPadTop()));
-        properties.setProperty(PADDING_BOTTOM, String.valueOf(parameter.getPadBottom()));
-
-        properties.setProperty(TEXTURE_MIN_FILTER, parameter.getMinFilter().name());
-        properties.setProperty(TEXTURE_MAG_FILTER, parameter.getMagFilter().name());
-
-        properties.setProperty(MATERIAL_DEFINE, parameter.getMatDefName());
-        properties.setProperty(MATERIAL_COLOR_MAP, parameter.getColorMapParamName());
-        properties.setProperty(MATERIAL_VERTEX_COLOR, parameter.getVertexColorParamName());
-        properties.setProperty(MATERIAL_USE_VERTEX_COLOR, String.valueOf(parameter.isUseVertexColor()));
-
+        parameter.saveToProperties(properties);
         try (FileOutputStream fos = new FileOutputStream(file)) {
             properties.store(fos, "Font Presets");
             fos.flush();

@@ -4,6 +4,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import io.github.jmecn.font.packer.listener.PageListener;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
+import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 import io.github.jmecn.font.utils.ImageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +36,12 @@ public class Packer implements AutoCloseable {
 
     private List<PageListener> listeners;
 
+    public Packer(int pageWidth, int pageHeight, int padding) {
+        this(Image.Format.RGBA8, pageWidth, pageHeight, padding, false, new GuillotineStrategy());
+    }
+
     public Packer(Image.Format format, int pageWidth, int pageHeight, int padding, boolean duplicateBorder) {
-        // use SkylineStrategy by default
-        this(format, pageWidth, pageHeight, padding, duplicateBorder, new GuillotineStrategy());
+        this(format, pageWidth, pageHeight, padding, duplicateBorder, new SkylineStrategy());
     }
 
     public Packer(Image.Format format, int pageWidth, int pageHeight, int padding, boolean duplicateBorder, PackStrategy packStrategy) {

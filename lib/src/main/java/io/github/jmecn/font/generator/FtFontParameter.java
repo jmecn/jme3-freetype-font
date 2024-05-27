@@ -2,21 +2,62 @@ package io.github.jmecn.font.generator;
 
 import com.jme3.material.MaterialDef;
 import com.jme3.math.ColorRGBA;
+import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import io.github.jmecn.font.CommonChars;
 import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.enums.Hinting;
 import io.github.jmecn.font.generator.enums.RenderMode;
 import io.github.jmecn.font.generator.enums.WritingScript;
+import io.github.jmecn.font.packer.PackStrategy;
 import io.github.jmecn.font.packer.Packer;
+import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
+import io.github.jmecn.font.packer.strategy.SkylineStrategy;
 
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Objects;
+import java.util.Properties;
 
 import static org.lwjgl.util.freetype.FreeType.*;
 
 public class FtFontParameter {
     public static final int DEFAULT_FONT_SIZE = 16;
+
+    ////// keys to be stored in the preset file //////
+    public static final String FONT_FILE = "font.file";
+    public static final String FONT_SIZE = "font.size";
+    public static final String FONT_KERNING = "font.kerning";
+    public static final String FONT_INCREMENTAL = "font.incremental";
+    public static final String PACK_WIDTH = "pack.width";
+    public static final String PACK_HEIGHT = "pack.height";
+    public static final String PACK_PADDING = "pack.padding";
+    public static final String PACK_STRATEGY = "pack.strategy";
+    public static final String RENDER_HINTING = "render.hinting";
+    public static final String RENDER_MODE = "render.mode";
+    public static final String RENDER_SPREAD = "render.spread";
+    public static final String RENDER_COLOR = "render.color";
+    public static final String RENDER_GAMMA = "render.gamma";
+    public static final String RENDER_COUNT = "render.count";
+    public static final String BORDER_WIDTH = "border.width";
+    public static final String BORDER_COLOR = "border.color";
+    public static final String BORDER_GAMMA = "border.gamma";
+    public static final String BORDER_STRAIGHT = "border.straight";
+    public static final String SHADOW_OFFSET_X = "shadow.offsetX";
+    public static final String SHADOW_OFFSET_Y = "shadow.offsetY";
+    public static final String SHADOW_COLOR = "shadow.color";
+    public static final String SPACE_X = "space.x";
+    public static final String SPACE_Y = "space.y";
+    public static final String PADDING_LEFT = "padding.left";
+    public static final String PADDING_RIGHT = "padding.right";
+    public static final String PADDING_TOP = "padding.top";
+    public static final String PADDING_BOTTOM = "padding.bottom";
+    public static final String MATERIAL_DEFINE = "material.define";
+    public static final String MATERIAL_COLOR_MAP = "material.colorMap";
+    public static final String MATERIAL_VERTEX_COLOR = "material.vertexColor";
+    public static final String MATERIAL_USE_VERTEX_COLOR = "material.useVertexColor";
+    public static final String TEXTURE_MIN_FILTER = "texture.minFilter";
+    public static final String TEXTURE_MAG_FILTER = "texture.magFilter";
+    //////////////////////////////////////////////////
 
     private WritingScript writingScript = WritingScript.LTR;
 
@@ -96,7 +137,7 @@ public class FtFontParameter {
      * FreeTypeFontGenerator must not be disposed until the font is no longer needed. The FreeTypeBitmapFontData must be
      * disposed (separately from the generator) when the font is no longer needed. The FreeTypeFontParameter should not be
      * modified after creating a font. If a PixmapPacker is not specified, the font glyph page textures will use
-     * {@link FtFontGenerator#MAX_SIZE}. */
+     * {@link FtFontGenerator#maxTextureSize}. */
     private boolean incremental = false;
 
     public WritingScript getWritingScript() {
@@ -405,5 +446,208 @@ public class FtFontParameter {
     @Override
     public int hashCode() {
         return Objects.hash(size, renderMode, spread, hinting, color, gamma, renderCount, borderWidth, borderColor, borderStraight, borderGamma, shadowOffsetX, shadowOffsetY, shadowColor, spaceX, spaceY, padTop, padLeft, padBottom, padRight, characters, kerning, packer, genMipMaps, minFilter, magFilter, matDef, matDefName, colorMapParamName, useVertexColor, vertexColorParamName, incremental);
+    }
+
+    public void loadProperties(InputStream inputStream) {
+        Properties properties = new Properties();
+        try {
+            properties.load(inputStream);
+        } catch (IOException e) {
+            return;
+        }
+
+        loadProperties(properties);
+    }
+
+    public void loadProperties(Properties properties) {
+        if (properties.containsKey(PACK_WIDTH) && properties.containsKey(PACK_HEIGHT) || properties.containsKey(PACK_PADDING)) {
+            int width = getInt(PACK_WIDTH, properties);
+            int height = getInt(PACK_HEIGHT, properties);
+            int padding = getInt(PACK_PADDING, properties);
+            PackStrategy packStrategy;
+            if (properties.containsKey(PACK_STRATEGY)) {
+                String strategy = getString(PACK_STRATEGY, properties);
+                if (SkylineStrategy.class.getSimpleName().equals(strategy)) {
+                    packStrategy = new SkylineStrategy();
+                } else {
+                    packStrategy = new GuillotineStrategy();
+                }
+            } else {
+                packStrategy = null;
+            }
+            this.packer = new Packer(Image.Format.RGBA8, width, height, padding, false, packStrategy);
+        }
+
+        if (properties.containsKey(FONT_SIZE)) {
+            this.setSize(getInt(FONT_SIZE, properties));
+        }
+        if (properties.containsKey(FONT_KERNING)) {
+            this.setKerning(getBool(FONT_KERNING, properties));
+        }
+        if (properties.containsKey(FONT_INCREMENTAL)) {
+            this.setIncremental(getBool(FONT_INCREMENTAL, properties));
+        }
+        if (properties.containsKey(RENDER_HINTING)) {
+            this.setHinting(Hinting.valueOf(getString(RENDER_HINTING, properties)));
+        }
+        if (properties.containsKey(RENDER_MODE)) {
+            this.setRenderMode(RenderMode.valueOf(getString(RENDER_MODE, properties)));
+        }
+        if (properties.containsKey(RENDER_SPREAD)) {
+            this.setSpread(getInt(RENDER_SPREAD, properties));
+        }
+        if (properties.containsKey(RENDER_COLOR)) {
+            this.setColor(getRGBA(RENDER_COLOR, properties));
+        }
+        if (properties.containsKey(RENDER_GAMMA)) {
+            this.setGamma(getFloat(RENDER_GAMMA, properties));
+        }
+        if (properties.containsKey(RENDER_COUNT)) {
+            this.setRenderCount(getInt(RENDER_COUNT, properties));
+        }
+
+        if (properties.containsKey(BORDER_WIDTH)) {
+            this.setBorderWidth(getInt(BORDER_WIDTH, properties));
+        }
+        if (properties.containsKey(BORDER_COLOR)) {
+            this.setBorderColor(getRGBA(BORDER_COLOR, properties));
+        }
+        if (properties.containsKey(BORDER_GAMMA)) {
+            this.setBorderGamma(getFloat(BORDER_GAMMA, properties));
+        }
+        if (properties.containsKey(BORDER_STRAIGHT)) {
+            this.setBorderStraight(getBool(BORDER_STRAIGHT, properties));
+        }
+
+        if (properties.containsKey(SHADOW_OFFSET_X)) {
+            this.setShadowOffsetX(getInt(SHADOW_OFFSET_X, properties));
+        }
+        if (properties.containsKey(SHADOW_OFFSET_Y)) {
+            this.setShadowOffsetY(getInt(SHADOW_OFFSET_Y, properties));
+        }
+        if (properties.containsKey(SHADOW_COLOR)) {
+            this.setShadowColor(getRGBA(SHADOW_COLOR, properties));
+        }
+
+        if (properties.containsKey(SPACE_X)) {
+            this.setSpaceX(getInt(SPACE_X, properties));
+        }
+        if (properties.containsKey(SPACE_Y)) {
+            this.setSpaceY(getInt(SPACE_Y, properties));
+        }
+
+        if (properties.containsKey(PADDING_LEFT) || properties.containsKey(PADDING_RIGHT) || properties.containsKey(PADDING_TOP) || properties.containsKey(PADDING_BOTTOM)) {
+            this.setPadding(getInt(PADDING_TOP, properties), getInt(PADDING_RIGHT, properties), getInt(PADDING_BOTTOM, properties), getInt(PADDING_LEFT, properties));
+        }
+
+        if (properties.containsKey(TEXTURE_MIN_FILTER)) {
+            this.setMinFilter(Texture.MinFilter.valueOf(getString(TEXTURE_MIN_FILTER, properties)));
+        }
+        if (properties.containsKey(TEXTURE_MAG_FILTER)) {
+            this.setMagFilter(Texture.MagFilter.valueOf(getString(TEXTURE_MAG_FILTER, properties)));
+        }
+
+        if (properties.containsKey(MATERIAL_DEFINE)) {
+            this.setMatDefName(getString(MATERIAL_DEFINE, properties));
+        }
+        if (properties.containsKey(MATERIAL_COLOR_MAP)) {
+            this.setColorMapParamName(getString(MATERIAL_COLOR_MAP, properties));
+        }
+        if (properties.containsKey(MATERIAL_VERTEX_COLOR)) {
+            this.setVertexColorParamName(getString(MATERIAL_VERTEX_COLOR, properties));
+        }
+        if (properties.containsKey(MATERIAL_USE_VERTEX_COLOR)) {
+            this.setUseVertexColor(getBool(MATERIAL_USE_VERTEX_COLOR, properties));
+        }
+    }
+
+    public void saveToProperties(Properties properties) {
+        if (packer != null) {
+            properties.setProperty(PACK_WIDTH, String.valueOf(packer.getPageWidth()));
+            properties.setProperty(PACK_HEIGHT, String.valueOf(packer.getPageHeight()));
+            properties.setProperty(PACK_PADDING, String.valueOf(packer.getPadding()));
+            properties.setProperty(PACK_STRATEGY, packer.getPackStrategy().getClass().getSimpleName());
+        }
+
+        properties.setProperty(FONT_SIZE, String.valueOf(this.getSize()));
+        properties.setProperty(FONT_KERNING, String.valueOf(this.isKerning()));
+        properties.setProperty(FONT_INCREMENTAL, String.valueOf(this.isIncremental()));
+
+        properties.setProperty(RENDER_HINTING,this.getHinting().name());
+        properties.setProperty(RENDER_MODE, this.getRenderMode().name());
+        properties.setProperty(RENDER_SPREAD, String.valueOf(this.getSpread()));
+        properties.setProperty(RENDER_COLOR, String.format("%08X", this.getColor().asIntRGBA()));
+        properties.setProperty(RENDER_GAMMA, String.valueOf(this.getGamma()));
+        properties.setProperty(RENDER_COUNT, String.valueOf(this.getRenderCount()));
+
+        properties.setProperty(BORDER_WIDTH, String.valueOf(this.getBorderWidth()));
+        properties.setProperty(BORDER_COLOR, String.format("%08X", this.getBorderColor().asIntRGBA()));
+        properties.setProperty(BORDER_GAMMA, String.valueOf(this.getBorderGamma()));
+        properties.setProperty(BORDER_STRAIGHT, String.valueOf(this.isBorderStraight()));
+
+        properties.setProperty(SHADOW_OFFSET_X, String.valueOf(this.getShadowOffsetX()));
+        properties.setProperty(SHADOW_OFFSET_Y, String.valueOf(this.getShadowOffsetY()));
+        properties.setProperty(SHADOW_COLOR, String.format("%08X", this.getShadowColor().asIntRGBA()));
+
+        properties.setProperty(SPACE_X, String.valueOf(this.getSpaceX()));
+        properties.setProperty(SPACE_Y, String.valueOf(this.getSpaceY()));
+
+        properties.setProperty(PADDING_LEFT, String.valueOf(this.getPadLeft()));
+        properties.setProperty(PADDING_RIGHT, String.valueOf(this.getPadRight()));
+        properties.setProperty(PADDING_TOP, String.valueOf(this.getPadTop()));
+        properties.setProperty(PADDING_BOTTOM, String.valueOf(this.getPadBottom()));
+
+        properties.setProperty(TEXTURE_MIN_FILTER, this.getMinFilter().name());
+        properties.setProperty(TEXTURE_MAG_FILTER, this.getMagFilter().name());
+
+        properties.setProperty(MATERIAL_DEFINE, this.getMatDefName());
+        properties.setProperty(MATERIAL_COLOR_MAP, this.getColorMapParamName());
+        properties.setProperty(MATERIAL_VERTEX_COLOR, this.getVertexColorParamName());
+        properties.setProperty(MATERIAL_USE_VERTEX_COLOR, String.valueOf(this.isUseVertexColor()));
+    }
+
+    private static String getString(String propertyName, Properties properties) {
+        String value = properties.getProperty(propertyName);
+        if (value == null || value.trim().isEmpty()) {
+            return "";
+        }
+        return value;
+    }
+
+    private static int getInt(String propertyName, Properties properties) {
+        String value = properties.getProperty(propertyName);
+        if (value == null || value.trim().isEmpty()) {
+            return 0;
+        }
+        return Integer.parseInt(value);
+    }
+
+    private static float getFloat(String propertyName, Properties properties) {
+        String value = properties.getProperty(propertyName);
+        if (value == null || value.trim().isEmpty()) {
+            return 0.0f;
+        }
+        return Float.parseFloat(value);
+    }
+
+    private static boolean getBool(String propertyName, Properties properties) {
+        String value = properties.getProperty(propertyName);
+        if (value == null || value.trim().isEmpty()) {
+            return false;
+        }
+        return Boolean.parseBoolean(value);
+    }
+
+    private static ColorRGBA getRGBA(String propertyName, Properties properties) {
+        String value = properties.getProperty(propertyName);
+        if (value == null || value.trim().isEmpty()) {
+            return ColorRGBA.BlackNoAlpha;
+        }
+        int c = (int) Long.parseLong(value, 16);
+        int red = (c >> 24) & 0xFF;
+        int green = (c >> 16) & 0xFF;
+        int blue = (c >> 8) & 0xFF;
+        int alpha = c & 0xFF;
+        return ColorRGBA.fromRGBA255(red, green, blue, alpha);
     }
 }
