@@ -31,6 +31,5 @@ dependencies {
     testImplementation "org.jmonkeyengine:jme3-desktop:$jme3Version"
     testImplementation 'ch.qos.logback:logback-classic:1.2.13'
 
-    testImplementation "com.ibm.icu:icu4j:68.1"
-    testImplementation "com.ibm.icu:icu4j-charset:68.1"
+    testImplementation "com.ibm.icu:icu4j:75.1"
 }
