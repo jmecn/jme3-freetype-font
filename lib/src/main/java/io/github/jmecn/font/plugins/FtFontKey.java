@@ -8,7 +8,7 @@ import com.jme3.texture.Texture;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.generator.enums.Hinting;
 import io.github.jmecn.font.generator.enums.RenderMode;
-import io.github.jmecn.font.generator.enums.WritingScript;
+import io.github.jmecn.font.Direction;
 import io.github.jmecn.font.packer.Packer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,12 +53,12 @@ public class FtFontKey extends AssetKey<BitmapFont> {
 
     /// delegate method ///
 
-    public WritingScript getWritingScript() {
-        return delegate.getWritingScript();
+    public Direction getDirection() {
+        return delegate.getDirection();
     }
 
-    public void setWritingScript(WritingScript writingScript) {
-        delegate.setWritingScript(writingScript);
+    public void setDirection(Direction direction) {
+        delegate.setDirection(direction);
     }
 
     public int getSize() {

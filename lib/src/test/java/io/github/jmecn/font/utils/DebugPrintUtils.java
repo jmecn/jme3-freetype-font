@@ -1,17 +1,13 @@
 package io.github.jmecn.font.utils;
 
-import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
-import com.jme3.texture.Texture;
-import com.jme3.texture.image.ImageRaster;
-import com.jme3.util.IntMap;
 import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.Glyph;
 import io.github.jmecn.font.freetype.FtBitmap;
 import io.github.jmecn.font.freetype.FtGlyphMetrics;
 import io.github.jmecn.font.freetype.FtLibrary;
-import io.github.jmecn.font.freetype.enums.FtPixelMode;
+import io.github.jmecn.font.freetype.FtPixelMode;
 
 import java.nio.ByteBuffer;
 

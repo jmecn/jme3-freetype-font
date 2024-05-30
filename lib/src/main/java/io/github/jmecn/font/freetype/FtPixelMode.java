@@ -1,4 +1,4 @@
-package io.github.jmecn.font.freetype.enums;
+package io.github.jmecn.font.freetype;
 
 /**
  * desc:

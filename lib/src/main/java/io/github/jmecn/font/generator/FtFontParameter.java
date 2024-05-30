@@ -8,7 +8,7 @@ import io.github.jmecn.font.CommonChars;
 import io.github.jmecn.font.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.enums.Hinting;
 import io.github.jmecn.font.generator.enums.RenderMode;
-import io.github.jmecn.font.generator.enums.WritingScript;
+import io.github.jmecn.font.Direction;
 import io.github.jmecn.font.packer.PackStrategy;
 import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
@@ -59,7 +59,7 @@ public class FtFontParameter {
     public static final String TEXTURE_MAG_FILTER = "texture.magFilter";
     //////////////////////////////////////////////////
 
-    private WritingScript writingScript = WritingScript.LTR;
+    private Direction direction = Direction.LTR;
 
     /** The size in pixels */
     private int size = 16;
@@ -140,12 +140,12 @@ public class FtFontParameter {
      * {@link FtFontGenerator#maxTextureSize}. */
     private boolean incremental = false;
 
-    public WritingScript getWritingScript() {
-        return writingScript;
+    public Direction getDirection() {
+        return direction;
     }
 
-    public void setWritingScript(WritingScript writingScript) {
-        this.writingScript = writingScript;
+    public void setDirection(Direction direction) {
+        this.direction = direction;
     }
 
     public int getSize() {
