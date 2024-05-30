@@ -19,7 +19,7 @@ class TestIcu4j {
 
     static final String TEXT = "Love and peace" +// latin
             "爱与和平" +// Han
-            "الحب والسلام" + // Arabic
+            "الحب 123والسلام" + // Arabic
             "사랑과 평화" + // Hangul
             "👋🤔️" // emoji
     ;
@@ -41,7 +41,7 @@ class TestIcu4j {
         for (int i = 0; i < bidi.getRunCount(); i++) {
             int start = bidi.getRunStart(i);
             int limit = bidi.getRunLimit(i);
-            System.out.printf("start=%d, limit=%d, level=%d\n", start, limit, bidi.getRunLevel(i));// 0-left_to_right, 1-right_to_left
+            System.out.printf("start=%d, limit=%d, level=%d, %s\n", start, limit, bidi.getRunLevel(i), TEXT.substring(start, limit));// 0-left_to_right, 1-right_to_left
         }
     }
 

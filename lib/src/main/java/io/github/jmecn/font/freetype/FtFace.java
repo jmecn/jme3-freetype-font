@@ -74,6 +74,14 @@ public class FtFace implements AutoCloseable {
         return face.style_nameString();
     }
 
+    public String getPostScriptName() {
+        return FT_Get_Postscript_Name(face);
+    }
+
+    public String getFormat() {
+        return FT_Get_Font_Format(face);
+    }
+
     public int getNumFixedSizes() {
         return face.num_fixed_sizes();
     }

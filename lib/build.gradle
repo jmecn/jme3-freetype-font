@@ -32,4 +32,8 @@ dependencies {
     testImplementation 'ch.qos.logback:logback-classic:1.2.13'
 
     testImplementation "com.ibm.icu:icu4j:75.1"
+    // add javafx
+    implementation "org.openjfx:javafx-base:22.0.1:mac"
+    implementation "org.openjfx:javafx-controls:22.0.1:mac"
+    implementation "org.openjfx:javafx-graphics:22.0.1:mac"
 }

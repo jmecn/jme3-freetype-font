@@ -94,6 +94,22 @@ class TestFreeTypeLibrary {
         assertEquals(1651078259, FT_GLYPH_FORMAT_BITMAP);
     }
 
+    @Test void testFontName() {
+        try (FtLibrary library = new FtLibrary()) {
+            String path = "../font/FreeSerif.ttf";
+
+            FtFace face = library.newFace(path);
+            long numFaces = face.getNumFaces();
+            log.info("num faces:{}", numFaces);
+            face.close();
+
+            for (int i = 0; i < numFaces; i++) {
+                face = library.newFace(path, i);
+                log.info("face name: {}, style name:{}, post script:{}, format:{}", face.getFamilyName(), face.getStyleName(), face.getPostScriptName(), face.getFormat());
+                face.close();
+            }
+        }
+    }
     private String getFormat(int pixelMode) {
         Image.Format format;
         switch (pixelMode) {

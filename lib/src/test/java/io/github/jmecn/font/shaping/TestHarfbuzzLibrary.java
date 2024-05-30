@@ -2,13 +2,21 @@ package io.github.jmecn.font.shaping;
 
 import io.github.jmecn.font.freetype.FtFace;
 import io.github.jmecn.font.freetype.FtLibrary;
+import io.github.jmecn.font.utils.DebugPrintUtils;
 import org.junit.jupiter.api.Test;
 import org.lwjgl.system.Configuration;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.util.freetype.FreeType;
 import org.lwjgl.util.harfbuzz.hb_glyph_info_t;
 import org.lwjgl.util.harfbuzz.hb_glyph_position_t;
+import org.lwjgl.util.harfbuzz.hb_ot_name_entry_t;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.charset.StandardCharsets;
 
 import static org.lwjgl.util.harfbuzz.HarfBuzz.*;
 import static org.lwjgl.util.harfbuzz.OpenType.*;
@@ -179,6 +187,47 @@ class TestHarfbuzzLibrary {
         library.close();
     }
 
+    @Test void testHarfbuzzFontName() {
+        Configuration.HARFBUZZ_LIBRARY_NAME.set(FreeType.getLibrary());
+
+        String fonts = "../font/NotoSansSC-Regular.ttf";
+        fonts = "/System/Library/Fonts/STHeiti Medium.ttc";
+
+        long hb_blob_t = hb_blob_create_from_file(fonts);
+        long hb_face_t = hb_face_create(hb_blob_t, 0);
+        hb_blob_destroy(hb_blob_t);
+        logger.info("hasSvg:{}, hasPng:{}", hb_ot_color_has_svg(hb_face_t), hb_ot_color_has_png(hb_face_t));
+
+        MemoryStack stack = MemoryStack.stackPush();
+        ByteBuffer buffer = stack.malloc(256);
+        IntBuffer intBuffer = stack.mallocInt(1);
+        intBuffer.put(256);
+        intBuffer.flip();
+
+        hb_ot_name_entry_t.Buffer names = hb_ot_name_list_names(hb_face_t);
+        for (int i = 0; i < names.remaining(); i++) {
+            buffer.clear();
+            hb_ot_name_entry_t name_entry_t = names.get(i);
+            int length = hb_ot_name_get_utf8(hb_face_t, name_entry_t.name_id(), name_entry_t.language(), intBuffer, buffer);
+
+            logger.info("name_id:{}, language:{}, length:{}, name:{}",
+                    names.get(i).name_id(),
+                    hb_language_to_string(name_entry_t.language()),
+                    length,
+                    MemoryUtil.memUTF8(buffer, length));
+            DebugPrintUtils.print(buffer, length, 1, false);
+        }
+
+        int length = hb_ot_name_get_utf8(hb_face_t, HB_OT_NAME_ID_FONT_FAMILY, hb_language_from_string("en"), intBuffer, buffer);
+        logger.info("font family:{}", MemoryUtil.memUTF8(buffer, length));
+
+        long hb_font_t = hb_font_create(hb_face_t);
+
+        stack.pop();
+
+        hb_font_destroy(hb_font_t);
+        hb_face_destroy(hb_face_t);
+    }
     @Test void testHarfbuzzEmojiZwj() {
         String text = "👨‍👩‍👧‍👦";
         // init lwjgl3 harfbuzz with freetype
