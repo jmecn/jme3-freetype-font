@@ -1,0 +1,3 @@
+plugins {
+    id 'jme3-freetype-font.java-library-conventions'
+}

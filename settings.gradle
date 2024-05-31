@@ -3,3 +3,4 @@ include('lib')
 project(':lib').name = 'jme3-freetype-font'
 include('app')
 project(':app').name = 'jme3-font-tool'
+include('tools')
