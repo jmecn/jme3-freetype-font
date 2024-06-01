@@ -17,6 +17,20 @@ package io.github.jmecn.text;
 
 class EmojiPresentationScanner {
 
+	static final int emoji_presentation_start = 2;
+	private static final byte _emoji_presentation_actions[] = init__emoji_presentation_actions_0();
+	private static final byte _emoji_presentation_key_offsets[] = init__emoji_presentation_key_offsets_0();
+	private static final byte _emoji_presentation_trans_keys[] = init__emoji_presentation_trans_keys_0();
+	private static final byte _emoji_presentation_single_lengths[] = init__emoji_presentation_single_lengths_0();
+	private static final byte _emoji_presentation_range_lengths[] = init__emoji_presentation_range_lengths_0();
+	private static final byte _emoji_presentation_index_offsets[] = init__emoji_presentation_index_offsets_0();
+	private static final byte _emoji_presentation_indicies[] = init__emoji_presentation_indicies_0();
+	private static final byte _emoji_presentation_trans_targs[] = init__emoji_presentation_trans_targs_0();
+	private static final byte _emoji_presentation_trans_actions[] = init__emoji_presentation_trans_actions_0();
+	private static final byte _emoji_presentation_to_state_actions[] = init__emoji_presentation_to_state_actions_0();
+	private static final byte _emoji_presentation_from_state_actions[] = init__emoji_presentation_from_state_actions_0();
+	private static final byte _emoji_presentation_eof_trans[] = init__emoji_presentation_eof_trans_0();
+
 	// line 20 "EmojiPresentationScanner.java"
 	private static byte[] init__emoji_presentation_actions_0() {
 		return new byte[]{
@@ -26,17 +40,11 @@ class EmojiPresentationScanner {
 		};
 	}
 
-	private static final byte _emoji_presentation_actions[] = init__emoji_presentation_actions_0();
-
-
 	private static byte[] init__emoji_presentation_key_offsets_0() {
 		return new byte[]{
 				0, 5, 7, 14, 18, 20, 21, 24, 29, 30, 34, 36
 		};
 	}
-
-	private static final byte _emoji_presentation_key_offsets[] = init__emoji_presentation_key_offsets_0();
-
 
 	private static byte[] init__emoji_presentation_trans_keys_0() {
 		return new byte[]{
@@ -47,17 +55,11 @@ class EmojiPresentationScanner {
 		};
 	}
 
-	private static final byte _emoji_presentation_trans_keys[] = init__emoji_presentation_trans_keys_0();
-
-
 	private static byte[] init__emoji_presentation_single_lengths_0() {
 		return new byte[]{
 				3, 2, 5, 4, 2, 1, 3, 5, 1, 4, 2, 5
 		};
 	}
-
-	private static final byte _emoji_presentation_single_lengths[] = init__emoji_presentation_single_lengths_0();
-
 
 	private static byte[] init__emoji_presentation_range_lengths_0() {
 		return new byte[]{
@@ -65,17 +67,11 @@ class EmojiPresentationScanner {
 		};
 	}
 
-	private static final byte _emoji_presentation_range_lengths[] = init__emoji_presentation_range_lengths_0();
-
-
 	private static byte[] init__emoji_presentation_index_offsets_0() {
 		return new byte[]{
 				0, 5, 8, 15, 20, 23, 25, 29, 35, 37, 42, 45
 		};
 	}
-
-	private static final byte _emoji_presentation_index_offsets[] = init__emoji_presentation_index_offsets_0();
-
 
 	private static byte[] init__emoji_presentation_indicies_0() {
 		return new byte[]{
@@ -87,18 +83,12 @@ class EmojiPresentationScanner {
 		};
 	}
 
-	private static final byte _emoji_presentation_indicies[] = init__emoji_presentation_indicies_0();
-
-
 	private static byte[] init__emoji_presentation_trans_targs_0() {
 		return new byte[]{
 				2, 4, 6, 2, 1, 2, 2, 3, 3, 7, 8, 9,
 				11, 0, 2, 5, 2, 2, 10
 		};
 	}
-
-	private static final byte _emoji_presentation_trans_targs[] = init__emoji_presentation_trans_targs_0();
-
 
 	private static byte[] init__emoji_presentation_trans_actions_0() {
 		return new byte[]{
@@ -107,17 +97,11 @@ class EmojiPresentationScanner {
 		};
 	}
 
-	private static final byte _emoji_presentation_trans_actions[] = init__emoji_presentation_trans_actions_0();
-
-
 	private static byte[] init__emoji_presentation_to_state_actions_0() {
 		return new byte[]{
 				0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
 		};
 	}
-
-	private static final byte _emoji_presentation_to_state_actions[] = init__emoji_presentation_to_state_actions_0();
-
 
 	private static byte[] init__emoji_presentation_from_state_actions_0() {
 		return new byte[]{
@@ -125,19 +109,11 @@ class EmojiPresentationScanner {
 		};
 	}
 
-	private static final byte _emoji_presentation_from_state_actions[] = init__emoji_presentation_from_state_actions_0();
-
-
 	private static byte[] init__emoji_presentation_eof_trans_0() {
 		return new byte[]{
 				1, 4, 0, 1, 17, 17, 17, 17, 18, 18, 17, 17
 		};
 	}
-
-	private static final byte _emoji_presentation_eof_trans[] = init__emoji_presentation_eof_trans_0();
-
-
-	static final int emoji_presentation_start = 2;
 
 	public static EmojiIteratorResult scan_emoji_presentation(byte[] data, int p, final int pe) {
 		int ts, te;
@@ -172,8 +148,7 @@ class EmojiPresentationScanner {
 						_nacts = _emoji_presentation_actions[_acts++];
 						while (_nacts-- > 0) {
 							switch (_emoji_presentation_actions[_acts++]) {
-								case 1:
-								{
+								case 1: {
 									ts = p;
 								}
 								break;
@@ -190,18 +165,18 @@ class EmojiPresentationScanner {
 								int _mid;
 								int _upper = _keys + _klen - 1;
 								while (true) {
-                                    if (_upper < _lower) {
-                                        break;
-                                    }
+									if (_upper < _lower) {
+										break;
+									}
 									_mid = _lower + ((_upper - _lower) >> 1);
-                                    if (data[p] < _emoji_presentation_trans_keys[_mid]) {
-                                        _upper = _mid - 1;
-                                    } else if (data[p] > _emoji_presentation_trans_keys[_mid]) {
-                                        _lower = _mid + 1;
-                                    } else {
-                                        _trans += (_mid - _keys);
-                                        break _match;
-                                    }
+									if (data[p] < _emoji_presentation_trans_keys[_mid]) {
+										_upper = _mid - 1;
+									} else if (data[p] > _emoji_presentation_trans_keys[_mid]) {
+										_lower = _mid + 1;
+									} else {
+										_trans += (_mid - _keys);
+										break _match;
+									}
 								}
 								_keys += _klen;
 								_trans += _klen;
@@ -213,18 +188,18 @@ class EmojiPresentationScanner {
 								int _mid;
 								int _upper = _keys + (_klen << 1) - 2;
 								while (true) {
-                                    if (_upper < _lower) {
-                                        break;
-                                    }
+									if (_upper < _lower) {
+										break;
+									}
 									_mid = _lower + (((_upper - _lower) >> 1) & ~1);
-                                    if (data[p] < _emoji_presentation_trans_keys[_mid]) {
-                                        _upper = _mid - 2;
-                                    } else if (data[p] > _emoji_presentation_trans_keys[_mid + 1]) {
-                                        _lower = _mid + 2;
-                                    } else {
-                                        _trans += ((_mid - _keys) >> 1);
-                                        break _match;
-                                    }
+									if (data[p] < _emoji_presentation_trans_keys[_mid]) {
+										_upper = _mid - 2;
+									} else if (data[p] > _emoji_presentation_trans_keys[_mid + 1]) {
+										_lower = _mid + 2;
+									} else {
+										_trans += ((_mid - _keys) >> 1);
+										break _match;
+									}
 								}
 								_trans += _klen;
 							}
@@ -240,60 +215,51 @@ class EmojiPresentationScanner {
 							_nacts = _emoji_presentation_actions[_acts++];
 							while (_nacts-- > 0) {
 								switch (_emoji_presentation_actions[_acts++]) {
-									case 2:
-									{
+									case 2: {
 										te = p + 1;
 									}
 									break;
-									case 3:
-									{
+									case 3: {
 										act = 2;
 									}
 									break;
-									case 4:
-									{
+									case 4: {
 										act = 3;
 									}
 									break;
-									case 5:
-									{
+									case 5: {
 										te = p + 1;
 										{
 											return new EmojiIteratorResult(false, te);
 										}
 									}
-									case 6:
-									{
+									case 6: {
 										te = p + 1;
 										{
 											return new EmojiIteratorResult(true, te);
 										}
 									}
-									case 7:
-									{
+									case 7: {
 										te = p + 1;
 										{
 											return new EmojiIteratorResult(false, te);
 										}
 									}
-									case 8:
-									{
+									case 8: {
 										te = p;
 										p--;
 										{
 											return new EmojiIteratorResult(true, te);
 										}
 									}
-									case 9:
-									{
+									case 9: {
 										te = p;
 										p--;
 										{
 											return new EmojiIteratorResult(false, te);
 										}
 									}
-									case 10:
-									{
+									case 10: {
 										{
 											p = ((te)) - 1;
 										}
@@ -301,8 +267,7 @@ class EmojiPresentationScanner {
 											return new EmojiIteratorResult(true, te);
 										}
 									}
-									case 11:
-									{
+									case 11: {
 										switch (act) {
 											case 2: {
 												{
@@ -325,11 +290,10 @@ class EmojiPresentationScanner {
 
 					case 2:
 						_acts = _emoji_presentation_to_state_actions[cs];
-						_nacts = (int) _emoji_presentation_actions[_acts++];
+						_nacts = _emoji_presentation_actions[_acts++];
 						while (_nacts-- > 0) {
 							switch (_emoji_presentation_actions[_acts++]) {
-								case 0:
-								{
+								case 0: {
 									ts = -1;
 								}
 								break;

@@ -54,20 +54,30 @@ public class EmojiIterator {
 
         isEmoji = false;
         cursor = 0;
+    }
 
-        next();
+    public boolean isEmoji() {
+        return isEmoji;
     }
 
     public int getStart() {
-        return unichars[start].start;
+        return start;
     }
 
     public int getEnd() {
+        return end;
+    }
+
+    public int getTextStart() {
+        return unichars[start].start;
+    }
+
+    public int getTextEnd() {
         return unichars[end-1].end;
     }
 
-    boolean next() {
-        int p;
+    public boolean next() {
+        int pointer;
 
         if (end >= text_end) {
             return false;
@@ -75,26 +85,26 @@ public class EmojiIterator {
 
         start = end;
 
-        p = this.cursor;
+        pointer = cursor;
 
-        EmojiIteratorResult sr = EmojiPresentationScanner.scan_emoji_presentation(types, p, nChars);
-        p = sr.end;
-        boolean isEmoji = sr.isEmoji;
+        EmojiIteratorResult sr = EmojiPresentationScanner.scan_emoji_presentation(types, pointer, nChars);
+        pointer = sr.end;
+        boolean flag = sr.isEmoji;
 
         do {
-            this.cursor = p;
-            this.isEmoji = isEmoji;
+            cursor = pointer;
+            this.isEmoji = flag;
 
-            if (p == nChars) {
+            if (pointer == nChars) {// end
                 break;
             }
 
-            sr = EmojiPresentationScanner.scan_emoji_presentation(types, p, nChars);
-            p = sr.end;
-            isEmoji = sr.isEmoji;
-        } while (this.isEmoji == isEmoji);
+            sr = EmojiPresentationScanner.scan_emoji_presentation(types, pointer, nChars);
+            pointer = sr.end;
+            flag = sr.isEmoji;
+        } while (this.isEmoji == flag);
 
-        end = p - 1;
+        end = cursor;
 
         return true;
     }
@@ -210,12 +220,7 @@ public class EmojiIterator {
         }
     }
 
-    public static void main(String[] args) {
-        String text = "你好🙋\uD83E\uDDD1\uD83E\uDDD1\uD83C\uDFFB\uD83E\uDDD1\uD83C\uDFFC\uD83E\uDDD1\uD83C\uDFFD\uD83E\uDDD1\uD83C\uDFFE\uD83E\uDDD1\uD83C\uDFFF世界🍰🐒👨‍👩‍👧‍👦";
-        EmojiIterator iter = new EmojiIterator(text.toCharArray());
-        System.out.printf("isEmoji:%b, start:%d, end:%d, %s\n", iter.isEmoji, iter.getStart(), iter.getEnd(), text.substring(iter.getStart(), iter.getEnd()));
-        while (iter.next()) {
-            System.out.printf("isEmoji:%b, start:%d, end:%d, %s\n", iter.isEmoji, iter.getStart(), iter.getEnd(), text.substring(iter.getStart(), iter.getEnd()));
-        }
+    public Unichar[] getUnicodeChars() {
+        return unichars;
     }
 }
