@@ -68,8 +68,7 @@ public final class EmojiPresentationScanner {
 			1, 4, 0, 1, 17, 17, 17, 17, 18, 18, 17, 17
 	};
 
-	@SuppressWarnings("java:S3776")
-	public static EmojiIteratorResult scanEmojiPresentation(byte[] data, int p, final int pe) {
+	public static int scanEmojiPresentation(byte[] data, int p, final int pe) {
 		byte act = 0;
 		int cs = EMOJI_PRESENTATION_START;
 		int te = -1;
@@ -167,39 +166,39 @@ public final class EmojiPresentationScanner {
 								break;
 								case 5: {
 									te = p + 1;
-									return new EmojiIteratorResult(false, te);
+									return te;// is_emoji = false
 								}
 								case 6: {
 									te = p + 1;
-									return new EmojiIteratorResult(true, te);
+									return te | 0x80000000;// is_emoji = true
 								}
 								case 7: {
 									te = p + 1;
-									return new EmojiIteratorResult(false, te);
+									return te;// is_emoji = false
 								}
 								case 8: {
 									te = p;
 									p--;
-									return new EmojiIteratorResult(true, te);
+									return te | 0x80000000;// is_emoji = true
 								}
 								case 9: {
 									te = p;
 									p--;
-									return new EmojiIteratorResult(false, te);
+									return te;// is_emoji = false
 								}
 								case 10: {
 									p = ((te)) - 1;
-									return new EmojiIteratorResult(true, te);
+									return te | 0x80000000;// is_emoji = true
 								}
 								case 11: {
 									switch (act) {
 										case 2: {
 											p = ((te)) - 1;
-											return new EmojiIteratorResult(true, te);
+											return te | 0x80000000;// is_emoji = true
 										}
 										case 3: {
 											p = ((te)) - 1;
-											return new EmojiIteratorResult(false, te);
+											return te;// is_emoji = false
 										}
 									}
 								}
@@ -235,6 +234,6 @@ public final class EmojiPresentationScanner {
 		}
 
 		/* Should not be reached. */
-		return new EmojiIteratorResult(false, pe);
+		return pe; // is_emoji = false
 	}
 }

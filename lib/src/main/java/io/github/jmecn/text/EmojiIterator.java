@@ -1,12 +1,14 @@
 package io.github.jmecn.text;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static io.github.jmecn.text.EmojiCategory.*;
 import static io.github.jmecn.text.EmojiPresentationScanner.*;
 
 /**
  * Implementation of EmojiIterator is based on Pango's pango-emoji.c
  *
- *
+ * @see <a href="https://gitlab.gnome.org/GNOME/pango/-/blob/6fab48ac3a2d613704301d692e278cdcef3c2bf4/pango/pango-emoji.c">pango/pango-emoji.c</a>
  * @author yanmaoyuan
  */
 public class EmojiIterator {
@@ -85,24 +87,26 @@ public class EmojiIterator {
 
         this.start = this.end;
 
-        int cursor = this.cursor;
+        int p = this.cursor;
 
-        EmojiIteratorResult sr = scanEmojiPresentation(this.types, cursor, this.nChars);
-        cursor = sr.end;
-        boolean isEmoji = sr.isEmoji;
+        int scanResult = scanEmojiPresentation(this.types, p, this.nChars);
+        // because java do not have a referenced boolean type, here I use a bit mask to indicate whether the scanResult is emoji.
+        // this also avoid instancing a new object.
+        p = scanResult & 0x7FFFFFFF;
+        boolean emoji = (scanResult & 0x80000000) != 0;
 
         do {
-            this.cursor = cursor;
-            this.isEmoji = isEmoji;
+            this.cursor = p;
+            this.isEmoji = emoji;
 
-            if (cursor == this.nChars) {// end
+            if (p == this.nChars) {// end
                 break;
             }
 
-            sr = scanEmojiPresentation(this.types, cursor, this.nChars);
-            cursor = sr.end;
-            isEmoji = sr.isEmoji;
-        } while (this.isEmoji == isEmoji);
+            scanResult = scanEmojiPresentation(this.types, p, this.nChars);
+            p = scanResult & 0x7FFFFFFF;
+            emoji = (scanResult & 0x80000000) != 0;
+        } while (this.isEmoji == emoji);
 
         this.end = this.cursor;
 

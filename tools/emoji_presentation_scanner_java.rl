@@ -81,14 +81,14 @@ text_run = any;
 text_and_emoji_run := |*
 # In order to give the the VS15 sequences higher priority than detecting
 # emoji sequences they are listed first as scanner token here.
-text_presentation_emoji => { return new EmojiIteratorResult(false, te);};
-emoji_run => { return new EmojiIteratorResult(true, te);};
-text_run => { return new EmojiIteratorResult(false, te);};
+text_presentation_emoji => { return te;};
+emoji_run => { return te | 0x80000000;};
+text_run => { return te;};
 *|;
 
 }%%
 
-public static EmojiIteratorResult scan_emoji_presentation(byte[] data, int p, final int pe) {
+public static int scan_emoji_presentation(byte[] data, int p, final int pe) {
   int ts, te;
   final int eof = pe;
 
@@ -101,5 +101,5 @@ public static EmojiIteratorResult scan_emoji_presentation(byte[] data, int p, fi
   }%%
 
   /* Should not be reached. */
-  return new EmojiIteratorResult(false, pe);
+  return pe;
 }
