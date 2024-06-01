@@ -79,7 +79,7 @@ public class EmojiIterator {
     }
 
     public boolean next() {
-        if (this.end >= this.nChars - 1) {
+        if (this.end >= this.nChars) {
             return false;
         }
 
