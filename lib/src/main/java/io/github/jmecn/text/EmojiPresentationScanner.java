@@ -115,7 +115,7 @@ class EmojiPresentationScanner {
 		};
 	}
 
-	public static EmojiIteratorResult scan_emoji_presentation(byte[] data, int p, final int pe) {
+	public static EmojiIteratorResult scanEmojiPresentation(byte[] data, int p, final int pe) {
 		int ts, te;
 		final int eof = pe;
 
