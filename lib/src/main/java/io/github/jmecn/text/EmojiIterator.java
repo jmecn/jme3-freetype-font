@@ -1,7 +1,5 @@
 package io.github.jmecn.text;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import static io.github.jmecn.text.EmojiCategory.*;
 import static io.github.jmecn.text.EmojiPresentationScanner.*;
 
@@ -13,26 +11,24 @@ import static io.github.jmecn.text.EmojiPresentationScanner.*;
  */
 public class EmojiIterator {
 
-    int textStart;
-    int textEnd;
-    int start;
-    int end;
-    int nChars;
-    boolean isEmoji;
+    private int start;
+    private int end;
+    private int nChars;
+    private boolean isEmoji;
 
-    Unichar[] unichars;
-    byte[] types;
-    int cursor;
+    private final Unichar[] chars;
+    private final byte[] types;
+    private int cursor;
 
     public EmojiIterator(char[] text) {
-        types = new byte[text.length];
-        Unichar[] chars = new Unichar[text.length];
+        byte[] tmpTypes = new byte[text.length];
+        Unichar[] tmpChars = new Unichar[text.length];
         nChars = 0;
         int i = 0;
         while (i < text.length) {
             int codepoint = Character.codePointAt(text, i);
             byte type = emojiSegmentationCategory(codepoint);
-            types[nChars] = type;
+            tmpTypes[nChars] = type;
 
             Unichar ch = new Unichar();
             ch.codepoint = codepoint;
@@ -40,21 +36,21 @@ public class EmojiIterator {
             ch.start = i;
             i+= Character.charCount(codepoint);
             ch.end = i;
-            chars[nChars] = ch;
+            tmpChars[nChars] = ch;
             nChars++;
         }
         if (nChars == text.length) {
-            this.unichars = chars;
+            this.chars = tmpChars;
+            this.types = tmpTypes;
         } else {
-            this.unichars = new Unichar[nChars];
-            System.arraycopy(chars, 0, this.unichars, 0, nChars);
+            this.chars = new Unichar[nChars];
+            this.types = new byte[nChars];
+            System.arraycopy(tmpChars, 0, this.chars, 0, nChars);
+            System.arraycopy(tmpTypes, 0, this.types, 0, nChars);
         }
 
-        textStart = 0;
         start = 0;
         end = 0;
-
-        textEnd = nChars - 1;
 
         isEmoji = false;
         cursor = 0;
@@ -73,11 +69,11 @@ public class EmojiIterator {
     }
 
     public int getTextStart() {
-        return unichars[start].getStart();
+        return chars[start].getStart();
     }
 
     public int getTextEnd() {
-        return unichars[end - 1].getEnd();
+        return chars[end - 1].getEnd();
     }
 
     public boolean next() {
@@ -98,11 +94,9 @@ public class EmojiIterator {
         do {
             this.cursor = p;
             this.isEmoji = emoji;
-
-            if (p == this.nChars) {// end
+            if (p == this.nChars) {
                 break;
             }
-
             scanResult = scanEmojiPresentation(this.types, p, this.nChars);
             p = scanResult & 0x7FFFFFFF;
             emoji = (scanResult & 0x80000000) != 0;
@@ -114,6 +108,6 @@ public class EmojiIterator {
     }
 
     public Unichar[] getUnicodeChars() {
-        return unichars;
+        return chars;
     }
 }
