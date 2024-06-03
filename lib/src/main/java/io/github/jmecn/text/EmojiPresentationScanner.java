@@ -1,5 +1,3 @@
-package io.github.jmecn.text;
-// line 1 "emoji_presentation_scanner_java.rl"
 /* Copyright 2019 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +12,7 @@ package io.github.jmecn.text;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.github.jmecn.text;
 
 public final class EmojiPresentationScanner {
 
@@ -82,20 +81,17 @@ public final class EmojiPresentationScanner {
 
 		while (true) {
 			switch (gotoTarg) {
-				case 0:
+				case 0: {
 					if (p == pe) {
 						gotoTarg = 4;
 						continue;
 					}
-				case 1:
+				}
+				case 1: {
 					acts = EMOJI_PRESENTATION_FROM_STATE_ACTIONS[cs];
 					nacts = EMOJI_PRESENTATION_ACTIONS[acts++];
 					while (nacts-- > 0) {
-						switch (EMOJI_PRESENTATION_ACTIONS[acts++]) {
-							case 1: {
-							}
-							break;
-						}
+						acts++;
 					}
 
 					_match:
@@ -107,17 +103,17 @@ public final class EmojiPresentationScanner {
 							int lower = keys;
 							int mid;
 							int upper = keys + klen - 1;
-                            while (upper >= lower) {
-                                mid = lower + ((upper - lower) >> 1);
-                                if (data[p] < EMOJI_PRESENTATION_TRANS_KEYS[mid]) {
-                                    upper = mid - 1;
-                                } else if (data[p] > EMOJI_PRESENTATION_TRANS_KEYS[mid]) {
-                                    lower = mid + 1;
-                                } else {
-                                    trans += (mid - keys);
-                                    break _match;
-                                }
-                            }
+							while (upper >= lower) {
+								mid = lower + ((upper - lower) >> 1);
+								if (data[p] < EMOJI_PRESENTATION_TRANS_KEYS[mid]) {
+									upper = mid - 1;
+								} else if (data[p] > EMOJI_PRESENTATION_TRANS_KEYS[mid]) {
+									lower = mid + 1;
+								} else {
+									trans += (mid - keys);
+									break _match;
+								}
+							}
 							keys += klen;
 							trans += klen;
 						}
@@ -127,24 +123,25 @@ public final class EmojiPresentationScanner {
 							int lower = keys;
 							int mid;
 							int upper = keys + (klen << 1) - 2;
-                            while (upper >= lower) {
-                                mid = lower + (((upper - lower) >> 1) & ~1);
-                                if (data[p] < EMOJI_PRESENTATION_TRANS_KEYS[mid]) {
-                                    upper = mid - 2;
-                                } else if (data[p] > EMOJI_PRESENTATION_TRANS_KEYS[mid + 1]) {
-                                    lower = mid + 2;
-                                } else {
-                                    trans += ((mid - keys) >> 1);
-                                    break _match;
-                                }
-                            }
+							while (upper >= lower) {
+								mid = lower + (((upper - lower) >> 1) & ~1);
+								if (data[p] < EMOJI_PRESENTATION_TRANS_KEYS[mid]) {
+									upper = mid - 2;
+								} else if (data[p] > EMOJI_PRESENTATION_TRANS_KEYS[mid + 1]) {
+									lower = mid + 2;
+								} else {
+									trans += ((mid - keys) >> 1);
+									break _match;
+								}
+							}
 							trans += klen;
 						}
 					}
 					while (false);
 
 					trans = EMOJI_PRESENTATION_INDICIES[trans];
-				case 3:
+				}
+				case 3: {
 					cs = EMOJI_PRESENTATION_TRANS_TARGS[trans];
 
 					if (EMOJI_PRESENTATION_TRANS_ACTIONS[trans] != 0) {
@@ -178,58 +175,52 @@ public final class EmojiPresentationScanner {
 								}
 								case 8: {
 									te = p;
-									p--;
 									return te | 0x80000000;// is_emoji = true
 								}
 								case 9: {
 									te = p;
-									p--;
 									return te;// is_emoji = false
 								}
 								case 10: {
-									p = ((te)) - 1;
 									return te | 0x80000000;// is_emoji = true
 								}
 								case 11: {
 									switch (act) {
 										case 2: {
-											p = ((te)) - 1;
 											return te | 0x80000000;// is_emoji = true
 										}
 										case 3: {
-											p = ((te)) - 1;
 											return te;// is_emoji = false
 										}
+										default:
 									}
 								}
 								break;
 							}
 						}
 					}
-				case 2:
+				}
+				case 2: {
 					acts = EMOJI_PRESENTATION_TO_STATE_ACTIONS[cs];
 					nacts = EMOJI_PRESENTATION_ACTIONS[acts++];
 					while (nacts-- > 0) {
-						switch (EMOJI_PRESENTATION_ACTIONS[acts++]) {
-							case 0:
-							break;
-						}
+						acts++;
 					}
 
 					if (++p != pe) {
 						gotoTarg = 1;
 						continue;
 					}
-				case 4:
-					if (p == pe) {
-						if (EMOJI_PRESENTATION_EOF_TRANS[cs] > 0) {
-							trans = EMOJI_PRESENTATION_EOF_TRANS[cs] - 1;
-							gotoTarg = 3;
-							continue;
-						}
+				}
+				case 4: {
+					if (EMOJI_PRESENTATION_EOF_TRANS[cs] > 0) {
+						trans = EMOJI_PRESENTATION_EOF_TRANS[cs] - 1;
+						gotoTarg = 3;
+						continue;
 					}
-				case 5:
-			}
+					break;
+				}
+            }
 			break;
 		}
 
