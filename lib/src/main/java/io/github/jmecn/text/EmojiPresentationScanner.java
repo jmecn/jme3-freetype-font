@@ -14,6 +14,8 @@
  */
 package io.github.jmecn.text;
 
+import static io.github.jmecn.text.EmojiCategory.*;
+
 public final class EmojiPresentationScanner {
 
 	private EmojiPresentationScanner() {}
@@ -149,47 +151,47 @@ public final class EmojiPresentationScanner {
 						nacts = EMOJI_PRESENTATION_ACTIONS[acts++];
 						while (nacts-- > 0) {
 							switch (EMOJI_PRESENTATION_ACTIONS[acts++]) {
-								case 2: {
+								case EMOJI_EMOJI_PRESENTATION: {
 									te = p + 1;
 								}
 								break;
-								case 3: {
-									act = 2;
+								case EMOJI_MODIFIER_BASE: {
+									act = EMOJI_EMOJI_PRESENTATION;
 								}
 								break;
-								case 4: {
-									act = 3;
+								case EMOJI_MODIFIER: {
+									act = EMOJI_MODIFIER_BASE;
 								}
 								break;
-								case 5: {
+								case EMOJI_VS_BASE: {
 									te = p + 1;
 									return te;// is_emoji = false
 								}
-								case 6: {
+								case REGIONAL_INDICATOR: {
 									te = p + 1;
 									return te | 0x80000000;// is_emoji = true
 								}
-								case 7: {
+								case KEYCAP_BASE: {
 									te = p + 1;
 									return te;// is_emoji = false
 								}
-								case 8: {
+								case COMBINING_ENCLOSING_KEYCAP: {
 									te = p;
 									return te | 0x80000000;// is_emoji = true
 								}
-								case 9: {
+								case COMBINING_ENCLOSING_CIRCLE_BACKSLASH: {
 									te = p;
 									return te;// is_emoji = false
 								}
-								case 10: {
+								case ZWJ: {
 									return te | 0x80000000;// is_emoji = true
 								}
-								case 11: {
+								case VS15: {
 									switch (act) {
-										case 2: {
+										case EMOJI_EMOJI_PRESENTATION: {
 											return te | 0x80000000;// is_emoji = true
 										}
-										case 3: {
+										case EMOJI_MODIFIER_BASE: {
 											return te;// is_emoji = false
 										}
 										default:

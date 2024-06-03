@@ -71,6 +71,13 @@ class TestEmojiIterator {
 
         List<TestData> list = new ArrayList<>();
 
+        // not emoji
+        text = "abc";
+        expectedList = new EmojiRun[] {
+                new EmojiRun(false, 0, 3, 0, 3)
+        };
+        list.add(new TestData(text, expectedList));
+
         // emoji base: smile
         text = "\uD83D\uDE0A";// 😊
         expectedList = new EmojiRun[] {
