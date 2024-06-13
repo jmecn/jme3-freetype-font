@@ -1,4 +1,4 @@
-package io.github.jmecn.font;
+package io.github.jmecn.font.bmfont;
 
 /**
  * Most commonly used characters in different languages.

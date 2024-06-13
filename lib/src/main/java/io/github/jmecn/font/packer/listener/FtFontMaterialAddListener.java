@@ -4,7 +4,7 @@ import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture2D;
-import io.github.jmecn.font.FtBitmapCharacterSet;
+import io.github.jmecn.font.bmfont.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.packer.PackStrategy;
 import io.github.jmecn.font.packer.Packer;

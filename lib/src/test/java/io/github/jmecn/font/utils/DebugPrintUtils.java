@@ -2,8 +2,8 @@ package io.github.jmecn.font.utils;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
-import io.github.jmecn.font.FtBitmapCharacterSet;
-import io.github.jmecn.font.Glyph;
+import io.github.jmecn.font.bmfont.FtBitmapCharacterSet;
+import io.github.jmecn.font.bmfont.FtBitmapCharacter;
 import io.github.jmecn.font.freetype.FtBitmap;
 import io.github.jmecn.font.freetype.FtGlyphMetrics;
 import io.github.jmecn.font.freetype.FtLibrary;
@@ -93,7 +93,7 @@ public class DebugPrintUtils {
     }
 
     public static void drawGlyphRect(FtBitmapCharacterSet data) {
-        for (Glyph glyph : data.getGlyphs()) {
+        for (FtBitmapCharacter glyph : data.getGlyphs()) {
             ColorRGBA color = ColorRGBA.randomColor();
             System.out.println(glyph);
             Image image = data.getImage(glyph.getPage());

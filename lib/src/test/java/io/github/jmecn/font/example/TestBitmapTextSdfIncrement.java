@@ -46,7 +46,7 @@ import com.jme3.scene.shape.Quad;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
-import io.github.jmecn.font.FtBitmapCharacterSet;
+import io.github.jmecn.font.bmfont.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.generator.enums.RenderMode;

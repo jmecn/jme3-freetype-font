@@ -40,7 +40,7 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
-import io.github.jmecn.font.FtBitmapFont;
+import io.github.jmecn.font.bmfont.FtBitmapFont;
 
 public class TestBitmapFontAlignment extends SimpleApplication {
 

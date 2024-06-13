@@ -8,7 +8,7 @@ import com.jme3.texture.Texture;
 import io.github.jmecn.font.generator.FtFontParameter;
 import io.github.jmecn.font.generator.enums.Hinting;
 import io.github.jmecn.font.generator.enums.RenderMode;
-import io.github.jmecn.font.Direction;
+import io.github.jmecn.font.bmfont.Direction;
 import io.github.jmecn.font.packer.Packer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

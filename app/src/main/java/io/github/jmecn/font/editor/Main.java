@@ -27,7 +27,7 @@ import imgui.type.ImBoolean;
 import imgui.type.ImFloat;
 import imgui.type.ImInt;
 import imgui.type.ImString;
-import io.github.jmecn.font.CommonChars;
+import io.github.jmecn.font.bmfont.CommonChars;
 import io.github.jmecn.font.freetype.FtLibrary;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;

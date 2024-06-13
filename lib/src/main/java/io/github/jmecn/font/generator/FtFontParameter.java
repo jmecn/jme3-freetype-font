@@ -4,11 +4,11 @@ import com.jme3.material.MaterialDef;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
-import io.github.jmecn.font.CommonChars;
-import io.github.jmecn.font.FtBitmapCharacterSet;
+import io.github.jmecn.font.bmfont.CommonChars;
+import io.github.jmecn.font.bmfont.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.enums.Hinting;
 import io.github.jmecn.font.generator.enums.RenderMode;
-import io.github.jmecn.font.Direction;
+import io.github.jmecn.font.bmfont.Direction;
 import io.github.jmecn.font.packer.PackStrategy;
 import io.github.jmecn.font.packer.Packer;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
@@ -69,7 +69,7 @@ public class FtFontParameter {
     private Hinting hinting = Hinting.NORMAL;
     /** Foreground color (required for non-black borders) */
     private ColorRGBA color = ColorRGBA.White;
-    /** Glyph gamma. Values > 1 reduce antialiasing. */
+    /** FtBitmapCharacter gamma. Values > 1 reduce antialiasing. */
     private float gamma = 1.8f;
     /** Number of times to render the glyph. Useful with a shadow or border, so it doesn't show through the glyph. */
     private int renderCount = 2;

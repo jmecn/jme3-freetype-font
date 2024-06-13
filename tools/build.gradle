@@ -1,3 +1,11 @@
 plugins {
     id 'jme3-freetype-font.java-library-conventions'
 }
+
+dependencies {
+
+    // add javafx
+    implementation "org.openjfx:javafx-base:22.0.1:mac"
+    implementation "org.openjfx:javafx-controls:22.0.1:mac"
+    implementation "org.openjfx:javafx-graphics:22.0.1:mac"
+}

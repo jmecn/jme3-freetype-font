@@ -95,7 +95,7 @@ public class FtFace implements AutoCloseable {
     }
 
     /**
-     * @param glyphIndex Glyph index of first character code. 0 if charmap is empty.
+     * @param glyphIndex FtBitmapCharacter index of first character code. 0 if charmap is empty.
      * @return the first character code in the current charmap of a given face, together with its corresponding glyph index.
      */
     public long getFirstChar(IntBuffer glyphIndex) {
@@ -106,7 +106,7 @@ public class FtFace implements AutoCloseable {
      * Return the next character code in the current charmap of a given face following the value char_code, as well as the corresponding glyph index.
      *
      * @param codepoint The starting character code.
-     * @param glyphIndex Glyph index of next character code. 0 if charmap is empty.
+     * @param glyphIndex FtBitmapCharacter index of next character code. 0 if charmap is empty.
      * @return The charmap's next character code.
      */
     public long getNextChar(long codepoint, IntBuffer glyphIndex) {

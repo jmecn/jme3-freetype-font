@@ -1,4 +1,4 @@
-package io.github.jmecn.font;
+package io.github.jmecn.font.bmfont;
 
 import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetKey;

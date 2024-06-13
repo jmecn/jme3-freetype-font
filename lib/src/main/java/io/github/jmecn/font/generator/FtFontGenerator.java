@@ -8,14 +8,14 @@ import com.jme3.math.FastMath;
 import com.jme3.texture.Image;
 import com.jme3.texture.image.ImageRaster;
 import com.jme3.util.MipMapGenerator;
-import io.github.jmecn.font.FtBitmapCharacterSet;
-import io.github.jmecn.font.Glyph;
+import io.github.jmecn.font.bmfont.FtBitmapCharacter;
+import io.github.jmecn.font.bmfont.FtBitmapCharacterSet;
 import io.github.jmecn.font.delegate.BitmapFontDelegate;
 import io.github.jmecn.font.delegate.BitmapTextDelegate;
 import io.github.jmecn.font.freetype.*;
 import io.github.jmecn.font.exception.FtRuntimeException;
 import io.github.jmecn.font.generator.enums.RenderMode;
-import io.github.jmecn.font.Direction;
+import io.github.jmecn.font.bmfont.Direction;
 import io.github.jmecn.font.packer.*;
 import io.github.jmecn.font.packer.listener.FtFontMaterialAddListener;
 import io.github.jmecn.font.packer.strategy.GuillotineStrategy;
@@ -258,7 +258,7 @@ public class FtFontGenerator implements AutoCloseable {
             heights[i] = height;
 
             if (c == '\0') {
-                Glyph missingGlyph = createGlyph('\0', parameter, stroker, baseLine, packer);
+                FtBitmapCharacter missingGlyph = createGlyph('\0', parameter, stroker, baseLine, packer);
                 if (missingGlyph != null && missingGlyph.getWidth() != 0 && missingGlyph.getHeight() != 0) {
                     data.addCharacter('\0', missingGlyph);
                     data.missingGlyph = missingGlyph;
@@ -280,7 +280,7 @@ public class FtFontGenerator implements AutoCloseable {
 
             char c = characters[best];
             if (data.getCharacter(c) == null) {
-                Glyph glyph = createGlyph(c, parameter, stroker, baseLine, packer);
+                FtBitmapCharacter glyph = createGlyph(c, parameter, stroker, baseLine, packer);
                 if (glyph != null) {
                     data.addCharacter(c, glyph);
                     data.getGlyphs().add(glyph);
@@ -310,9 +310,9 @@ public class FtFontGenerator implements AutoCloseable {
         generateKerning(parameter, data, characters, charactersLength);
 
         // Set space glyph.
-        Glyph spaceGlyph = data.getCharacter(' ');
+        FtBitmapCharacter spaceGlyph = data.getCharacter(' ');
         if (spaceGlyph == null) {
-            spaceGlyph = new Glyph();
+            spaceGlyph = new FtBitmapCharacter();
             spaceGlyph.setXAdvance( (int)data.spaceXadvance + parameter.getSpaceX() );
             spaceGlyph.setChar(' ');
             data.addCharacter(' ', spaceGlyph);
@@ -397,7 +397,7 @@ public class FtFontGenerator implements AutoCloseable {
      * @param packer packer
      * @return null if glyph was not found.
      */
-    public synchronized Glyph createGlyph(char charCode, FtFontParameter parameter, FtStroker stroker, float baseLine, Packer packer) {
+    public synchronized FtBitmapCharacter createGlyph(char charCode, FtFontParameter parameter, FtStroker stroker, float baseLine, Packer packer) {
 
         boolean missing = face.getCharIndex(charCode) == 0 && charCode != 0;
         if (missing) {
@@ -508,7 +508,7 @@ public class FtFontGenerator implements AutoCloseable {
         }
 
         FtGlyphMetrics metrics = slot.getMetrics();
-        Glyph glyph = new Glyph(charCode);
+        FtBitmapCharacter glyph = new FtBitmapCharacter(charCode);
         if (mainImage != null) {
             glyph.setWidth(mainImage.getWidth());
             glyph.setHeight(mainImage.getHeight());

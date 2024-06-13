@@ -2,7 +2,7 @@ package io.github.jmecn.font.delegate;
 
 import com.jme3.font.BitmapFont;
 import com.jme3.material.Material;
-import io.github.jmecn.font.FtBitmapCharacterSet;
+import io.github.jmecn.font.bmfont.FtBitmapCharacterSet;
 import io.github.jmecn.font.exception.FtRuntimeException;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.This;

@@ -1,4 +1,4 @@
-package io.github.jmecn.font;
+package io.github.jmecn.font.bmfont;
 
 import com.jme3.font.BitmapCharacter;
 import com.jme3.font.BitmapCharacterSet;
@@ -61,9 +61,9 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
      * file, it needs to be set manually depending on how the glyphs are rendered on the backing textures. */
     public float cursorX;
 
-    public final IntMap<IntMap<Glyph>> characters;
+    public final IntMap<IntMap<FtBitmapCharacter>> characters;
     /** The glyph to display for characters not in the font. May be null. */
-    public Glyph missingGlyph;
+    public FtBitmapCharacter missingGlyph;
 
     /** The width of the space character. */
     public float spaceXadvance;
@@ -86,7 +86,7 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
     FtFontParameter parameter;
     FtStroker stroker;
     Packer packer;
-    List<Glyph> glyphs;
+    List<FtBitmapCharacter> glyphs;
     private boolean dirty;
 
     public FtBitmapCharacterSet() {
@@ -96,14 +96,14 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         glyphs = new ArrayList<>(128);// all ascii chars
     }
 
-    public void addCharacter(int ch, Glyph glyph) {
+    public void addCharacter(int ch, FtBitmapCharacter glyph) {
         getCharacterSet(0).put(ch, glyph);
     }
-    public void addCharacter(int style, int ch, Glyph glyph) {
+    public void addCharacter(int style, int ch, FtBitmapCharacter glyph) {
         getCharacterSet(style).put(ch, glyph);
     }
 
-    public Glyph getFirstGlyph () {
+    public FtBitmapCharacter getFirstGlyph () {
         if (glyphs.isEmpty()) {
             return null;
         }
@@ -121,26 +121,26 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         return getCharacter(ch) != null;
     }
 
-    private IntMap<Glyph> getCharacterSet(int style) {
+    private IntMap<FtBitmapCharacter> getCharacterSet(int style) {
         if (characters.containsKey(style)) {
             return characters.get(style);
         } else {
-            IntMap<Glyph> map = new IntMap<>();
+            IntMap<FtBitmapCharacter> map = new IntMap<>();
             characters.put(style, map);
             return map;
         }
     }
 
     @Override
-    public Glyph getCharacter(int ch) {
+    public FtBitmapCharacter getCharacter(int ch) {
         return getCharacter(ch, 0);
     }
 
     @Override
-    public Glyph getCharacter(int ch, int style) {
+    public FtBitmapCharacter getCharacter(int ch, int style) {
         // get cached character
-        IntMap<Glyph> charset = getCharacterSet(style);
-        Glyph glyph = charset.get(ch);
+        IntMap<FtBitmapCharacter> charset = getCharacterSet(style);
+        FtBitmapCharacter glyph = charset.get(ch);
 
         if (glyph == null && generator != null) {
             if (Character.isWhitespace(ch)) {
@@ -162,7 +162,7 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
             if (parameter.isKerning()) {
                 int glyphIndex = face.getCharIndex(ch);
                 for (int i = 0, n = glyphs.size(); i < n; i++) {
-                    Glyph other = glyphs.get(i);
+                    FtBitmapCharacter other = glyphs.get(i);
                     int otherIndex = face.getCharIndex(other.getChar());
 
                     long kerning = face.getKerning(glyphIndex, otherIndex, FT_KERNING_DEFAULT);
@@ -176,7 +176,7 @@ public class FtBitmapCharacterSet extends BitmapCharacterSet implements AutoClos
         return glyph;
     }
 
-    public List<Glyph> getGlyphs() {
+    public List<FtBitmapCharacter> getGlyphs() {
         // FIXME remove this method after change the implementation of FtBitmapCharacterSet to BitmapCharacterSet
         return glyphs;
     }

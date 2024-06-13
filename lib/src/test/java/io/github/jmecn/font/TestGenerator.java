@@ -1,5 +1,7 @@
 package io.github.jmecn.font;
 
+import io.github.jmecn.font.bmfont.FtBitmapCharacter;
+import io.github.jmecn.font.bmfont.FtBitmapCharacterSet;
 import io.github.jmecn.font.generator.FtFontGenerator;
 import io.github.jmecn.font.generator.FtFontParameter;
 import org.junit.jupiter.api.Test;
@@ -31,7 +33,7 @@ public class TestGenerator {
             FtBitmapCharacterSet data = generator.generateData(parameter);
             String str = "你好世界!";
             for( int i = 0; i < str.length(); i++) {
-                Glyph glyph = data.getCharacter(str.charAt(i));
+                FtBitmapCharacter glyph = data.getCharacter(str.charAt(i));
                 logger.info("glyph:{}", glyph);
             }
         }
@@ -46,7 +48,7 @@ public class TestGenerator {
             FtBitmapCharacterSet data = generator.generateData(parameter);
 
             logger.info("data: width={}, height={}, lineHeight={}, base={}, ascent={}, descent:{}", data.getWidth(), data.getHeight(), data.getLineHeight(), data.getBase(), data.getAscent(), data.getDescent());
-            for (Glyph glyph : data.getGlyphs()) {
+            for (FtBitmapCharacter glyph : data.getGlyphs()) {
                 logger.info("glyph:{}", glyph);
             }
 

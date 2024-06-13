@@ -4,7 +4,7 @@ import com.jme3.font.BitmapCharacterSet;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.scene.Spatial;
-import io.github.jmecn.font.FtBitmapCharacterSet;
+import io.github.jmecn.font.bmfont.FtBitmapCharacterSet;
 import io.github.jmecn.font.exception.FtRuntimeException;
 import net.bytebuddy.implementation.bind.annotation.*;
 import org.slf4j.Logger;

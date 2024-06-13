@@ -1,4 +1,4 @@
-package io.github.jmecn.font;
+package io.github.jmecn.font.bmfont;
 
 /**
  * represents a direction in the Unicode bidirectional algorithm.
