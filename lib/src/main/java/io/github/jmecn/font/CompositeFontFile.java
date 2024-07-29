@@ -1,12 +1,12 @@
 package io.github.jmecn.font;
 
-public interface CompositeFontResource extends FontResource {
+public interface CompositeFontFile extends FontFile {
 
-    FontResource getSlotResource(int slot);
+    FontFile getSlotResource(int slot);
 
     int getNumSlots();
 
-    default int addSlotFont(FontResource font) {
+    default int addSlotFont(FontFile font) {
         return -1;
     }
 
@@ -19,7 +19,7 @@ public interface CompositeFontResource extends FontResource {
     default boolean isColorGlyph(int glyphCode) {
         int slot = (glyphCode >>> 24);
         int slotglyphCode = glyphCode & CompositeGlyphMapper.GLYPHMASK;
-        FontResource slotResource = getSlotResource(slot);
+        FontFile slotResource = getSlotResource(slot);
         return slotResource.isColorGlyph(slotglyphCode);
     }
 }

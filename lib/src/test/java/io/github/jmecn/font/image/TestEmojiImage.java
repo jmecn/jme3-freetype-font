@@ -78,7 +78,7 @@ public class TestEmojiImage {
                 // load glyph
                 if (face.loadGlyph(glyphIndex, FT_LOAD_DEFAULT | FT_LOAD_COLOR)) {
                     // get glyph
-                    FtGlyphSlot slot = face.getGlyph();
+                    FtGlyphSlot slot = face.getGlyphSlot();
                     FtGlyphMetrics metrics = slot.getMetrics();
                     DebugPrintUtils.print(metrics);
 

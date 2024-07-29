@@ -28,20 +28,12 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 class AndroidFontFinder {
 
-    private final static String SYSTEM_FONT_NAME    = "sans serif";
-    private final static float SYSTEM_FONT_SIZE     = 16.0f;
+    private static final String SYSTEM_FONT_NAME    = "sans serif";
+    private static final float SYSTEM_FONT_SIZE     = 16.0f;
 
     static final String fontDescriptor_2_X_Path = "/com/sun/javafx/font/android_system_fonts.xml";
     static final String fontDescriptor_4_X_Path = "/system/etc/system_fonts.xml";
     static final String systemFontsDir = "/system/fonts";
-
-    static {
-        @SuppressWarnings("removal")
-        Object dummy = AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
-            NativeLibLoader.loadLibrary("javafx_font");
-            return null;
-        });
-    }
 
     public static String getSystemFont() {
         return SYSTEM_FONT_NAME;

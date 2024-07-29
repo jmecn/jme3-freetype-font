@@ -82,7 +82,7 @@ public class TestGlyphMetrics extends SimpleApplication {
             return;
         }
 
-        FtGlyphSlot slot = face.getGlyph();
+        FtGlyphSlot slot = face.getGlyphSlot();
 
         // read face metrics
         FtSizeMetrics sizeMetrics = face.getSize().getMetrics();

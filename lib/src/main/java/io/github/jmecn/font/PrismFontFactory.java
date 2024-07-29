@@ -15,6 +15,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 
+import com.jme3.system.JmeContext;
+import com.jme3.system.JmeSystem;
+import com.jme3.system.Platform;
 import io.github.jmecn.text.GlyphLayout;
 
 public abstract class PrismFontFactory implements FontFactory {
@@ -25,23 +28,8 @@ public abstract class PrismFontFactory implements FontFactory {
     public static final boolean isMacOSX;
     public static final boolean isIOS;
     public static final boolean isAndroid;
-    public static final boolean isEmbedded;
     public static final int cacheLayoutSize;
-    private static int subPixelMode;
-    public static final int SUB_PIXEL_ON = 1;
-    public static final int SUB_PIXEL_Y = 2;
-    public static final int SUB_PIXEL_NATIVE = 4;
     private static float fontSizeLimit = 80f;
-
-    private static boolean lcdEnabled;
-    private static float lcdContrast = -1;
-    private static String jreFontDir;
-    private static final String jreDefaultFont   = "Lucida Sans Regular";
-    private static final String jreDefaultFontLC = "lucida sans regular";
-    private static final String jreDefaultFontFile = "LucidaSansRegular.ttf";
-    private static final String CT_FACTORY = "com.sun.javafx.font.coretext.CTFactory";
-    private static final String DW_FACTORY = "com.sun.javafx.font.directwrite.DWFactory";
-    private static final String FT_FACTORY = "com.sun.javafx.font.freetype.FTFactory";
 
     /* We need two maps. One to hold pointers to the raw fonts, another
      * to hold pointers to the composite resources. Top level look ups
@@ -49,100 +37,21 @@ public abstract class PrismFontFactory implements FontFactory {
      * only go to the second map to create a wrapped resource.
      * Logical Fonts are handled separately.
      */
-    HashMap<String, FontResource> fontResourceMap = new HashMap<>();
+    HashMap<String, FontFile> fontResourceMap = new HashMap<>();
 
-    HashMap<String, CompositeFontResource> compResourceMap = new HashMap<>();
+    HashMap<String, CompositeFontFile> compResourceMap = new HashMap<>();
 
     static {
-        isWindows = PlatformUtil.isWindows();
-        isMacOSX  = PlatformUtil.isMac();
-        isLinux   = PlatformUtil.isLinux();
-        isIOS     = PlatformUtil.isIOS();
-        isAndroid = PlatformUtil.isAndroid();
-        isEmbedded = PlatformUtil.isEmbedded();
+        Platform platform = JmeSystem.getPlatform();
+        isWindows = platform.getOs() == Platform.Os.Windows;
+        isMacOSX  = platform.getOs() == Platform.Os.MacOS;
+        isLinux   = platform.getOs() == Platform.Os.Linux;
+        isIOS     = platform.getOs() == Platform.Os.iOS;
+        isAndroid = platform.getOs() == Platform.Os.Android;
         int[] tempCacheLayoutSize = {0x10000};
-
-        @SuppressWarnings("removal")
-        boolean tmp = AccessController.doPrivileged(
-                (PrivilegedAction<Boolean>) () -> {
-                    NativeLibLoader.loadLibrary("javafx_font");
-                    String dbg = System.getProperty("prism.debugfonts", "");
-                    boolean debug = "true".equals(dbg);
-                    jreFontDir = getJDKFontDir();
-                    String s = System.getProperty("com.sun.javafx.fontSize");
-                    systemFontSize = -1f;
-                    if (s != null) {
-                        try {
-                            systemFontSize = Float.parseFloat(s);
-                        } catch (NumberFormatException nfe) {
-                            System.err.println("Cannot parse font size '"
-                                    + s + "'");
-                        }
-                    }
-                    s = System.getProperty("prism.subpixeltext", "on");
-                    if (s.indexOf("on") != -1 || s.indexOf("true") != -1) {
-                        subPixelMode = SUB_PIXEL_ON;
-                    }
-                    if (s.indexOf("native") != -1) {
-                        subPixelMode |= SUB_PIXEL_NATIVE | SUB_PIXEL_ON;
-                    }
-                    if (s.indexOf("vertical") != -1) {
-                        subPixelMode |= SUB_PIXEL_Y | SUB_PIXEL_NATIVE | SUB_PIXEL_ON;
-                    }
-
-                    s = System.getProperty("prism.fontSizeLimit");
-                    if (s != null) {
-                        try {
-                            fontSizeLimit = Float.parseFloat(s);
-                            if (fontSizeLimit <= 0) {
-                                fontSizeLimit = Float.POSITIVE_INFINITY;
-                            }
-                        } catch (NumberFormatException nfe) {
-                            System.err.println("Cannot parse fontSizeLimit '" + s + "'");
-                        }
-                    }
-
-                    boolean lcdTextOff = isMacOSX || isIOS || isAndroid || isEmbedded;
-                    String defLCDProp = lcdTextOff ? "false" : "true";
-                    String lcdProp = System.getProperty("prism.lcdtext", defLCDProp);
-                    lcdEnabled = lcdProp.equals("true");
-
-                    s = System.getProperty("prism.cacheLayoutSize");
-                    if (s != null) {
-                        try {
-                            tempCacheLayoutSize[0] = Integer.parseInt(s);
-                            if (tempCacheLayoutSize[0] < 0) {
-                                tempCacheLayoutSize[0] = 0;
-                            }
-                        } catch (NumberFormatException nfe) {
-                            System.err.println("Cannot parse cache layout size '"
-                                    + s + "'");
-                        }
-                    }
-
-                    return debug;
-                }
-        );
-        debugFonts = tmp;
+        systemFontSize = -1f;
+        debugFonts = true;
         cacheLayoutSize = tempCacheLayoutSize[0];
-    }
-
-    private static String getJDKFontDir() {
-        return System.getProperty("java.home","") + File.separator +
-                "lib" + File.separator + "fonts";
-    }
-
-    private static String getNativeFactoryName() {
-        if (isWindows) {
-            return DW_FACTORY;
-        }
-        if (isMacOSX || isIOS) {
-            return CT_FACTORY;
-        }
-        if (isLinux || isAndroid) {
-            return FT_FACTORY;
-        }
-        return null;
     }
 
     public static float getFontSizeLimit() {
@@ -154,46 +63,13 @@ public abstract class PrismFontFactory implements FontFactory {
         if (theFontFactory != null) {
             return theFontFactory;
         }
-        String factoryClass = getNativeFactoryName();
-        if (factoryClass == null) {
-            throw new InternalError("cannot find a native font factory");
-        }
-        if (debugFonts) {
-            System.err.println("Loading FontFactory " + factoryClass);
-            if (subPixelMode != 0) {
-                String s = "Subpixel: enabled";
-                if ((subPixelMode & SUB_PIXEL_Y) != 0) {
-                    s += ", vertical";
-                }
-                if ((subPixelMode & SUB_PIXEL_NATIVE) != 0) {
-                    s += ", native";
-                }
-                System.err.println(s);
-            }
-        }
-        theFontFactory = getFontFactory(factoryClass);
-        if (theFontFactory == null) {
-            throw new InternalError("cannot load font factory: "+ factoryClass);
-        }
+        theFontFactory = null;// TODO
         return theFontFactory;
     }
 
-    private static synchronized PrismFontFactory getFontFactory(String factoryClass) {
-        try {
-            Class<?> clazz = Class.forName(factoryClass);
-            Method mid = clazz.getMethod("getFactory", (Class[])null);
-            return (PrismFontFactory)mid.invoke(null);
-        } catch (Throwable t) {
-            if (debugFonts) {
-                System.err.println("Loading font factory failed "+ factoryClass);
-            }
-        }
-        return null;
-    }
+    private HashMap<String, FontFileImpl> fileNameToFontResourceMap = new HashMap<>();
 
-    private HashMap<String, PrismFontFile> fileNameToFontResourceMap = new HashMap<>();
-
-    protected abstract PrismFontFile
+    protected abstract FontFileImpl
           createFontFile(String name, String filename,
                          int fIndex, boolean register,
                          boolean embedded,
@@ -205,15 +81,15 @@ public abstract class PrismFontFactory implements FontFactory {
     // For an caller who has recognised a TTC file and wants to create
     // the instances one at a time so as to have visibility into the
     // contents of the TTC. Onus is on caller to enumerate all the fonts.
-    private PrismFontFile createFontResource(String filename, int index) {
+    private FontFileImpl createFontResource(String filename, int index) {
         return createFontResource(null, filename, index,
                                   true, false, false, false);
     }
 
-    private PrismFontFile createFontResource(String name,
-                                             String filename, int index,
-                                             boolean register, boolean embedded,
-                                             boolean copy, boolean tracked) {
+    private FontFileImpl createFontResource(String name,
+                                            String filename, int index,
+                                            boolean register, boolean embedded,
+                                            boolean copy, boolean tracked) {
         String key = (filename+index).toLowerCase();
         /*
          * macOS: we need to load unique fonts for regular and bold.
@@ -222,7 +98,7 @@ public abstract class PrismFontFactory implements FontFactory {
         if (isMacOSX && (name != null) && name.startsWith("System ")) {
             key += name;
         }
-        PrismFontFile fr = fileNameToFontResourceMap.get(key);
+        FontFileImpl fr = fileNameToFontResourceMap.get(key);
         if (fr != null) {
             return fr;
         }
@@ -258,7 +134,7 @@ public abstract class PrismFontFactory implements FontFactory {
    public int findFontIndex(String targetName, String filename) {
 
          try {
-             PrismFontFile fr = createFontFile(null, filename, 0, false, false, false, false);
+             FontFileImpl fr = createFontFile(null, filename, 0, false, false, false, false);
 
              int cnt = fr.getFontCount();
              if (cnt == 1 || fr.getFullName().equalsIgnoreCase(targetName)) {
@@ -280,10 +156,9 @@ public abstract class PrismFontFactory implements FontFactory {
          return -1;
    }
 
-    private PrismFontFile createFontResource(String name, String filename) {
-        PrismFontFile[] pffArr =
-            createFontResources(name, filename,
-                                true, false, false, false, true);
+    private FontFileImpl createFontResource(String name, String filename) {
+        FontFileImpl[] pffArr =
+            createFontResources(name, filename, true, false, false, false, true);
         if (pffArr == null || pffArr.length == 0) {
            return null;
         } else {
@@ -303,29 +178,29 @@ public abstract class PrismFontFactory implements FontFactory {
         return pffArr[0];
     }
 
-    private PrismFontFile[] createFontResources(String name, String filename,
-                                                boolean register,
-                                                boolean embedded,
-                                                boolean copy,
-                                                boolean tracked,
-                                                boolean loadAll) {
+    private FontFileImpl[] createFontResources(String name, String filename,
+                                               boolean register,
+                                               boolean embedded,
+                                               boolean copy,
+                                               boolean tracked,
+                                               boolean loadAll) {
 
-        PrismFontFile[] fArr = null;
+        FontFileImpl[] fArr = null;
         if (filename == null) {
             return null;
         }
-        PrismFontFile fr = createFontResource(name, filename, 0, register,
+        FontFileImpl fr = createFontResource(name, filename, 0, register,
                                               embedded, copy, tracked);
         if (fr == null) {
             return null;
         }
         int cnt = (!loadAll) ? 1 : fr.getFontCount();
-        fArr = new PrismFontFile[cnt];
+        fArr = new FontFileImpl[cnt];
         fArr[0] = fr;
         if (cnt == 1) { // Not a TTC, or only requesting one font.
             return fArr;
         }
-        PrismFontFile.FileRefCounter rc = null;
+        FontFileImpl.FileRefCounter rc = null;
         if (copy) {
             rc = fr.createFileRefCounter();
         }
@@ -336,7 +211,6 @@ public abstract class PrismFontFactory implements FontFactory {
                 fr = fileNameToFontResourceMap.get(key);
                 if (fr != null) {
                     fArr[index] = fr;
-                    continue;
                 } else {
                     fr = createFontFile(null, filename, index,
                                         register, embedded,
@@ -383,11 +257,11 @@ public abstract class PrismFontFactory implements FontFactory {
         }
     }
 
-    protected void storeInMap(String name, FontResource resource) {
+    protected void storeInMap(String name, FontFile resource) {
         if (name == null || resource == null) {
             return;
         }
-        if (resource instanceof PrismCompositeFontResource) {
+        if (resource instanceof PrismCompositeFontFile) {
             System.err.println(name + " is a composite " +
                                             resource);
             Thread.dumpStack();
@@ -396,17 +270,17 @@ public abstract class PrismFontFactory implements FontFactory {
         fontResourceMap.put(name.toLowerCase(), resource);
     }
 
-    private ArrayList<WeakReference<PrismFontFile>> tmpFonts;
-    synchronized void addDecodedFont(PrismFontFile fr) {
+    private ArrayList<WeakReference<FontFileImpl>> tmpFonts;
+    synchronized void addDecodedFont(FontFileImpl fr) {
         fr.setIsDecoded(true);
         addTmpFont(fr);
     }
 
-    private synchronized void addTmpFont(PrismFontFile fr) {
+    private synchronized void addTmpFont(FontFileImpl fr) {
         if (tmpFonts == null) {
             tmpFonts = new ArrayList<>();
         }
-        WeakReference<PrismFontFile> ref;
+        WeakReference<FontFileImpl> ref;
         /* Registered fonts are enumerable by the application and are
          * expected to persist until VM shutdown.
          * Other fonts - notably ones temporarily loaded in a web page via
@@ -422,7 +296,7 @@ public abstract class PrismFontFactory implements FontFactory {
         addFileCloserHook();
     }
 
-    synchronized void removeTmpFont(WeakReference<PrismFontFile> ref) {
+    synchronized void removeTmpFont(WeakReference<FontFileImpl> ref) {
         if (tmpFonts != null) {
             tmpFonts.remove(ref);
         }
@@ -430,10 +304,10 @@ public abstract class PrismFontFactory implements FontFactory {
 
     /* familyName is expected to be a physical font family name.
      */
-    public synchronized FontResource getFontResource(String familyName,
-                                                     boolean bold,
-                                                     boolean italic,
-                                                     boolean wantComp) {
+    public synchronized FontFile getFontResource(String familyName,
+                                                 boolean bold,
+                                                 boolean italic,
+                                                 boolean wantComp) {
 
         if (familyName == null || familyName.isEmpty()) {
             return null;
@@ -441,7 +315,7 @@ public abstract class PrismFontFactory implements FontFactory {
 
         String lcFamilyName = familyName.toLowerCase();
         String styleStr = dotStyleStr(bold, italic);
-        FontResource fr;
+        FontFile fr;
 
         fr = lookupResource(lcFamilyName+styleStr, wantComp);
         if (fr != null) {
@@ -461,12 +335,12 @@ public abstract class PrismFontFactory implements FontFactory {
         if (embeddedFonts != null && wantComp) {
             fr = lookupResource(lcFamilyName+styleStr, false);
             if (fr != null) {
-                return new PrismCompositeFontResource(fr, lcFamilyName+styleStr);
+                return new PrismCompositeFontFile(fr, lcFamilyName+styleStr);
             }
-            for (PrismFontFile embeddedFont : embeddedFonts.values()) {
+            for (FontFileImpl embeddedFont : embeddedFonts.values()) {
                 String lcEmFamily = embeddedFont.getFamilyName().toLowerCase();
                 if (lcEmFamily.equals(lcFamilyName)) {
-                    return new PrismCompositeFontResource(embeddedFont,
+                    return new PrismCompositeFontFile(embeddedFont,
                                                         lcFamilyName+styleStr);
                 }
             }
@@ -487,7 +361,7 @@ public abstract class PrismFontFactory implements FontFactory {
                         storeInMap(lcFamilyName+styleStr, fr);
                     }
                     if (wantComp) {  // wrap with fallback support
-                        fr = new PrismCompositeFontResource(fr,
+                        fr = new PrismCompositeFontFile(fr,
                                                        lcFamilyName+styleStr);
                     }
                     return fr;
@@ -501,7 +375,7 @@ public abstract class PrismFontFactory implements FontFactory {
             return null;
         }
 
-        FontResource plainFR = null, boldFR = null,
+        FontFile plainFR = null, boldFR = null,
             italicFR = null, boldItalicFR = null;
         for (String fontName : family) {
             String lcFontName = fontName.toLowerCase();
@@ -519,7 +393,7 @@ public abstract class PrismFontFactory implements FontFactory {
             if (bold == fr.isBold() && italic == fr.isItalic()) {
                 storeInMap(lcFamilyName+styleStr, fr);
                 if (wantComp) {  // wrap with fallback support
-                    fr = new PrismCompositeFontResource(fr,
+                    fr = new PrismCompositeFontFile(fr,
                                                       lcFamilyName+styleStr);
                 }
                 return fr;
@@ -578,7 +452,7 @@ public abstract class PrismFontFactory implements FontFactory {
         if (fr != null) {
             storeInMap(lcFamilyName+styleStr, fr);
             if (wantComp) {  // wrap with fallback support
-                fr = new PrismCompositeFontResource(fr, lcFamilyName+styleStr);
+                fr = new PrismCompositeFontFile(fr, lcFamilyName+styleStr);
             }
         }
         return fr;
@@ -587,7 +461,7 @@ public abstract class PrismFontFactory implements FontFactory {
     @Override
     public synchronized Font createFont(String familyName, boolean bold,
                                           boolean italic, float size) {
-        FontResource fr = null;
+        FontFile fr = null;
         if (familyName != null && !familyName.isEmpty() && !isExcluded(familyName)) {
             Font logFont = LogicalFont.getLogicalFont(familyName, bold, italic, size);
             if (logFont != null) {
@@ -606,7 +480,7 @@ public abstract class PrismFontFactory implements FontFactory {
     @Override
     public synchronized Font createFont(String name, float size) {
 
-        FontResource fr = null;
+        FontFile fr = null;
         if (name != null && !name.isEmpty() && !isExcluded(name)) {
             Font logFont =
                 LogicalFont.getLogicalFont(name, size);
@@ -622,56 +496,20 @@ public abstract class PrismFontFactory implements FontFactory {
         return new PrismFont(fr, fr.getFullName(), size);
     }
 
-    private PrismFontFile getFontResource(String name, String file) {
+    private FontFileImpl getFontResource(String name, String file) {
         /* caller assures file not null */
-        PrismFontFile fr = null;
-        /* Still need decode the dfont (event when coretext is used)
-         * so that JFXFontFont can read it */
-        if (isMacOSX) {
-            DFontDecoder decoder = null;
-            if (name != null) {
-                if (file.endsWith(".dfont")) {
-                    decoder = new DFontDecoder();
-                    try {
-                        decoder.openFile();
-                        decoder.decode(name);
-                        decoder.closeFile();
-                        file = decoder.getFile().getPath();
-                    } catch (Exception e) {
-                        file = null;
-                        decoder.deleteFile();
-                        decoder = null;
-                        if (PrismFontFactory.debugFonts) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-            if (file != null) {
-                fr = createFontResource(name, file);
-            }
-            if (decoder != null) {
-                if (fr != null) {
-                    addDecodedFont(fr);
-                } else {
-                    decoder.deleteFile();
-                }
-            }
-        } else {
-            fr = createFontResource(name, file);
-        }
-        return fr;
+        return createFontResource(name, file);
     }
 
     @Override
     public synchronized Font deriveFont(Font font, boolean bold,
-                                          boolean italic, float size) {
-        FontResource fr = font.getFontResource();
+                                        boolean italic, float size) {
+        FontFile fr = font.getFontResource();
         //TODO honor bold and italic
         return new PrismFont(fr, fr.getFullName(), size);
     }
 
-    private FontResource lookupResource(String lcName, boolean wantComp) {
+    private FontFile lookupResource(String lcName, boolean wantComp) {
         if (wantComp) {
             return compResourceMap.get(lcName);
         } else {
@@ -679,9 +517,9 @@ public abstract class PrismFontFactory implements FontFactory {
         }
     }
 
-    public synchronized FontResource getFontResource(String name, String file,
-                                                     boolean wantComp) {
-        FontResource fr = null;
+    public synchronized FontFile getFontResource(String name, String file,
+                                                 boolean wantComp) {
+        FontFile fr = null;
 
         // First check if the font is already known.
         if (name != null) {
@@ -689,9 +527,9 @@ public abstract class PrismFontFactory implements FontFactory {
 
             // if requesting a wrapped resource, look in the composite map
             // else look in the physical resource map
-            FontResource fontResource = lookupResource(lcName, wantComp);
-            if (fontResource != null) {
-                return fontResource;
+            FontFile fontFile = lookupResource(lcName, wantComp);
+            if (fontFile != null) {
+                return fontFile;
             }
 
             /* We may have registered this as an embedded font.
@@ -701,7 +539,7 @@ public abstract class PrismFontFactory implements FontFactory {
             if (embeddedFonts != null && wantComp) {
                 fr = lookupResource(lcName, false);
                 if (fr != null) {
-                    fr = new PrismCompositeFontResource(fr, lcName);
+                    fr = new PrismCompositeFontFile(fr, lcName);
                 }
                 if (fr != null) {
                     return fr;
@@ -719,7 +557,7 @@ public abstract class PrismFontFactory implements FontFactory {
                 fr = createFontResource(null, fontFile);
                 if (fr != null) {
                     if (wantComp) {
-                        fr = new PrismCompositeFontResource(fr, lcName);
+                        fr = new PrismCompositeFontFile(fr, lcName);
                     }
                     return fr;
                 }
@@ -735,7 +573,7 @@ public abstract class PrismFontFactory implements FontFactory {
             fr = getFontResource(name, file);
             if (fr != null) {
                 if (wantComp) {
-                    fr = new PrismCompositeFontResource(fr, name.toLowerCase());
+                    fr = new PrismCompositeFontFile(fr, name.toLowerCase());
                 }
                 return fr;
             }
@@ -761,7 +599,7 @@ public abstract class PrismFontFactory implements FontFactory {
 
     /* To be called only by methods that already inited the maps
      */
-    synchronized private FontResource
+    synchronized private FontFile
         getFontResourceByFileName(String file, boolean wantComp) {
 
         if (fontToFileMap.size() <= 1) {
@@ -776,126 +614,80 @@ public abstract class PrismFontFactory implements FontFactory {
          * be used in a context where we know its a TTF (or OTF) file.
          */
         String name = fileToFontMap.get(file.toLowerCase()); // basename
-        FontResource fontResource = null;
+        FontFile fontFile = null;
         if (name == null) {
             // We should not normally get here with a name that we did
             // not find from the platform but any EUDC font is in the
             // list of linked fonts but it is not enumerated by Windows.
             // So we need to open the file and load it as requested.
-           fontResource = createFontResource(file, 0);
-           if (fontResource != null) {
-               String lcName = fontResource.getFullName().toLowerCase();
-               storeInMap(lcName, fontResource);
-               // Checking wantComp, alhough the linked/fallback font
+           fontFile = createFontResource(file, 0);
+           if (fontFile != null) {
+               String lcName = fontFile.getFullName().toLowerCase();
+               storeInMap(lcName, fontFile);
+               // Checking wantComp, although the linked/fallback font
                // case doesn't use this.
                 if (wantComp) {
-                    fontResource =
-                        new PrismCompositeFontResource(fontResource, lcName);
+                    fontFile =
+                        new PrismCompositeFontFile(fontFile, lcName);
                 }
            }
         } else {
             String lcName = name.toLowerCase();
-            fontResource = lookupResource(lcName, wantComp);
+            fontFile = lookupResource(lcName, wantComp);
 
-            if (fontResource == null) {
+            if (fontFile == null) {
                 String fullPath = findFile(lcName);
                 if (fullPath != null) {
-                    fontResource = getFontResource(name, fullPath);
-                    if (fontResource != null) {
-                        storeInMap(lcName, fontResource);
+                    fontFile = getFontResource(name, fullPath);
+                    if (fontFile != null) {
+                        storeInMap(lcName, fontFile);
                     }
                     if (wantComp) {
                         // wrap with fallback support
-                        fontResource =
-                                new PrismCompositeFontResource(fontResource, lcName);
+                        fontFile =
+                                new PrismCompositeFontFile(fontFile, lcName);
                     }
                 }
             }
         }
-        return fontResource; // maybe null
+        return fontFile; // maybe null
     }
 
     /* To be called only by methods that already inited the maps
      * and checked the font is not already loaded.
      */
-    synchronized private FontResource
+    synchronized private FontFile
         getFontResourceByFullName(String name, boolean wantComp) {
 
         String lcName = name.toLowerCase();
 
-        if (fontToFileMap.size() <= 1) {
-            // Do this even though findFile also fails over to Lucida, as
-            // without this step, we'd create new instances.
-            name = jreDefaultFont;
-        }
-
-        FontResource fontResource = null;
+        FontFile fontFile = null;
         String file = findFile(lcName);
         if (file != null) {
-            fontResource = getFontResource(name, file);
-            if (fontResource != null) {
-                storeInMap(lcName, fontResource);
+            fontFile = getFontResource(name, file);
+            if (fontFile != null) {
+                storeInMap(lcName, fontFile);
                 if (wantComp) {
                     // wrap with fallback support
-                    fontResource =
-                        new PrismCompositeFontResource(fontResource, lcName);
+                    fontFile =
+                        new PrismCompositeFontFile(fontFile, lcName);
                 }
             }
         }
-        return fontResource;
+        return fontFile;
     }
 
-    FontResource getDefaultFontResource(boolean wantComp) {
-        FontResource fontResource = lookupResource(jreDefaultFontLC, wantComp);
-        if (fontResource == null) {
-            fontResource = createFontResource(jreDefaultFont,
-                                              jreFontDir+jreDefaultFontFile);
-            if (fontResource == null) {
-                // Normally use the JRE default font as the last fallback.
-                // If we can't find even that, use any platform font;
-                for (String font : fontToFileMap.keySet()) {
-                    String file = findFile(font); // gets full path
-                    fontResource = createFontResource(jreDefaultFontLC, file);
-                    if (fontResource != null) {
-                        break;
-                    }
-                }
-                if (fontResource == null && isLinux) {
-//                    String path = FontConfigManager.getDefaultFontPath();
-//                    if (path != null) {
-//                        fontResource = createFontResource(jreDefaultFontLC,
-//                                                          path);
-//                    }
-                }
-                if (fontResource == null) {
-                    return null; // We tried really hard!
-                }
-            }
-            storeInMap(jreDefaultFontLC, fontResource);
-            if (wantComp) {  // wrap primary for map key
-                fontResource =
-                    new PrismCompositeFontResource(fontResource,
-                                                 jreDefaultFontLC);
-            }
-        }
-        return fontResource;
+    FontFile getDefaultFontResource(boolean wantComp) {
+        // TODO
+        return null;
     }
 
     private String findFile(String name) {
-
-        if (name.equals(jreDefaultFontLC)) {
-            return jreFontDir+jreDefaultFontFile;
-        }
         getFullNameToFileMap();
         String filename = fontToFileMap.get(name);
         if (isWindows) {
             filename = getPathNameWindows(filename);
         }
-
-        // Caller needs to check for null and explicitly request
-        // the JRE default font, if that is what is needed.
-        // since we don't want the JRE's Lucida font to be the
-        // default for "unknown" fonts.
         return filename;
     }
 
@@ -907,7 +699,7 @@ public abstract class PrismFontFactory implements FontFactory {
      * Eg "arial bold" -> ARIALBD.TTF.
      * For TTC files, there is a mapping for each font in the file.
      */
-    private volatile HashMap<String,String> fontToFileMap = null;
+    private volatile HashMap<String, String> fontToFileMap = null;
 
     /*  TTF/OTF Font File to Font Full Name */
     private HashMap<String,String> fileToFontMap = null;
@@ -1057,7 +849,7 @@ public abstract class PrismFontFactory implements FontFactory {
         for (String file : unmappedFiles) {
             try {
                 int fn = 0;
-                PrismFontFile ttf;
+                FontFileImpl ttf;
                 String fullPath = getPathNameWindows(file);
                 do {
                     ttf = createFontResource(fullPath, fn++);
@@ -1187,7 +979,7 @@ public abstract class PrismFontFactory implements FontFactory {
             // dynamically for each call to this method.
 
             if (embeddedFonts != null) {
-                for (PrismFontFile embeddedFont : embeddedFonts.values()) {
+                for (FontFileImpl embeddedFont : embeddedFonts.values()) {
                     if (!familyNames.contains(embeddedFont.getFamilyName())) {
                         familyNames.add(embeddedFont.getFamilyName());
                     }
@@ -1219,7 +1011,7 @@ public abstract class PrismFontFactory implements FontFactory {
             ArrayList<String> fontNames = new ArrayList<>();
             LogicalFont.addFullNames(fontNames);
             if (embeddedFonts != null) {
-                for (PrismFontFile embeddedFont : embeddedFonts.values()) {
+                for (FontFileImpl embeddedFont : embeddedFonts.values()) {
                     if (!fontNames.contains(embeddedFont.getFullName())) {
                         fontNames.add(embeddedFont.getFullName());
                     }
@@ -1254,7 +1046,7 @@ public abstract class PrismFontFactory implements FontFactory {
         // Next check if its an embedded font family
         if (embeddedFonts != null) {
             ArrayList<String> embeddedFamily = null;
-            for (PrismFontFile embeddedFont : embeddedFonts.values()) {
+            for (FontFileImpl embeddedFont : embeddedFonts.values()) {
                 if (embeddedFont.getFamilyName().equalsIgnoreCase(family)) {
                     if (embeddedFamily == null) {
                         embeddedFamily = new ArrayList<>();
@@ -1277,14 +1069,6 @@ public abstract class PrismFontFactory implements FontFactory {
         }
     }
 
-    public final int getSubPixelMode() {
-        return subPixelMode;
-    }
-
-    public boolean isLCDTextSupported() {
-        return lcdEnabled;
-    }
-
     @Override
     public boolean isPlatformFont(String name) {
         if (name == null) {
@@ -1295,38 +1079,8 @@ public abstract class PrismFontFactory implements FontFactory {
         if (LogicalFont.isLogicalFont(lcName)) {
             return true;
         }
-        if (lcName.startsWith("lucida sans")) {
-            return true;
-        }
         String systemFamily = getSystemFont(LogicalFont.SYSTEM).toLowerCase();
-        if (lcName.startsWith(systemFamily)) {
-            return true;
-        }
-        return false;
-    }
-
-    public static boolean isJreFont(FontResource fr) {
-        String file = fr.getFileName();
-        return file.startsWith(jreFontDir);
-    }
-
-    public static float getLCDContrast() {
-        if (lcdContrast == -1) {
-            if (isWindows) {
-                lcdContrast = getLCDContrastWin32() / 1000f;
-            } else {
-                /* REMIND: When using CoreText it likely already applies gamma
-                 * correction to the glyph images. The current implementation does
-                 * not take this into account when rasterizing the glyph. Thus,
-                 * it is possible gamma correction is been applied twice to the
-                 * final result.
-                 * Consider using "1" for lcdContrast possibly produces visually
-                 * more appealing results (although not strictly correct).
-                 */
-                lcdContrast = 1.3f;
-            }
-        }
-        return lcdContrast;
+        return lcName.startsWith(systemFamily);
     }
 
     private static Thread fileCloser = null;
@@ -1335,13 +1089,13 @@ public abstract class PrismFontFactory implements FontFactory {
         if (fileCloser == null) {
             final Runnable fileCloserRunnable = () -> {
                 if (embeddedFonts != null) {
-                    for (PrismFontFile font : embeddedFonts.values()) {
+                    for (FontFileImpl font : embeddedFonts.values()) {
                         font.disposeOnShutdown();
                     }
                 }
                 if (tmpFonts != null) {
-                    for (WeakReference<PrismFontFile> ref : tmpFonts) {
-                        PrismFontFile font = ref.get();
+                    for (WeakReference<FontFileImpl> ref : tmpFonts) {
+                        FontFileImpl font = ref.get();
                         if (font != null) {
                             font.disposeOnShutdown();
                         }
@@ -1367,7 +1121,7 @@ public abstract class PrismFontFactory implements FontFactory {
         }
     }
 
-    private HashMap<String, PrismFontFile> embeddedFonts;
+    private HashMap<String, FontFileImpl> embeddedFonts;
 
     @Override
     public Font[] loadEmbeddedFont(String name, InputStream fontStream,
@@ -1407,7 +1161,7 @@ public abstract class PrismFontFactory implements FontFactory {
                                        float size,
                                        boolean register,
                                        boolean loadAll) {
-        PrismFontFile[] fr = null;
+        FontFileImpl[] fr = null;
         FontFileWriter fontWriter = new FontFileWriter();
         try {
             // We use a shutdown hook to close all open tmp files
@@ -1489,7 +1243,7 @@ public abstract class PrismFontFactory implements FontFactory {
             return new Font[] { createFont(DEFAULT_FULLNAME, size) };
         }
         addFileCloserHook();
-        FontResource[] frArr =
+        FontFile[] frArr =
           loadEmbeddedFont1(name, path, register, false, false, loadAll);
         if (frArr != null && frArr.length > 0) {
             if (size <= 0) {
@@ -1510,7 +1264,7 @@ public abstract class PrismFontFactory implements FontFactory {
      * strong refs by the application are released.
      */
     private void removeEmbeddedFont(String name) {
-        PrismFontFile font = embeddedFonts.get(name);
+        FontFileImpl font = embeddedFonts.get(name);
         if (font == null) {
             return;
         }
@@ -1522,9 +1276,9 @@ public abstract class PrismFontFactory implements FontFactory {
         // the font referenced via some lookup name that applies a style
         // or used the family name, we need to find it and remove all
         // references to it, so it can be collected.
-        Iterator<CompositeFontResource> fi = compResourceMap.values().iterator();
+        Iterator<CompositeFontFile> fi = compResourceMap.values().iterator();
             while (fi.hasNext()) {
-            CompositeFontResource compFont = fi.next();
+            CompositeFontFile compFont = fi.next();
             if (compFont.getSlotResource(0) == font) {
                 fi.remove();
             }
@@ -1542,9 +1296,9 @@ public abstract class PrismFontFactory implements FontFactory {
     }
 
     private synchronized
-        PrismFontFile[] loadEmbeddedFont1(String name, String path,
-                                          boolean register, boolean copy,
-                                          boolean tracked, boolean loadAll) {
+        FontFileImpl[] loadEmbeddedFont1(String name, String path,
+                                         boolean register, boolean copy,
+                                         boolean tracked, boolean loadAll) {
 
         ++numEmbeddedFonts;
         /*
@@ -1557,7 +1311,7 @@ public abstract class PrismFontFactory implements FontFactory {
          * to the system its not a platform font so that other pipelines
          * know to reference the file directly.
          */
-        PrismFontFile[] frArr = createFontResources(name, path, register,
+        FontFileImpl[] frArr = createFontResources(name, path, register,
                                                     true, copy, tracked,
                                                     loadAll);
         if (frArr == null || frArr.length == 0) {
@@ -1574,7 +1328,7 @@ public abstract class PrismFontFactory implements FontFactory {
 
         boolean registerEmbedded = true;
         for (int i=0; i<frArr.length; i++) {
-            PrismFontFile fr = frArr[i];
+            FontFileImpl fr = frArr[i];
             String family = fr.getFamilyName();
             if (family == null || family.length() == 0) {
                 return null;
@@ -1583,12 +1337,12 @@ public abstract class PrismFontFactory implements FontFactory {
             if (fullname == null || fullname.length() == 0) {
                 return null;
             }
-            String psname = fr.getPSName();
+            String psname = fr.getPostscriptName();
             if (psname == null || psname.length() == 0) {
                 return null;
             }
 
-            FontResource resource = embeddedFonts.get(fullname);
+            FontFile resource = embeddedFonts.get(fullname);
             if (resource != null && fr.equals(resource)) {
                 /* Do not register the same font twice in the OS */
                 registerEmbedded = false;
@@ -1631,7 +1385,7 @@ public abstract class PrismFontFactory implements FontFactory {
         }
 
         for (int i=0; i<frArr.length; i++) {
-            PrismFontFile fr = frArr[i];
+            FontFileImpl fr = frArr[i];
             String family = fr.getFamilyName();
             String fullname = fr.getFullName();
             removeEmbeddedFont(fullname);
@@ -1687,14 +1441,6 @@ public abstract class PrismFontFactory implements FontFactory {
                                         familyToFontListMap,
                                         Locale.ENGLISH);
 
-                if (debugFonts) {
-                    System.err.println("Windows Locale ID=" + getSystemLCID());
-                    logFontInfo(" *** WINDOWS FONTS BEFORE RESOLVING",
-                                tmpFontToFileMap,
-                                fontToFamilyNameMap,
-                                familyToFontListMap);
-                }
-
                 resolveWindowsFonts(tmpFontToFileMap,
                                     fontToFamilyNameMap,
                                     familyToFontListMap);
@@ -1734,7 +1480,7 @@ public abstract class PrismFontFactory implements FontFactory {
                         fontToFamilyNameMap,
                         familyToFontListMap,
                         Locale.ENGLISH);
-           } else { /* unrecognised OS */
+            } else { /* unrecognised OS */
                 fontToFileMap = tmpFontToFileMap;
                 return fontToFileMap;
             }
@@ -1752,7 +1498,6 @@ public abstract class PrismFontFactory implements FontFactory {
                 populateFontFileNameMapGeneric(
                        AndroidFontFinder.getSystemFontsDir());
             }
-            populateFontFileNameMapGeneric(jreFontDir);
 
 //             for (String keyName : fontToFileMap.keySet()) {
 //               System.out.println("font="+keyName+" file="+ fontToFileMap.get(keyName));
@@ -1808,7 +1553,7 @@ public abstract class PrismFontFactory implements FontFactory {
         }
     }
 
-    void addToMaps(PrismFontFile fr) {
+    void addToMaps(FontFileImpl fr) {
 
         if (fr == null) {
             return;
@@ -1861,7 +1606,7 @@ public abstract class PrismFontFactory implements FontFactory {
                 }
 
                 int index = 0;
-                PrismFontFile fr = createFontResource(path, index++);
+                FontFileImpl fr = createFontResource(path, index++);
                 if (fr == null) {
                     continue;
                 }
@@ -1879,7 +1624,6 @@ public abstract class PrismFontFactory implements FontFactory {
         }
     }
 
-    static native int getLCDContrastWin32();
     private static native float getSystemFontSizeNative();
     private static native String getSystemFontNative();
     private static float systemFontSize;
@@ -1894,14 +1638,6 @@ public abstract class PrismFontFactory implements FontFactory {
                 systemFontSize = MacFontFinder.getSystemFontSize();
             } else if (isAndroid) {
                systemFontSize = AndroidFontFinder.getSystemFontSize();
-            } else if (isEmbedded) {
-                try {
-//                    int screenDPI = Screen.getMainScreen().getResolutionY();
-//                    systemFontSize = screenDPI / 6f; // 12 points
-                } catch (NullPointerException npe) {
-                    // if no screen is defined
-                    systemFontSize = 13f; // same as desktop Linux
-                }
             } else {
                 systemFontSize = 13f; // Gnome uses 13.
             }
@@ -1914,17 +1650,11 @@ public abstract class PrismFontFactory implements FontFactory {
         if (name.equals(LogicalFont.SYSTEM)) {
             if (systemFontFamily == null) {
                 if (isWindows) {
-                    systemFontFamily = getSystemFontNative();
-                    if (systemFontFamily == null) {
-                        systemFontFamily = "Arial"; // play it safe.
-                    }
+                    systemFontFamily = "Arial"; // play it safe.
                 } else if (isMacOSX || isIOS) {
-                    systemFontFamily = MacFontFinder.getSystemFont();
-                    if (systemFontFamily == null) {
-                        systemFontFamily = "Lucida Grande";
-                    }
+                    systemFontFamily = "Lucida Grande";
                 } else if (isAndroid) {
-                   systemFontFamily = AndroidFontFinder.getSystemFont();
+                    systemFontFamily = AndroidFontFinder.getSystemFont();
                 } else {
                     systemFontFamily = "Lucida Sans"; // for now.
                 }
@@ -1936,25 +1666,11 @@ public abstract class PrismFontFactory implements FontFactory {
             return "Times New Roman";
         } else /* if (name.equals(LogicalFont.MONOSPACED)) */ {
             if (monospaceFontFamily == null) {
-                if (isMacOSX) {
-                    /* This code is intentionally commented:
-                     * On the OS X the preferred monospaced font is Monaco,
-                     * although this can be a good choice for most Mac application
-                     * it is not suitable for JavaFX because Monaco does not
-                     * have neither bold nor italic.
-                     */
-//                    monospaceFontFamily = MacFontFinder.getMonospacedFont();
-                }
-            }
-            if (monospaceFontFamily == null) {
                 monospaceFontFamily = "Courier New";
             }
             return monospaceFontFamily;
         }
     }
 
-    /* Called from PrismFontFile which caches the return value */
-    static native short getSystemLCID();
-
-    public abstract FontFallbackInfo getFallbacks(FontResource primaryResource);
+    public abstract FontFallbackInfo getFallbacks(FontFile primaryResource);
 }

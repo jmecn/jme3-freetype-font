@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * resources which are available as well as providing the implementation
  * of the resource.
  */
-public class LogicalFont implements CompositeFontResource {
+public class LogicalFont implements CompositeFontFile {
 
     public static final String SYSTEM     = "System";
     public static final String SERIF      = "Serif";
@@ -161,32 +161,32 @@ public class LogicalFont implements CompositeFontResource {
         }
     }
 
-    private FontResource slot0FontResource;
+    private FontFile slot0FontFile;
 
-    private FontResource getSlot0Resource() {
-        if (slot0FontResource == null) {
+    private FontFile getSlot0Resource() {
+        if (slot0FontFile == null) {
             PrismFontFactory factory = PrismFontFactory.getFontFactory();
             if (physicalFamily != null) {
-                slot0FontResource =  factory.getFontResource(physicalFamily,
+                slot0FontFile =  factory.getFontResource(physicalFamily,
                                                              isBold,
                                                              isItalic, false);
             } else {
-                slot0FontResource = factory.getFontResource(physicalFullName,
+                slot0FontFile = factory.getFontResource(physicalFullName,
                                                             physicalFileName,
                                                             false);
             }
             // Its unlikely but possible that this font isn't installed.
-            if (slot0FontResource == null) {
-                slot0FontResource = factory.getDefaultFontResource(false);
+            if (slot0FontFile == null) {
+                slot0FontFile = factory.getDefaultFontResource(false);
             }
         }
-        return slot0FontResource;
+        return slot0FontFile;
     }
 
     volatile private String[] linkedFontNames;
     volatile private String[] linkedFontFiles;
-    volatile private FontResource[] fallbacks;
-    volatile private FontResource[] nativeFallbacks;
+    volatile private FontFile[] fallbacks;
+    volatile private FontFile[] nativeFallbacks;
 
     private void getLinkedFonts() {
         if (fallbacks == null) {
@@ -223,7 +223,7 @@ public class LogicalFont implements CompositeFontResource {
             i++;
         }
         if (nativeFallbacks != null) {
-            for (FontResource nativeFallback : nativeFallbacks) {
+            for (FontFile nativeFallback : nativeFallbacks) {
                 if (fontName.equalsIgnoreCase(nativeFallback.getFullName())) {
                     return i;
                 }
@@ -241,7 +241,7 @@ public class LogicalFont implements CompositeFontResource {
         }
 
         PrismFontFactory factory = PrismFontFactory.getFontFactory();
-        FontResource fr = factory.getFontResource(fontName, null, false);
+        FontFile fr = factory.getFontResource(fontName, null, false);
         if (fr == null) {
             if (PrismFontFactory.debugFonts) {
                 System.err.println("\t Font name not supported \"" + fontName + "\".");
@@ -257,7 +257,7 @@ public class LogicalFont implements CompositeFontResource {
         return addNativeFallback(fr);
     }
 
-    private int addNativeFallback(FontResource fr) {
+    private int addNativeFallback(FontFile fr) {
         int ns = getNumSlots();
         if (ns >= 0x7E) {
             /* There are 8bits (0xFF) reserved in a glyph code to store the slot
@@ -271,11 +271,11 @@ public class LogicalFont implements CompositeFontResource {
             return -1;
         }
         /* Add the font to the list of native fallbacks */
-        FontResource[] tmp;
+        FontFile[] tmp;
         if (nativeFallbacks == null) {
-            tmp = new FontResource[1];
+            tmp = new FontFile[1];
         } else {
-            tmp = new FontResource[nativeFallbacks.length + 1];
+            tmp = new FontFile[nativeFallbacks.length + 1];
             System.arraycopy(nativeFallbacks, 0, tmp, 0, nativeFallbacks.length);
         }
         tmp[tmp.length - 1] = fr;
@@ -284,7 +284,7 @@ public class LogicalFont implements CompositeFontResource {
         return ns;
     }
 
-    public int addSlotFont(FontResource fr) {
+    public int addSlotFont(FontFile fr) {
         if (fr == null) {
             return -1;
         }
@@ -297,7 +297,7 @@ public class LogicalFont implements CompositeFontResource {
     }
 
     @Override
-    public FontResource getSlotResource(int slot) {
+    public FontFile getSlotResource(int slot) {
         if (slot == 0) {
             return getSlot0Resource();
         } else {
@@ -330,7 +330,7 @@ public class LogicalFont implements CompositeFontResource {
     }
 
     @Override
-    public String getPSName() {
+    public String getPostscriptName() {
         return fullName;
     }
 
@@ -380,18 +380,8 @@ public class LogicalFont implements CompositeFontResource {
     }
 
     @Override
-    public Object getPeer() {
-        return null;
-    }
-
-    @Override
     public boolean isEmbeddedFont() {
         return getSlotResource(0).isEmbeddedFont();
-    }
-
-    @Override
-    public void setPeer(Object peer) {
-        throw new UnsupportedOperationException("Not supported");
     }
 
     @Override
@@ -399,7 +389,7 @@ public class LogicalFont implements CompositeFontResource {
                                 float size, float[] retArr) {
         int slot = (glyphCode >>> 24);
         int slotglyphCode = glyphCode & CompositeGlyphMapper.GLYPHMASK;
-        FontResource slotResource = getSlotResource(slot);
+        FontFile slotResource = getSlotResource(slot);
         return slotResource.getGlyphBoundingBox(slotglyphCode, size, retArr);
    }
 
@@ -407,7 +397,7 @@ public class LogicalFont implements CompositeFontResource {
     public float getAdvance(int glyphCode, float size) {
         int slot = (glyphCode >>> 24);
         int slotglyphCode = glyphCode & CompositeGlyphMapper.GLYPHMASK;
-        FontResource slotResource = getSlotResource(slot);
+        FontFile slotResource = getSlotResource(slot);
         return slotResource.getAdvance(slotglyphCode, size);
     }
 

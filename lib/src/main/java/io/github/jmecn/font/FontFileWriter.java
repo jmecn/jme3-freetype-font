@@ -232,7 +232,7 @@ class FontFileWriter implements FontConstants {
         if (System.getSecurityManager() == null) {
             return true;
         }
-        File f = null;
+        File f;
         boolean hasPerm = false;
         try {
             f = Files.createTempFile("+JXF", ".tmp").toFile();

@@ -6,15 +6,15 @@ public class FontFallbackInfo {
 
    private ArrayList<String> linkedFontFiles;
    private ArrayList<String> linkedFontNames;
-   private ArrayList<FontResource> linkedFonts;
+   private ArrayList<FontFile> linkedFonts;
 
    public FontFallbackInfo() {
       linkedFontFiles = new ArrayList<String>();
       linkedFontNames = new ArrayList<String>();
-      linkedFonts = new ArrayList<FontResource>();
+      linkedFonts = new ArrayList<FontFile>();
    }
 
-   public void add(String name, String file, FontResource font) {
+   public void add(String name, String file, FontFile font) {
        linkedFontNames.add(name);
        linkedFontFiles.add(file);
        linkedFonts.add(font);
@@ -36,7 +36,7 @@ public class FontFallbackInfo {
       return linkedFontFiles.toArray(new String[0]);
    }
 
-   public FontResource[] getFonts() {
-      return linkedFonts.toArray(new FontResource[0]);
+   public FontFile[] getFonts() {
+      return linkedFonts.toArray(new FontFile[0]);
    }
 }

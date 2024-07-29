@@ -10,15 +10,15 @@ import java.util.Map;
  * Wraps a physical font and adds an appropriate fallback resource.
  */
 
-class PrismCompositeFontResource implements CompositeFontResource {
+class PrismCompositeFontFile implements CompositeFontFile {
 
-    private FontResource primaryResource;
-    private FallbackResource fallbackResource; // is a composite too.
+    private FontFile primaryResource;
+    private FallbackFile fallbackResource; // is a composite too.
 
-    PrismCompositeFontResource(FontResource primaryResource,
-                             String lookupName) {
+    PrismCompositeFontFile(FontFile primaryResource,
+                           String lookupName) {
         // remind go through and make the typing better.
-        if (!(primaryResource instanceof PrismFontFile)) {
+        if (!(primaryResource instanceof FontFileImpl)) {
             Thread.dumpStack();
             throw new IllegalStateException("wrong resource type");
         }
@@ -27,7 +27,7 @@ class PrismCompositeFontResource implements CompositeFontResource {
             factory.compResourceMap.put(lookupName, this);
         }
         this.primaryResource = primaryResource;
-        fallbackResource = FallbackResource.getFallbackResource(primaryResource);
+        fallbackResource = FallbackFile.getFallbackResource(primaryResource);
     }
 
     @Override
@@ -44,11 +44,11 @@ class PrismCompositeFontResource implements CompositeFontResource {
     }
 
     @Override
-    public FontResource getSlotResource(int slot) {
+    public FontFile getSlotResource(int slot) {
         if (slot == 0) {
             return primaryResource;
         } else {
-            FontResource fb = fallbackResource.getSlotResource(slot-1);
+            FontFile fb = fallbackResource.getSlotResource(slot-1);
             if (fb != null) {
                 return fb;
             } else {
@@ -63,8 +63,8 @@ class PrismCompositeFontResource implements CompositeFontResource {
     }
 
     @Override
-    public String getPSName() {
-        return primaryResource.getPSName();
+    public String getPostscriptName() {
+        return primaryResource.getPostscriptName();
     }
 
     @Override
@@ -103,16 +103,6 @@ class PrismCompositeFontResource implements CompositeFontResource {
     }
 
     @Override
-    public Object getPeer() {
-        return primaryResource.getPeer();
-    }
-
-    @Override
-    public void setPeer(Object peer) {
-        throw new UnsupportedOperationException("Not supported");
-    }
-
-    @Override
     public boolean isEmbeddedFont() {
         return primaryResource.isEmbeddedFont();
     }
@@ -141,7 +131,7 @@ class PrismCompositeFontResource implements CompositeFontResource {
                                 float size, float[] retArr) {
         int slot = (glyphCode >>> 24);
         int slotglyphCode = glyphCode & CompositeGlyphMapper.GLYPHMASK;
-        FontResource slotResource = getSlotResource(slot);
+        FontFile slotResource = getSlotResource(slot);
         return slotResource.getGlyphBoundingBox(slotglyphCode, size, retArr);
     }
 
@@ -149,7 +139,7 @@ class PrismCompositeFontResource implements CompositeFontResource {
     public float getAdvance(int glyphCode, float size) {
         int slot = (glyphCode >>> 24);
         int slotglyphCode = glyphCode & CompositeGlyphMapper.GLYPHMASK;
-        FontResource slotResource = getSlotResource(slot);
+        FontFile slotResource = getSlotResource(slot);
         return slotResource.getAdvance(slotglyphCode, size);
     }
 
@@ -196,10 +186,10 @@ class PrismCompositeFontResource implements CompositeFontResource {
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof PrismCompositeFontResource)) {
+        if (!(obj instanceof PrismCompositeFontFile)) {
             return false;
         }
-        final PrismCompositeFontResource other = (PrismCompositeFontResource)obj;
+        final PrismCompositeFontFile other = (PrismCompositeFontFile)obj;
         return primaryResource.equals(other.primaryResource);
     }
 

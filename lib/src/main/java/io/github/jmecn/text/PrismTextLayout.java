@@ -9,7 +9,6 @@ import io.github.jmecn.shape.MoveTo;
 import io.github.jmecn.shape.PathElement;
 
 import java.awt.*;
-import java.awt.geom.Path2D;
 import java.text.Bidi;
 import java.text.BreakIterator;
 import java.util.ArrayList;
@@ -921,7 +920,7 @@ public class PrismTextLayout implements TextLayout {
             /* Use GlyphLayout to shape complex text */
             layout.layout(run, font, strike, chars);
         } else {
-            FontResource fr = strike.getFontResource();
+            FontFile fr = strike.getFontResource();
             int start = run.getStart();
             int length = run.getLength();
 
@@ -1422,7 +1421,7 @@ public class PrismTextLayout implements TextLayout {
         float xMax = Float.NEGATIVE_INFINITY;
         float yMax = Float.NEGATIVE_INFINITY;
         float bounds[] = new float[4];
-        FontResource fr = strike.getFontResource();
+        FontFile fr = strike.getFontResource();
         Metrics metrics = strike.getMetrics();
         float size = strike.getSize();
         for (int i = 0; i < lines.length; i++) {
@@ -1484,10 +1483,10 @@ public class PrismTextLayout implements TextLayout {
         TextRun[] runs = line.getRuns();
         if (runs.length == 0) return;
         float bounds[] = new float[4];
-        FontResource defaultFontResource = null;
+        FontFile defaultFontFile = null;
         float size = 0;
         if (strike != null) {
-            defaultFontResource = strike.getFontResource();
+            defaultFontFile = strike.getFontResource();
             size = strike.getSize();
         }
 
@@ -1505,7 +1504,7 @@ public class PrismTextLayout implements TextLayout {
                     int gc = run.getGlyphCode(gi);
                     /* Skip any leading invisible glyphs in the line */
                     if (gc != CharToGlyphMapper.INVISIBLE_GLYPH_ID) {
-                        FontResource fr = defaultFontResource;
+                        FontFile fr = defaultFontFile;
                         if (fr == null) {
                             TextSpan span = run.getTextSpan();
                             Font font = span.getFont();
@@ -1542,7 +1541,7 @@ public class PrismTextLayout implements TextLayout {
                     int gc = run.getGlyphCode(gi);
                     /* Skip any trailing invisible glyphs in the line */
                     if (gc != CharToGlyphMapper.INVISIBLE_GLYPH_ID) {
-                        FontResource fr = defaultFontResource;
+                        FontFile fr = defaultFontFile;
                         if (fr == null) {
                             TextSpan span = run.getTextSpan();
                             Font font = span.getFont();

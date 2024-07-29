@@ -57,12 +57,30 @@ public class FtLibrary implements AutoCloseable {
     }
 
     /**
+     * convert int to 26.6 fixed-point
+     * @param x float
+     * @return 26.6 fixed-point value
+     */
+    public static int float26D6(float x) {
+        return (int)(x * 64f);
+    }
+
+    /**
      * convert int to 16.16 fixed-point
      * @param x int
      * @return 16.16 fixed-point value
      */
     public static int int16D16(int x) {
         return x << 16;
+    }
+
+    /**
+     * convert float to 16.16 fixed-point
+     * @param x float
+     * @return 16.16 fixed-point value
+     */
+    public static int float16D16(int x) {
+        return (int)(x * 65536f);
     }
 
     public static int from26D6(long value) {

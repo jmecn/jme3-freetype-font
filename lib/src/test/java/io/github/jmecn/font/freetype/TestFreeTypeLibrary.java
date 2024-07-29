@@ -38,7 +38,7 @@ class TestFreeTypeLibrary {
             is.close();
 
             face.setPixelSize(0, 16);
-            FtGlyphSlot glyphSlot = face.getGlyph();
+            FtGlyphSlot glyphSlot = face.getGlyphSlot();
             FtGlyphMetrics metrics = glyphSlot.getMetrics();
             FtBitmap bitmap = glyphSlot.getBitmap();
 
@@ -67,7 +67,7 @@ class TestFreeTypeLibrary {
         try (FtLibrary library = new FtLibrary()){
             FtFace face = library.newFace("../font/unifont-15.1.05.otf");
             face.setPixelSize(0, 16);
-            FtGlyphSlot glyphSlot = face.getGlyph();
+            FtGlyphSlot glyphSlot = face.getGlyphSlot();
             FtGlyphMetrics metrics = glyphSlot.getMetrics();
             FtBitmap bitmap = glyphSlot.getBitmap();
 

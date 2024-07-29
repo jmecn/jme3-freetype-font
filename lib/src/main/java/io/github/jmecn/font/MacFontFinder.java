@@ -1,22 +1,10 @@
 package io.github.jmecn.font;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 
 public class MacFontFinder {
-
-    static {
-        @SuppressWarnings("removal")
-        Object dummy = AccessController.doPrivileged(
-                (PrivilegedAction<Void>) () -> {
-                    NativeLibLoader.loadLibrary("javafx_font");
-                    return null;
-                }
-        );
-    }
 
     private static final int SystemFontType = 2; /*kCTFontSystemFontType*/
     private static final int MonospacedFontType = 1; /*kCTFontUserFixedPitchFontType*/
@@ -56,12 +44,6 @@ public class MacFontFinder {
             String name = fontData[i++];
             String family = fontData[i++];
             String file = fontData[i++];
-
-            if (PrismFontFactory.debugFonts) {
-                System.err.println("[MacFontFinder] Name=" + name);
-                System.err.println("\tFamily=" + family);
-                System.err.println("\tFile=" + file);
-            }
 
             if (name == null || family == null || file == null) {
                 continue;

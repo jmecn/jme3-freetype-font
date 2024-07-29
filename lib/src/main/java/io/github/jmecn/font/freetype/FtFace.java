@@ -24,13 +24,13 @@ public class FtFace implements AutoCloseable {
     static Logger logger = LoggerFactory.getLogger(FtFace.class);
 
     private final FT_Face face;
-    private FtGlyphSlot glyph;
+    private FtGlyphSlot glyphSlot;
     private FtSize size;
     private boolean isClosed;
 
     public FtFace(long address) {
         this.face = FT_Face.create(address);
-        this.glyph = new FtGlyphSlot(face.glyph());
+        this.glyphSlot = new FtGlyphSlot(face.glyph());
         this.isClosed = false;
     }
 
@@ -179,11 +179,11 @@ public class FtFace implements AutoCloseable {
         ok( FT_Render_Glyph(face.glyph(), renderMode) );
     }
 
-    public FtGlyphSlot getGlyph() {
-        if (glyph == null) {
-            glyph = new FtGlyphSlot(face.glyph());
+    public FtGlyphSlot getGlyphSlot() {
+        if (glyphSlot == null) {
+            glyphSlot = new FtGlyphSlot(face.glyph());
         }
-        return glyph;
+        return glyphSlot;
     }
 
     public FtSize getSize() {

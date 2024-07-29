@@ -22,7 +22,7 @@ abstract class CMap {
 
     private static final int MAX_CODE_POINTS = 0x10ffff;
 
-    static CMap initialize(PrismFontFile font) {
+    static CMap initialize(FontFileImpl font) {
 
         CMap cmap = null;
 

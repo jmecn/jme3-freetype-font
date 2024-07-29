@@ -1,15 +1,12 @@
 package io.github.jmecn.font;
 
-import java.awt.*;
-import java.awt.geom.Path2D;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.jme3.math.Vector2f;
 import io.github.jmecn.math.BaseTransform;
-import io.github.jmecn.text.GlyphList;
 
-public abstract class PrismFontStrike<T extends PrismFontFile> implements FontStrike {
+public abstract class PrismFontStrike<T extends FontFileImpl> implements FontStrike {
     private DisposerRecord disposer;
     private T fontResource;
     private Map<Integer, Glyph> glyphMap = new HashMap<>();
@@ -27,9 +24,7 @@ public abstract class PrismFontStrike<T extends PrismFontFile> implements FontSt
         this.fontResource = fontResource;
         this.size = size;
         this.desc = desc;
-        PrismFontFactory factory = PrismFontFactory.getFontFactory();
-        boolean lcdEnabled = factory.isLCDTextSupported();
-        this.aaMode = lcdEnabled ? aaMode : FontResource.AA_GREYSCALE;
+        this.aaMode = FontFile.AA_GREYSCALE;
         if (tx.isTranslateOrIdentity()) {
             transform = BaseTransform.IDENTITY_TRANSFORM;
         } else {
@@ -115,7 +110,7 @@ public abstract class PrismFontStrike<T extends PrismFontFile> implements FontSt
 
     @Override
     public int getQuantizedPosition(Vector2f point) {
-        if (aaMode == FontResource.AA_GREYSCALE) {
+        if (aaMode == FontFile.AA_GREYSCALE) {
             /* No subpixel position */
             point.x = Math.round(point.x);
         } else {
@@ -156,38 +151,6 @@ public abstract class PrismFontStrike<T extends PrismFontFile> implements FontSt
             glyphMap.put(glyphCode, glyph);
         }
         return glyph;
-    }
-
-    protected abstract Path2D createGlyphOutline(int glyphCode);
-
-    @Override
-    public Shape getOutline(GlyphList gl, BaseTransform transform) {
-//        Path2D result = new Path2D();
-//        getOutline(gl, transform, result);
-//        return result;
-        return null;
-    }
-
-    void getOutline(GlyphList gl, BaseTransform transform, Path2D p) {
-        p.reset();
-        if (gl == null) {
-            return;
-        }
-        if (transform == null) {
-            transform = BaseTransform.IDENTITY_TRANSFORM;
-        }
-//        Affine2D t = new Affine2D();
-//        for (int i = 0; i < gl.getGlyphCount(); i++) {
-//            int glyphCode = gl.getGlyphCode(i);
-//            if (glyphCode != CharToGlyphMapper.INVISIBLE_GLYPH_ID) {
-//                Shape gp = createGlyphOutline(glyphCode);
-//                if (gp != null) {
-//                    t.setTransform(transform);
-//                    t.translate(gl.getPosX(i), gl.getPosY(i));
-//                    p.append(gp.getPathIterator(t), false);
-//                }
-//            }
-//        }
     }
 
     @Override

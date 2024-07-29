@@ -14,7 +14,7 @@ import io.github.jmecn.font.FontFileReader.Buffer;
 import io.github.jmecn.math.BaseTransform;
 import io.github.jmecn.text.RectBounds;
 
-public abstract class PrismFontFile implements FontResource, FontConstants {
+public abstract class FontFileImpl implements FontFile, FontConstants {
 
     // TrueType fonts can have multiple names, most notably split up by
     // platform and locale. Whilst fonts that have different names for
@@ -39,7 +39,7 @@ public abstract class PrismFontFile implements FontResource, FontConstants {
     //
     String familyName;           /* Family font name (English) */
     protected String fullName;   /* Full font name (English)   */
-    String psName;               /* PostScript font name       */
+    String postscriptName;               /* PostScript font name       */
     String localeFamilyName;
     String localeFullName;
     String styleName;
@@ -63,9 +63,9 @@ public abstract class PrismFontFile implements FontResource, FontConstants {
      */
     Map<FontStrikeDesc, WeakReference<PrismFontStrike>> strikeMap = new ConcurrentHashMap<>();
 
-    protected PrismFontFile(String name, String filename, int fIndex,
-                          boolean register, boolean embedded,
-                          boolean copy, boolean tracked) throws Exception {
+    protected FontFileImpl(String name, String filename, int fIndex,
+                           boolean register, boolean embedded,
+                           boolean copy, boolean tracked) throws Exception {
         this.filename = filename;
         this.isRegistered = register;
         this.isEmbedded = embedded;
@@ -74,10 +74,10 @@ public abstract class PrismFontFile implements FontResource, FontConstants {
         init(name, fIndex);
     }
 
-    WeakReference<PrismFontFile> createFileDisposer(PrismFontFactory factory,
-                                                    FileRefCounter rc) {
+    WeakReference<FontFileImpl> createFileDisposer(PrismFontFactory factory,
+                                                   FileRefCounter rc) {
         FileDisposer disposer = new FileDisposer(filename, isTracked, rc);
-        WeakReference<PrismFontFile> ref = Disposer.addRecord(this, disposer);
+        WeakReference<FontFileImpl> ref = Disposer.addRecord(this, disposer);
         disposer.setFactory(factory, ref);
         return ref;
     }
@@ -178,7 +178,7 @@ public abstract class PrismFontFile implements FontResource, FontConstants {
         boolean isTracked;
         FileRefCounter refCounter;
         PrismFontFactory factory;
-        WeakReference<PrismFontFile> refKey;
+        WeakReference<FontFileImpl> refKey;
 
         public FileDisposer(String fileName, boolean isTracked,
                             FileRefCounter rc) {
@@ -188,7 +188,7 @@ public abstract class PrismFontFile implements FontResource, FontConstants {
         }
 
         public void setFactory(PrismFontFactory factory,
-                               WeakReference<PrismFontFile> refKey) {
+                               WeakReference<FontFileImpl> refKey) {
             this.factory = factory;
             this.refKey = refKey;
         }
@@ -257,11 +257,11 @@ public abstract class PrismFontFile implements FontResource, FontConstants {
     }
 
     @Override
-    public String getPSName() {
-        if (psName == null) {
-            psName = fullName;
+    public String getPostscriptName() {
+        if (postscriptName == null) {
+            postscriptName = fullName;
         }
-        return psName;
+        return postscriptName;
     }
 
     @Override
@@ -303,14 +303,10 @@ public abstract class PrismFontFile implements FontResource, FontConstants {
         return strikeMap;
     }
 
-    protected abstract PrismFontStrike createStrike(float size,
-                                                    BaseTransform transform,
-                                                    int aaMode,
-                                                    FontStrikeDesc desc);
+    protected abstract PrismFontStrike createStrike(float size, BaseTransform transform, int aaMode, FontStrikeDesc desc);
 
     @Override
-    public FontStrike getStrike(float size, BaseTransform transform,
-                                int aaMode) {
+    public FontStrike getStrike(float size, BaseTransform transform, int aaMode) {
         FontStrikeDesc desc = new FontStrikeDesc(size, transform, aaMode);
         WeakReference<PrismFontStrike> ref = strikeMap.get(desc);
         PrismFontStrike strike = null;
@@ -373,17 +369,6 @@ public abstract class PrismFontFile implements FontResource, FontConstants {
 
     protected boolean isCFF() {
         return isCFF;
-    }
-
-    private Object peer;
-    @Override
-    public Object getPeer() {
-        return peer;
-    }
-
-    @Override
-    public void setPeer(Object peer) {
-        this.peer = peer;
     }
 
     int getTableLength(int tag) {
@@ -686,15 +671,13 @@ public abstract class PrismFontFile implements FontResource, FontConstants {
             //usBreakChar           USHORT     92
             //usMaxContext          USHORT     94
 
-            Buffer os_2Table = filereader.readBlock(os2_DE.offset,
-                                                    os2_DE.length);
+            Buffer os_2Table = filereader.readBlock(os2_DE.offset, os2_DE.length);
             int fsSelection = os_2Table.getChar(62) & 0xffff;
             isItalic = (fsSelection & fsSelectionItalicBit) != 0;
             isBold   = (fsSelection & fsSelectionBoldBit) != 0;
         } else {
             DirectoryEntry headDE = getDirectoryEntry(headTag);
-            Buffer headTable = filereader.readBlock(headDE.offset,
-                                                    headDE.length);
+            Buffer headTable = filereader.readBlock(headDE.offset, headDE.length);
             short macStyleBits = headTable.getShort(44);
             isItalic = (macStyleBits & MACSTYLE_ITALIC_BIT) != 0;
             isBold = (macStyleBits & MACSTYLE_BOLD_BIT) != 0;
@@ -855,14 +838,14 @@ public abstract class PrismFontFile implements FontResource, FontConstants {
 
                 case PS_NAME_ID:
 
-                    if (psName == null) {
+                    if (postscriptName == null) {
                         buffer.get(namePtr, name, 0, nameLen);
                         if (platformID == MAC_PLATFORM_ID) {
                             enc = "US-ASCII";
                         } else {
                             enc = "UTF-16BE";
                         }
-                        psName = new String(name, 0, nameLen, enc);
+                        postscriptName = new String(name, 0, nameLen, enc);
                     }
                     break;
 
@@ -1138,11 +1121,7 @@ public abstract class PrismFontFile implements FontResource, FontConstants {
     static short nameLocaleID = getSystemLCID();
 
     private static short getSystemLCID() {
-        if (PrismFontFactory.isWindows) {
-            return PrismFontFactory.getSystemLCID();
-        } else {
-            return getLCIDFromLocale(Locale.getDefault());
-        }
+        return getLCIDFromLocale(Locale.getDefault());
     }
 
     private OpenTypeGlyphMapper mapper = null;
@@ -1369,10 +1348,10 @@ public abstract class PrismFontFile implements FontResource, FontConstants {
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof PrismFontFile)) {
+        if (!(obj instanceof FontFileImpl)) {
             return false;
         }
-        final PrismFontFile other = (PrismFontFile)obj;
+        final FontFileImpl other = (FontFileImpl)obj;
         return filename.equals(other.filename) && fullName.equals(other.fullName);
     }
 

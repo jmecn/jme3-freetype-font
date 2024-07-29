@@ -2,7 +2,7 @@ package io.github.jmecn.font;
 
 public class PrismMetrics implements Metrics {
 
-    PrismFontFile fontResource;
+    FontFileImpl fontResource;
     float ascent, descent, linegap;
     private float[] styleMetrics;
     float size;
@@ -19,7 +19,7 @@ public class PrismMetrics implements Metrics {
     static final int METRICS_TOTAL = 9;
 
     PrismMetrics(float ascent, float descent, float linegap,
-               PrismFontFile fontResource, float size) {
+                 FontFileImpl fontResource, float size) {
         this.ascent = ascent;
         this.descent = descent;
         this.linegap = linegap;

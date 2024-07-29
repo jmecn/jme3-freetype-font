@@ -10,11 +10,10 @@ import java.util.Map;
  *
  * @author yanmaoyuan
  */
-public interface FontResource {
+public interface FontFile {
 
     /* Corresponds to FontSmoothingType enum values */
-    public static final int AA_GREYSCALE = 0;
-    public static final int AA_LCD       = 1;
+    int AA_GREYSCALE = 0;
 
     /* Font Features - not public API for now */
     // CSS naming
@@ -53,45 +52,41 @@ public interface FontResource {
     public static final int SS07 = 1 << 21; // Stylistic Set 7
     //Note: the last two bits are reserved for layout. See GlyphLayout.
 
-    public String getFullName();
+    String getFullName();
 
-    public String getPSName();
+    String getPostscriptName();
 
-    public String getFamilyName();
+    String getFamilyName();
 
-    public String getFileName();
+    String getFileName();
 
-    public String getStyleName();
+    String getStyleName();
 
-    public String getLocaleFullName();
+    String getLocaleFullName();
 
-    public String getLocaleFamilyName();
+    String getLocaleFamilyName();
 
-    public String getLocaleStyleName();
+    String getLocaleStyleName();
 
-    public int getFeatures();
+    int getFeatures();
 
-    public boolean isBold();
+    boolean isBold();
 
-    public boolean isItalic();
+    boolean isItalic();
 
-    public float getAdvance(int gc, float size);
+    float getAdvance(int gc, float size);
 
-    public float[] getGlyphBoundingBox(int gc, float size, float[] retArr);
+    float[] getGlyphBoundingBox(int gc, float size, float[] retArr);
 
-    public int getDefaultAAMode();
+    int getDefaultAAMode();
 
-    public CharToGlyphMapper getGlyphMapper();
+    CharToGlyphMapper getGlyphMapper();
 
-    public Map<FontStrikeDesc, WeakReference<FontStrike>> getStrikeMap();
+    Map<FontStrikeDesc, WeakReference<FontStrike>> getStrikeMap();
 
-    public FontStrike getStrike(float size, BaseTransform transform);
-    public FontStrike getStrike(float size, BaseTransform transform,
-                                int aaMode);
-    public Object getPeer();
-    public void setPeer(Object peer);
+    FontStrike getStrike(float size, BaseTransform transform);
+    FontStrike getStrike(float size, BaseTransform transform, int aaMode);
+    boolean isEmbeddedFont();
 
-    public boolean isEmbeddedFont();
-
-    public boolean isColorGlyph(int gc);
+    boolean isColorGlyph(int gc);
 }

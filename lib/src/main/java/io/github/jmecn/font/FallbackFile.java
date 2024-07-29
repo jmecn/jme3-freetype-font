@@ -12,14 +12,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * the same for multiple fonts.
  */
 
-public class FallbackResource implements CompositeFontResource {
+public class FallbackFile implements CompositeFontFile {
 
 
-    FontResource primaryResource;
+    FontFile primaryResource;
     private String[] linkedFontFiles;
     private String[] linkedFontNames;
-    private FontResource[] fallbacks;
-    private FontResource[] nativeFallbacks;
+    private FontFile[] fallbacks;
+    private FontFile[] nativeFallbacks;
     private boolean isBold, isItalic;
     private int aaMode;
     private CompositeGlyphMapper mapper;
@@ -41,38 +41,38 @@ public class FallbackResource implements CompositeFontResource {
      * I hope we should still be able to share these in the global
      * name->font map so its not too wasteful.
      */
-    FallbackResource(FontResource primary) {
+    FallbackFile(FontFile primary) {
         primaryResource = primary;
         aaMode = primaryResource.getDefaultAAMode();
         isBold = primaryResource.isBold();
         isItalic = primaryResource.isItalic();
     }
 
-    static FallbackResource getFallbackResource(FontResource primaryResource) {
-        return new FallbackResource(primaryResource);
+    static FallbackFile getFallbackResource(FontFile primaryResource) {
+        return new FallbackFile(primaryResource);
     }
 
-    FallbackResource(boolean bold, boolean italic, int aaMode) {
+    FallbackFile(boolean bold, boolean italic, int aaMode) {
         this.isBold = bold;
         this.isItalic = italic;
         this.aaMode = aaMode;
     }
 
-    static FallbackResource[] greyFallBackResource = new FallbackResource[4];
-    static FallbackResource[] lcdFallBackResource = new FallbackResource[4];
+    static FallbackFile[] greyFallBackResource = new FallbackFile[4];
+    static FallbackFile[] lcdFallBackResource = new FallbackFile[4];
 
-    static FallbackResource
+    static FallbackFile
         getFallbackResource(boolean bold, boolean italic, int aaMode) {
-        FallbackResource[] arr =
-            (aaMode == FontResource.AA_GREYSCALE) ?
+        FallbackFile[] arr =
+            (aaMode == FontFile.AA_GREYSCALE) ?
             greyFallBackResource : lcdFallBackResource;
         int index = bold ? 1 : 0;
         if (italic) {
             index +=2;
         }
-        FallbackResource font = arr[index];
+        FallbackFile font = arr[index];
         if (font == null) {
-            font = new FallbackResource(bold, italic, aaMode);
+            font = new FallbackFile(bold, italic, aaMode);
             arr[index] = font;
         }
         return font;
@@ -98,7 +98,7 @@ public class FallbackResource implements CompositeFontResource {
     }
 
     @Override
-    public String getPSName() {
+    public String getPostscriptName() {
         return throwException();
     }
 
@@ -150,16 +150,6 @@ public class FallbackResource implements CompositeFontResource {
     }
 
     @Override
-    public Object getPeer() {
-        return null;
-    }
-
-    @Override
-    public void setPeer(Object peer) {
-        throwException();
-    }
-
-    @Override
     public boolean isEmbeddedFont() {
         return false;
     }
@@ -182,7 +172,7 @@ public class FallbackResource implements CompositeFontResource {
             i++;
         }
         if (nativeFallbacks != null) {
-            for (FontResource nativeFallback : nativeFallbacks) {
+            for (FontFile nativeFallback : nativeFallbacks) {
                 if (fontName.equalsIgnoreCase(nativeFallback.getFullName())) {
                     return i;
                 }
@@ -200,7 +190,7 @@ public class FallbackResource implements CompositeFontResource {
         }
 
         PrismFontFactory factory = PrismFontFactory.getFontFactory();
-        FontResource fr = factory.getFontResource(fontName, null, false);
+        FontFile fr = factory.getFontResource(fontName, null, false);
 
         if (fr == null) {
             if (PrismFontFactory.debugFonts) {
@@ -218,7 +208,7 @@ public class FallbackResource implements CompositeFontResource {
     }
 
 
-    private int addNativeFallback(FontResource fr) {
+    private int addNativeFallback(FontFile fr) {
         int ns = getNumSlots();
         if (ns >= 0x7E) {
             /* There are 8bits (0xFF) reserved in a glyph code to store the slot
@@ -232,11 +222,11 @@ public class FallbackResource implements CompositeFontResource {
             return -1;
         }
         /* Add the font to the list of native fallbacks */
-        FontResource[] tmp;
+        FontFile[] tmp;
         if (nativeFallbacks == null) {
-            tmp = new FontResource[1];
+            tmp = new FontFile[1];
         } else {
-            tmp = new FontResource[nativeFallbacks.length + 1];
+            tmp = new FontFile[nativeFallbacks.length + 1];
             System.arraycopy(nativeFallbacks, 0, tmp, 0, nativeFallbacks.length);
         }
         tmp[tmp.length - 1] = fr;
@@ -245,7 +235,7 @@ public class FallbackResource implements CompositeFontResource {
         return ns+1;
     }
 
-    public int addSlotFont(FontResource fr) {
+    public int addSlotFont(FontFile fr) {
         int slot = getSlotForFont(fr.getFullName());
         if (slot >= 0) {
             return slot;
@@ -279,7 +269,7 @@ public class FallbackResource implements CompositeFontResource {
                                 float size, float[] retArr) {
         int slot = (glyphCode >>> 24);
         int slotglyphCode = glyphCode & CompositeGlyphMapper.GLYPHMASK;
-        FontResource slotResource = getSlotResource(slot);
+        FontFile slotResource = getSlotResource(slot);
         return slotResource.getGlyphBoundingBox(slotglyphCode, size, retArr);
     }
 
@@ -287,12 +277,12 @@ public class FallbackResource implements CompositeFontResource {
     public float getAdvance(int glyphCode, float size) {
         int slot = (glyphCode >>> 24);
         int slotglyphCode = glyphCode & CompositeGlyphMapper.GLYPHMASK;
-        FontResource slotResource = getSlotResource(slot);
+        FontFile slotResource = getSlotResource(slot);
         return slotResource.getAdvance(slotglyphCode, size);
     }
 
     @Override
-    public synchronized FontResource getSlotResource(int slot) {
+    public synchronized FontFile getSlotResource(int slot) {
         getLinkedFonts();
         if (slot >= fallbacks.length) {
             slot = slot - fallbacks.length;

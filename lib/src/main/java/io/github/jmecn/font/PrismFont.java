@@ -6,28 +6,28 @@ class PrismFont implements Font {
 
     private String name;
     private float fontSize;
-    protected FontResource fontResource;
+    protected FontFile fontFile;
     private int features;
 
-    PrismFont(FontResource fontResource, String name, float size) {
-        this.fontResource = fontResource;
+    PrismFont(FontFile fontFile, String name, float size) {
+        this.fontFile = fontFile;
         this.name = name;
         this.fontSize = size;
     }
 
     @Override
     public String getFullName() {
-        return fontResource.getFullName();
+        return fontFile.getFullName();
     }
 
     @Override
     public String getFamilyName() {
-        return fontResource.getFamilyName();
+        return fontFile.getFamilyName();
     }
 
     @Override
     public String getStyleName() {
-        return fontResource.getStyleName();
+        return fontFile.getStyleName();
     }
 
     /*
@@ -50,18 +50,18 @@ class PrismFont implements Font {
 
     @Override
     public FontStrike getStrike(BaseTransform transform) {
-        return fontResource.getStrike(fontSize, transform);
+        return fontFile.getStrike(fontSize, transform);
     }
 
     @Override
     public FontStrike getStrike(BaseTransform transform,
                                 int smoothingType) {
-        return fontResource.getStrike(fontSize, transform, smoothingType);
+        return fontFile.getStrike(fontSize, transform, smoothingType);
     }
 
     @Override
-    public FontResource getFontResource() {
-        return fontResource;
+    public FontFile getFontResource() {
+        return fontFile;
     }
 
     @Override
@@ -79,7 +79,7 @@ class PrismFont implements Font {
         // we need to update this method.
         return
             this.fontSize == other.fontSize &&
-            this.fontResource.equals(other.fontResource);
+            this.fontFile.equals(other.fontFile);
     }
 
     private int hash;
@@ -90,7 +90,7 @@ class PrismFont implements Font {
         }
         else {
             hash = 497 + Float.floatToIntBits(fontSize);
-            hash = 71 * hash + fontResource.hashCode();
+            hash = 71 * hash + fontFile.hashCode();
             return hash;
         }
     }

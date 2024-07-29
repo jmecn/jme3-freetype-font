@@ -19,7 +19,7 @@ public class CompositeGlyphMapper extends CharToGlyphMapper {
     private boolean asciiCacheOK;
     private char charToGlyph[]; // Quick lookup
 
-    CompositeFontResource font;
+    CompositeFontFile font;
     CharToGlyphMapper slotMappers[];
 
     /* For now, we'll use a Map to store the char->glyph lookup result.
@@ -30,7 +30,7 @@ public class CompositeGlyphMapper extends CharToGlyphMapper {
      */
     HashMap<Integer, Integer> glyphMap;
 
-    public CompositeGlyphMapper(CompositeFontResource compFont) {
+    public CompositeGlyphMapper(CompositeFontFile compFont) {
         font = compFont;
         missingGlyph = 0; // TrueType font standard, avoids lookup.
         glyphMap = new HashMap<>();

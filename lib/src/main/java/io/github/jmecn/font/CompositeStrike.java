@@ -2,14 +2,10 @@ package io.github.jmecn.font;
 
 import com.jme3.math.Vector2f;
 import io.github.jmecn.math.BaseTransform;
-import io.github.jmecn.text.GlyphList;
-
-import java.awt.*;
-import java.awt.geom.Path2D;
 
 public class CompositeStrike implements FontStrike {
 
-    private CompositeFontResource fontResource;
+    private CompositeFontFile fontResource;
     private float size;
     private int aaMode;
     BaseTransform transform;
@@ -39,7 +35,7 @@ public class CompositeStrike implements FontStrike {
         }
     }
 
-    CompositeStrike(CompositeFontResource fontResource,
+    CompositeStrike(CompositeFontFile fontResource,
                     float size, BaseTransform graphicsTransform, int aaMode,
                     FontStrikeDesc desc) {
 
@@ -60,12 +56,7 @@ public class CompositeStrike implements FontStrike {
 
     @Override
     public int getAAMode() {
-        PrismFontFactory factory = PrismFontFactory.getFontFactory();
-        if (factory.isLCDTextSupported()) {
-            return this.aaMode;
-        } else {
-            return FontResource.AA_GREYSCALE;
-        }
+        return FontFile.AA_GREYSCALE;
     }
 
     /**
@@ -80,7 +71,7 @@ public class CompositeStrike implements FontStrike {
     public FontStrike getStrikeSlot(int slot) {
         if (slot == 0) {
             if (slot0Strike == null) {
-                FontResource slot0Resource = fontResource.getSlotResource(0);
+                FontFile slot0Resource = fontResource.getSlotResource(0);
                 slot0Strike = slot0Resource.getStrike(size, transform,
                                                       getAAMode());
             }
@@ -96,7 +87,7 @@ public class CompositeStrike implements FontStrike {
                 strikeSlots = tmp;
             }
             if (strikeSlots[slot] == null) {
-                FontResource slotResource = fontResource.getSlotResource(slot);
+                FontFile slotResource = fontResource.getSlotResource(slot);
                 if (slotResource != null) {
                     strikeSlots[slot] = slotResource.getStrike(size, transform,
                                                                getAAMode());
@@ -107,7 +98,7 @@ public class CompositeStrike implements FontStrike {
     }
 
     @Override
-    public FontResource getFontResource() {
+    public FontFile getFontResource() {
         return fontResource;
     }
 
@@ -130,7 +121,7 @@ public class CompositeStrike implements FontStrike {
     @Override
     public Metrics getMetrics() {
         if (metrics == null) {
-            PrismFontFile fr = (PrismFontFile)fontResource.getSlotResource(0);
+            FontFileImpl fr = (FontFileImpl)fontResource.getSlotResource(0);
             metrics = fr.getFontMetrics(size);
         }
         return metrics;
@@ -165,37 +156,5 @@ public class CompositeStrike implements FontStrike {
     @Override
     public int getQuantizedPosition(Vector2f point) {
         return getStrikeSlot(0).getQuantizedPosition(point);
-    }
-
-    @Override
-    public Shape getOutline(GlyphList gl, BaseTransform transform) {
-
-//        Path2D result = new Path2D();
-//        getOutline(gl, transform, result);
-//        return result;
-        return null;
-    }
-
-    void getOutline(GlyphList gl, BaseTransform transform, Path2D p) {
-        p.reset();
-        if (gl == null) {
-            return;
-        }
-        if (transform == null) {
-            transform = BaseTransform.IDENTITY_TRANSFORM;
-        }
-//        Affine2D t = new Affine2D();
-//        for (int i = 0; i < gl.getGlyphCount(); i++) {
-//            int glyphCode = gl.getGlyphCode(i);
-//            if (glyphCode != CharToGlyphMapper.INVISIBLE_GLYPH_ID) {
-//                Glyph glyph = getGlyph(glyphCode);
-//                Shape gp = glyph.getShape();
-//                if (gp != null) {
-//                    t.setTransform(transform);
-//                    t.translate(gl.getPosX(i), gl.getPosY(i));
-//                    p.append(gp.getPathIterator(t), false);
-//                }
-//            }
-//        }
     }
 }

@@ -2,10 +2,10 @@ package io.github.jmecn.font;
 
 public class OpenTypeGlyphMapper extends CharToGlyphMapper {
 
-    PrismFontFile font;
+    FontFileImpl font;
     CMap cmap;
 
-    public OpenTypeGlyphMapper(PrismFontFile font) {
+    public OpenTypeGlyphMapper(FontFileImpl font) {
         this.font = font;
         try {
             cmap = CMap.initialize(font);

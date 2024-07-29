@@ -14,7 +14,7 @@ public interface Font {
     String getStyleName();
     String getName();
     float getSize();
-    FontResource getFontResource();
+    FontFile getFontResource();
     FontStrike getStrike(BaseTransform transform);
     FontStrike getStrike(BaseTransform transform, int smoothingType);
     int getFeatures();

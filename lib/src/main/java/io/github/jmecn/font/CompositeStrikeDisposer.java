@@ -4,12 +4,12 @@ import java.lang.ref.WeakReference;
 
 class CompositeStrikeDisposer implements DisposerRecord {
 
-    FontResource fontResource;
+    FontFile fontFile;
     FontStrikeDesc desc;
     boolean disposed = false;
 
-    public CompositeStrikeDisposer(FontResource font, FontStrikeDesc desc) {
-        this.fontResource = font;
+    public CompositeStrikeDisposer(FontFile font, FontStrikeDesc desc) {
+        this.fontFile = font;
         this.desc = desc;
     }
 
@@ -19,11 +19,11 @@ class CompositeStrikeDisposer implements DisposerRecord {
             // Careful here. The original strike we are collecting
             // may now be superseded in the map, so only remove
             // the desc if the value reference has been cleared
-            WeakReference ref = fontResource.getStrikeMap().get(desc);
+            WeakReference ref = fontFile.getStrikeMap().get(desc);
             if (ref != null) {
                 Object o = ref.get();
                 if (o == null) {
-                    fontResource.getStrikeMap().remove(desc);
+                    fontFile.getStrikeMap().remove(desc);
                 }
             }
 

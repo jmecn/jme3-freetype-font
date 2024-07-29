@@ -110,7 +110,7 @@ public class FtFontGenerator implements AutoCloseable {
 
     private boolean checkForBitmapFont () {
         if (face.hasFixedSizes() && face.hasHorizontal() && face.loadChar(0x20)) {
-            FtGlyphSlot slot = face.getGlyph();
+            FtGlyphSlot slot = face.getGlyphSlot();
             if (slot.getFormat() == 0x62697473) {// 'bits'
                 bitmapped = true;
             }
@@ -200,7 +200,7 @@ public class FtFontGenerator implements AutoCloseable {
         if (bitmapped && (data.getLineHeight() == 0)) {
             for (int c = 32; c < (32 + face.getNumGlyphs()); c++) {
                 if (face.loadChar(c, flags)) {
-                    int lh = FtLibrary.from26D6(face.getGlyph().getMetrics().getHeight());
+                    int lh = FtLibrary.from26D6(face.getGlyphSlot().getMetrics().getHeight());
                     if (lh > data.getLineHeight()) {
                         data.setLineHeight(lh);
                     }
@@ -211,7 +211,7 @@ public class FtFontGenerator implements AutoCloseable {
 
         // determine space width
         if (face.loadChar(' ', flags) || face.loadChar('l', flags)) {
-            data.spaceXadvance = FtLibrary.from26D6(face.getGlyph().getMetrics().getHoriAdvance());
+            data.spaceXadvance = FtLibrary.from26D6(face.getGlyphSlot().getMetrics().getHoriAdvance());
         } else {
             data.spaceXadvance = face.getMaxAdvanceWidth(); // Possibly very wrong.
         }
@@ -219,7 +219,7 @@ public class FtFontGenerator implements AutoCloseable {
         // determine x-height
         for (char xChar : data.xChars) {
             if (face.loadChar(xChar, flags)) {
-                data.xHeight = FtLibrary.from26D6(face.getGlyph().getMetrics().getHeight());
+                data.xHeight = FtLibrary.from26D6(face.getGlyphSlot().getMetrics().getHeight());
                 break;
             }
         }
@@ -228,7 +228,7 @@ public class FtFontGenerator implements AutoCloseable {
         // determine cap height
         for (char capChar : data.capChars) {
             if (face.loadChar(capChar, flags)) {
-                data.capHeight = FtLibrary.from26D6(face.getGlyph().getMetrics().getHeight()) + Math.abs(parameter.getShadowOffsetY());
+                data.capHeight = FtLibrary.from26D6(face.getGlyphSlot().getMetrics().getHeight()) + Math.abs(parameter.getShadowOffsetY());
                 break;
             }
         }
@@ -254,7 +254,7 @@ public class FtFontGenerator implements AutoCloseable {
         for (int i = 0; i < charactersLength; i++) {
             char c = characters[i];
 
-            int height = face.loadChar(c, flags) ? FtLibrary.from26D6(face.getGlyph().getMetrics().getHeight()) : 0;
+            int height = face.loadChar(c, flags) ? FtLibrary.from26D6(face.getGlyphSlot().getMetrics().getHeight()) : 0;
             heights[i] = height;
 
             if (c == '\0') {
@@ -412,7 +412,7 @@ public class FtFontGenerator implements AutoCloseable {
             library.setSdfSpread(parameter.getSpread());
         }
 
-        FtGlyphSlot slot = face.getGlyph();
+        FtGlyphSlot slot = face.getGlyphSlot();
         FtGlyph main = slot.getGlyph();
         FtBitmapGlyph mainGlyph;
         try {
@@ -520,8 +520,8 @@ public class FtFontGenerator implements AutoCloseable {
         glyph.setXOffset(mainGlyph.getLeft());
         glyph.setYOffset((int) baseLine - mainGlyph.getTop());
 
-        glyph.setXAdvance( FtLibrary.from26D6(metrics.getHoriAdvance()) + parameter.getBorderWidth() + parameter.getSpaceX() );
-        glyph.setYAdvance( FtLibrary.from26D6(metrics.getVertAdvance()) + parameter.getBorderWidth() + parameter.getSpaceY() );
+        glyph.setXAdvance(FtLibrary.from26D6(metrics.getHoriAdvance()) + parameter.getBorderWidth() + parameter.getSpaceX() );
+        glyph.setYAdvance(FtLibrary.from26D6(metrics.getVertAdvance()) + parameter.getBorderWidth() + parameter.getSpaceY() );
         glyph.setFixedWidth(face.isFixedWidth());
 
         // bitmap position, for debug purpose
@@ -531,13 +531,13 @@ public class FtFontGenerator implements AutoCloseable {
         // glyph metrics, for debug purpose
         glyph.setHoriBearingX(FtLibrary.from26D6(metrics.getHoriBearingX()));
         glyph.setHoriBearingY(FtLibrary.from26D6(metrics.getHoriBearingY()));
-        glyph.setHoriAdvance( FtLibrary.from26D6(metrics.getHoriAdvance()));
-        glyph.setVertBearingX( FtLibrary.from26D6(metrics.getVertBearingX()));
-        glyph.setVertBearingY( FtLibrary.from26D6(metrics.getVertBearingY()));
-        glyph.setVertAdvance( FtLibrary.from26D6(metrics.getVertAdvance()));
+        glyph.setHoriAdvance(FtLibrary.from26D6(metrics.getHoriAdvance()));
+        glyph.setVertBearingX(FtLibrary.from26D6(metrics.getVertBearingX()));
+        glyph.setVertBearingY(FtLibrary.from26D6(metrics.getVertBearingY()));
+        glyph.setVertAdvance(FtLibrary.from26D6(metrics.getVertAdvance()));
 
         // generator parameter, for debug purpose
-        glyph.setBorderWidth((int) parameter.getBorderWidth());
+        glyph.setBorderWidth(parameter.getBorderWidth());
         glyph.setSpaceX(parameter.getSpaceX());
         glyph.setSpaceY(parameter.getSpaceY());
 
