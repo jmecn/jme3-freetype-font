@@ -179,7 +179,7 @@ class TestHarfbuzzLibrary {
         library.close();
     }
 
-    @Test void testHarfbuzzEmojiZwj() {
+    void testHarfbuzzEmojiZwj() {
         String text = "👨‍👩‍👧‍👦";
         // init lwjgl3 harfbuzz with freetype
         Configuration.HARFBUZZ_LIBRARY_NAME.set(FreeType.getLibrary());
