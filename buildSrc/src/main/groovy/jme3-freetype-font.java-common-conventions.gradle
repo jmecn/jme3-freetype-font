@@ -14,7 +14,7 @@ repositories {
     mavenCentral()
 }
 
-project.ext.jme3Version = '3.7.0-beta1.2.2'
+project.ext.jme3Version = '3.7.0-stable'
 project.ext.lwjglVersion = '3.3.3'
 switch (org.gradle.internal.os.OperatingSystem.current()) {
     case org.gradle.internal.os.OperatingSystem.LINUX:
