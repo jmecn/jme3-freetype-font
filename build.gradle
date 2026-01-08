@@ -1,6 +1,6 @@
 allprojects {
     group = 'io.github.jmecn'
-    version = '0.2.3'
+    version = '0.2.4'
 
     tasks.withType(JavaCompile).tap {
         configureEach {
