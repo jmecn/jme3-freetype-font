@@ -40,13 +40,12 @@ public class TestLemur extends SimpleApplication {
         // 加载字体
         assetManager.registerLocator(".", FileLocator.class);
         assetManager.registerLoader(FtFontLoader.class, "ttf", "otf");
-        FtFontKey key = new FtFontKey("font/NotoSerifSC-Regular.otf", 14, true);
+        FtFontKey key = new FtFontKey("font/NotoSerifSC-Regular.otf", 28, true);
         key.setCharacters(payload);
         key.setRenderMode(RenderMode.SDF);
-        key.setMatDefName("Shaders/Font/SdFont.j3md");
-        key.setUseVertexColor(false);
-        key.setMagFilter(Texture.MagFilter.Bilinear);
-        key.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        key.setSpread(6);
+        //key.setMatDefName("Shaders/Font/SdFont.j3md");
+        key.setUseVertexColor(true);
         BitmapFont fnt = assetManager.loadAsset(key);
 
         System.out.println("Font loaded!");

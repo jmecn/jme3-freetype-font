@@ -27,8 +27,8 @@ void main(void) {
     float dist = texture2D(m_ColorMap, uv).r;
     #endif
 
-    float smoothing = fwidth(dist);
-    //float smoothing = 0.7 * length(vec2(dFdx(dist), dFdy(dist)));
+    //float smoothing = fwidth(dist); // faster
+    float smoothing = 0.7 * length(vec2(dFdx(dist), dFdy(dist)));
     float alpha = smoothstep(glyph_center-smoothing, glyph_center+smoothing, dist);
 
     // Smooth
