@@ -32,4 +32,8 @@ dependencies {
     testImplementation 'ch.qos.logback:logback-classic:1.2.13'
 
     testImplementation "com.ibm.icu:icu4j:75.1"
+
+    testImplementation 'com.simsilica:lemur:1.15.0'
+    testImplementation 'org.codehaus.groovy:groovy:3.0.8'
+    testImplementation 'org.codehaus.groovy:groovy-jsr223:3.0.8'
 }

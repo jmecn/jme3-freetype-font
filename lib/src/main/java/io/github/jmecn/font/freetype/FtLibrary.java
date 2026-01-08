@@ -127,7 +127,7 @@ public class FtLibrary implements AutoCloseable {
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(data.length);
         byteBuffer.put(data);
         byteBuffer.flip();
-        logger.info("load input data:{}", data.length);
+        logger.info("load input data: {} Bytes", data.length);
 
         return newMemoryFace(byteBuffer, faceIndex);
     }
